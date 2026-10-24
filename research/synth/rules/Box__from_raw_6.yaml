@@ -1,0 +1,32 @@
+# Box::from_raw — pattern 6: modify Box contents through a reconstructed Box.
+api: "Box::from_raw"
+pattern_id: 6
+replaceability: Y
+verdict: replaceable
+difficulty: easy
+contract: "Contents are mutated through a Box rebuilt from a raw pointer while the true owner sits in this frame; the safe version mutates through the existing &mut."
+grid:
+  T: [i32, u64, i64, u32]
+  N: [bump, add_to, incr]
+unsafe: |
+  fn $N(p: *mut $T) {
+      unsafe {
+          let mut b = Box::from_raw(p);
+          *b = (*b).wrapping_add(1);
+          std::mem::forget(Box::into_raw(b));
+      }
+  }
+  fn caller_$N() {
+      let mut b = Box::new(7 as $T);
+      let p = Box::into_raw(b);
+      $N(p);
+      let _ = unsafe { Box::from_raw(p) };
+  }
+safe: |
+  fn $N(b: &mut $T) {
+      *b = (*b).wrapping_add(1);
+  }
+  fn caller_$N() {
+      let mut b = Box::new(7 as $T);
+      $N(&mut b);
+  }

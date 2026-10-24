@@ -1,0 +1,21 @@
+# ptr::read — pattern 2: only the raw pointer is available in this function.
+api: "ptr::read"
+pattern_id: 2
+replaceability: N
+verdict: irreplaceable
+difficulty: medium
+contract: "The source exists only as a raw pointer in this frame; without an owner or reference there is nothing else to copy from, so ptr::read is the only operation (KB: ptr::read p2 -> N)."
+encapsulatable: true
+grid:
+  T: [i32, u64, String]
+  N: [load_raw, grab_raw, take_raw]
+unsafe: |
+  fn $N(src: *const $T) -> $T {
+      unsafe { std::ptr::read(src) }
+  }
+encap: |
+  /// SAFETY: src must be non-null, aligned, valid for reads, and initialized; the caller keeps ownership.
+  pub unsafe fn $N(src: *const $T) -> $T {
+      assert!(!src.is_null());
+      std::ptr::read(src)
+  }

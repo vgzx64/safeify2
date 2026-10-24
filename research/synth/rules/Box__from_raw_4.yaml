@@ -1,0 +1,27 @@
+# Box::from_raw — pattern 4: raw pointer produced here, consumed by another function.
+api: "Box::from_raw"
+pattern_id: 4
+replaceability: Y
+verdict: replaceable
+difficulty: medium
+contract: "The Box is created in this frame and only lent out as a raw pointer; the safe version keeps ownership and passes &mut across the call boundary."
+grid:
+  T: [i32, u64, f64, i64]
+  N: [handle, forward, relay]
+unsafe: |
+  fn use_$N(p: *mut $T) {
+      unsafe { Box::from_raw(p); }
+  }
+  fn make_$N() {
+      let b = Box::new(1 as $T);
+      let p = Box::into_raw(b);
+      use_$N(p);
+  }
+safe: |
+  fn use_$N(b: &mut Box<$T>) {
+      let _ = &mut **b;
+  }
+  fn make_$N() {
+      let mut b = Box::new(1 as $T);
+      use_$N(&mut b);
+  }

@@ -1,0 +1,17 @@
+# mem::transmute — pattern 5: modify lifetimes.
+api: "mem::transmute"
+pattern_id: 5
+replaceability: M
+verdict: conditional
+difficulty: hard
+contract: "The borrow's lifetime is forged to 'static; the safe version threads the real lifetime through (or clones to String at call sites that truly need 'static), which restructures the API (KB: transmute p5 -> M)."
+grid:
+  N: [extend_life, forge_static, leak_ref]
+unsafe: |
+  fn $N<'a>(r: &'a str) -> &'static str {
+      unsafe { std::mem::transmute(r) }
+  }
+safe: |
+  fn $N(r: &str) -> String {
+      r.to_string()
+  }

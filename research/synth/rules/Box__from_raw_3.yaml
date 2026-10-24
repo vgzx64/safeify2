@@ -1,0 +1,28 @@
+# Box::from_raw — pattern 3: the raw pointer arrives as a returned value.
+api: "Box::from_raw"
+pattern_id: 3
+replaceability: N
+verdict: irreplaceable
+difficulty: medium
+contract: "The pointer is handed back from another frame, so ownership can only be transferred by convention; without changing the callee's return type there is no safe reconstruction here (KB: Box::from_raw p3 -> N)."
+encapsulatable: true
+grid:
+  T: [i32, u64, f64]
+  N: [from_ret, adopt, reclaim]
+unsafe: |
+  fn make_$N() -> *mut $T {
+      Box::into_raw(Box::new(7 as $T))
+  }
+  fn use_$N(p: *mut $T) -> $T {
+      let b = unsafe { Box::from_raw(p) };
+      *b
+  }
+  fn caller_$N() -> $T {
+      use_$N(make_$N())
+  }
+encap: |
+  /// SAFETY: p must be a Box-allocated $T whose ownership is transferred to this call exactly once.
+  pub unsafe fn use_$N(p: *mut $T) -> $T {
+      assert!(!p.is_null());
+      *Box::from_raw(p)
+  }

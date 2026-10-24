@@ -1,0 +1,28 @@
+# CString::from_raw — pattern 4: the CString is created in this frame, used by another function.
+api: "CString::from_raw"
+pattern_id: 4
+replaceability: Y
+verdict: replaceable
+difficulty: medium
+contract: "The CString is created in this frame and only lent out as a raw pointer; the safe version keeps ownership and passes &CStr across the call boundary (KB: CString::from_raw p4 -> Y)."
+grid:
+  N: [relay, pass, handoff]
+unsafe: |
+  fn use_$N(p: *mut std::os::raw::c_char) {
+      let cs = unsafe { std::ffi::CString::from_raw(p) };
+      let _ = cs.to_bytes().len();
+  }
+  fn make_$N() {
+      let c = std::ffi::CString::new("synth").unwrap();
+      let p = c.as_ptr() as *mut std::os::raw::c_char;
+      std::mem::forget(c);
+      use_$N(p);
+  }
+safe: |
+  fn use_$N(cs: &std::ffi::CStr) {
+      let _ = cs.to_bytes().len();
+  }
+  fn make_$N() {
+      let c = std::ffi::CString::new("synth").unwrap();
+      use_$N(&c);
+  }

@@ -1,0 +1,20 @@
+# ptr::write_bytes — pattern 1: the ref/owner is already available in this function (misused).
+api: "ptr::write_bytes"
+pattern_id: 1
+replaceability: Y
+verdict: replaceable
+difficulty: easy
+contract: "The Vec owner is in this frame and the raw pointer is derived from it, so byte-wise zeroing is a misuse; fill the slice through the owner instead (KB: ptr::write_bytes p1 -> Y)."
+grid:
+  T: [u8, i32, u64]
+  N: [zero_out, wipe, clear_buf]
+unsafe: |
+  fn $N(buf: &mut Vec<$T>) {
+      let raw = buf.as_mut_ptr();
+      let n = buf.len();
+      unsafe { std::ptr::write_bytes(raw, 0, n); }
+  }
+safe: |
+  fn $N(buf: &mut Vec<$T>) {
+      buf.fill(0);
+  }

@@ -1,0 +1,26 @@
+# ptr::copy — pattern 1: the owner/ref is already available in this function (misused).
+api: "ptr::copy"
+pattern_id: 1
+replaceability: Y
+verdict: replaceable
+difficulty: easy
+contract: "Both the source owner and the destination slot live in this frame, so raw-pointer copying is a misuse of ptr::copy; plain assignment/mutation replaces it."
+grid:
+  T: [i32, u64, f64, i64]
+  N: [clone_val, dup, mir]
+unsafe: |
+  fn $N() -> $T {
+      let v = 3 as $T;
+      let mut out = 0 as $T;
+      unsafe {
+          std::ptr::copy(&v as *const $T, &mut out as *mut $T, 1);
+      }
+      out
+  }
+safe: |
+  fn $N() -> $T {
+      let v = 3 as $T;
+      let mut out = 0 as $T;
+      out = v;
+      out
+  }

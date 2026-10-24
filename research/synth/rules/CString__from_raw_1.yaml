@@ -1,0 +1,21 @@
+# CString::from_raw — pattern 1: function parameter: raw (no owner in this frame).
+api: "CString::from_raw"
+pattern_id: 1
+replaceability: N
+verdict: irreplaceable
+difficulty: medium
+contract: "The pointer arrives as a function parameter; no CString exists in this frame, so reconstruction both forges and later frees ownership the callee never had (KB: CString::from_raw p1 -> N)."
+encapsulatable: true
+grid:
+  N: [from_cptr, adopt, reclaim]
+unsafe: |
+  fn $N(p: *mut std::os::raw::c_char) -> usize {
+      let s = unsafe { std::ffi::CString::from_raw(p) };
+      s.to_bytes().len()
+  }
+encap: |
+  /// SAFETY: p must be a CString-allocated NUL-terminated buffer; ownership transfers here exactly once.
+  pub unsafe fn $N(p: *mut std::os::raw::c_char) -> usize {
+      assert!(!p.is_null());
+      std::ffi::CString::from_raw(p).to_bytes().len()
+  }

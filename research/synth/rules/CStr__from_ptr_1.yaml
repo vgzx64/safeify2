@@ -1,0 +1,21 @@
+# CStr::from_ptr — pattern 1: function parameter: raw (no owner in this frame).
+api: "CStr::from_ptr"
+pattern_id: 1
+replaceability: N
+verdict: irreplaceable
+difficulty: medium
+contract: "The c_char pointer arrives as a function parameter; no CString/&CStr exists in this frame, so the CStr can only be minted from the raw pointer (KB: CStr::from_ptr p1 -> N)."
+encapsulatable: true
+grid:
+  N: [measure, len_of, cstr_len]
+unsafe: |
+  fn $N(raw: *const std::os::raw::c_char) -> usize {
+      let cs = unsafe { std::ffi::CStr::from_ptr(raw) };
+      cs.to_bytes().len()
+  }
+encap: |
+  /// SAFETY: raw must point to a valid NUL-terminated c_char buffer that outlives the call.
+  pub unsafe fn $N(raw: *const std::os::raw::c_char) -> usize {
+      assert!(!raw.is_null());
+      std::ffi::CStr::from_ptr(raw).to_bytes().len()
+  }

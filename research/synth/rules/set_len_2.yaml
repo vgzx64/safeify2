@@ -1,0 +1,52 @@
+# set_len — pattern 2: reserve, set_len, then initialize via another function (init-after bug).
+api: "set_len"
+pattern_id: 2
+replaceability: M
+verdict: conditional
+difficulty: hard
+contract: "set_len publishes uninitialized slots that a callee fills afterwards; the safe version lets the callee push, trading the pre-allocation trick for an always-valid Vec (KB: set_len p2 'Should' -> new/push)."
+encapsulatable: true
+grid:
+  N: [fill_via, init_remote, grow_then]
+  LEN: [8, 16]
+unsafe: |
+  fn fill(v: &mut Vec<u64>) {
+      let n = v.len();
+      let mut i = 0;
+      while i < n && i < $LEN {
+          v[i] = i as u64;
+          i += 1;
+      }
+  }
+  fn $N(n: usize) -> Vec<u64> {
+      let mut v: Vec<u64> = Vec::with_capacity(n);
+      unsafe { v.set_len(n); }
+      fill(&mut v);
+      v
+  }
+safe: |
+  fn fill(v: &mut Vec<u64>, n: usize) {
+      let mut i = 0;
+      while i < n && i < $LEN {
+          v.push(i as u64);
+          i += 1;
+      }
+  }
+  fn $N(n: usize) -> Vec<u64> {
+      let mut v: Vec<u64> = Vec::with_capacity(n);
+      fill(&mut v, n);
+      v
+  }
+encap: |
+  /// SAFETY: every index < n must be written below before the Vec is read or dropped.
+  pub unsafe fn $N(n: usize) -> Vec<u64> {
+      let mut v: Vec<u64> = Vec::with_capacity(n);
+      assert!(n <= v.capacity());
+      v.set_len(n);
+      let mut i = 0;
+      while i < n && i < $LEN {
+          v[i] = i as u64;
+          i += 1;
+      }
+      v
+  }

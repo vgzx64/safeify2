@@ -1,0 +1,7 @@
+out/snippets/
+out/ast/
+out/ast_json/
+out/ast_real/
+out/ast_json_real/
+tools/extract_ast/target/
+__pycache__/

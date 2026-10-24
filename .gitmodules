@@ -1,0 +1,3 @@
+[submodule "vendors/SafeNet"]
+	path = vendors/SafeNet
+	url = https://github.com/Artisan-Lab/SafeNet

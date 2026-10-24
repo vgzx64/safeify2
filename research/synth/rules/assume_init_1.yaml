@@ -1,0 +1,24 @@
+# assume_init — pattern 1: create uninit and then initialize in the same function.
+api: "assume_init"
+pattern_id: 1
+replaceability: Y
+verdict: replaceable
+difficulty: easy
+contract: "MaybeUninit is created and fully written in this frame, so the deferred-initialization dance is unnecessary; initialize eagerly."
+grid:
+  T: [i32, u64, f64, i64]
+  N: [make, build, produce]
+unsafe: |
+  use std::mem::MaybeUninit;
+
+  fn $N() -> $T {
+      let mut m = MaybeUninit::<$T>::uninit();
+      unsafe {
+          m.as_mut_ptr().write(5 as $T);
+          m.assume_init()
+      }
+  }
+safe: |
+  fn $N() -> $T {
+      5 as $T
+  }

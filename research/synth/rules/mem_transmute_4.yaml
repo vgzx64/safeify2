@@ -1,0 +1,21 @@
+# mem::transmute — pattern 4: convert raw pointer to reference (forges a lifetime).
+api: "mem::transmute"
+pattern_id: 4
+replaceability: N
+verdict: irreplaceable
+difficulty: hard
+contract: "A shared reference with an arbitrary lifetime is minted from a raw pointer; no safe API can conjure that lifetime, so the transmute stays."
+encapsulatable: true
+grid:
+  T: [u32, i32, u64, usize]
+  N: [view, borrow_raw, deref_ref]
+unsafe: |
+  fn $N<'a>(raw: *const $T) -> &'a $T {
+      unsafe { std::mem::transmute(raw) }
+  }
+encap: |
+  /// SAFETY: raw must be non-null, initialized, and valid for reads for the whole 'a.
+  pub unsafe fn $N<'a>(raw: *const $T) -> &'a $T {
+      assert!(!raw.is_null());
+      std::mem::transmute(raw)
+  }

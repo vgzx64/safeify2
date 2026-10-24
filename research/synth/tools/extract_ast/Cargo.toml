@@ -1,0 +1,11 @@
+[package]
+name = "extract_ast"
+version = "0.1.0"
+edition = "2018"
+
+# Standalone CLI equivalent of vendors/SafeNet/src/process/rust_ast (same syn
+# version and same `{:#?}` output) with parameterized paths. Never touches vendors/.
+[dependencies.syn]
+version = "=1.0.72"
+default-features = false
+features = ["parsing", "full", "extra-traits"]

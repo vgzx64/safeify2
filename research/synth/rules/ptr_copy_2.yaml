@@ -1,0 +1,21 @@
+# ptr::copy — pattern 2: only the raw pointer is available in this function.
+api: "ptr::copy"
+pattern_id: 2
+replaceability: N
+verdict: irreplaceable
+difficulty: medium
+contract: "The frame receives only raw pointers; no owner or reference exists, so the copy cannot be expressed with safe operations alone."
+encapsulatable: true
+grid:
+  T: [i32, u64, f64, i64]
+  N: [shift, transfer, xfer]
+unsafe: |
+  fn $N(src: *const $T, dst: *mut $T, count: usize) {
+      unsafe { std::ptr::copy(src, dst, count); }
+  }
+encap: |
+  /// SAFETY: src/dst must be valid for `count` $Ts and not overlap illegally.
+  pub unsafe fn $N(src: *const $T, dst: *mut $T, count: usize) {
+      assert!(!src.is_null() && !dst.is_null());
+      std::ptr::copy(src, dst, count);
+  }

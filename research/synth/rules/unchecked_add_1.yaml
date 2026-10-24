@@ -1,0 +1,18 @@
+# unchecked_add — unchecked family / wrapping: overflow ignored instead of checked.
+api: "unchecked_add"
+pattern_id: 1
+replaceability: Y
+verdict: replaceable
+difficulty: easy
+contract: "unchecked_add skips the overflow check while still wrapping; wrapping_add is the safe idiom with identical wrapping semantics (KB: unchecked/wrapping families — ignore arithmetic overflow -> wrapping_*)."
+grid:
+  T: [u8, u32, usize]
+  N: [add_w, sum_wrap, acc]
+unsafe: |
+  fn $N(a: $T, b: $T) -> $T {
+      unsafe { a.unchecked_add(b) }
+  }
+safe: |
+  fn $N(a: $T, b: $T) -> $T {
+      a.wrapping_add(b)
+  }

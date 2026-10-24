@@ -1,0 +1,45 @@
+# set_len — pattern 1: reserve capacity, initialize via another function, then set_len.
+api: "set_len"
+pattern_id: 1
+replaceability: M
+verdict: conditional
+difficulty: hard
+contract: "set_len exposes uninitialized slots before the filling loop runs; safe alternatives (resize/new/push) trade a small overhead for always-initialized Vec state."
+encapsulatable: true
+grid:
+  N: [build, fill_up, make_seq]
+  LEN: [8, 16, 32]
+unsafe: |
+  fn $N(n: usize) -> Vec<u64> {
+      let mut v: Vec<u64> = Vec::with_capacity(n);
+      unsafe { v.set_len(n); }
+      let mut i = 0;
+      while i < n && i < $LEN {
+          v[i] = i as u64;
+          i += 1;
+      }
+      v
+  }
+safe: |
+  fn $N(n: usize) -> Vec<u64> {
+      let mut v: Vec<u64> = Vec::new();
+      let mut i = 0;
+      while i < n && i < $LEN {
+          v.push(i as u64);
+          i += 1;
+      }
+      v
+  }
+encap: |
+  /// SAFETY: every index < n must be written before the Vec is read or dropped.
+  pub unsafe fn $N(n: usize) -> Vec<u64> {
+      let mut v: Vec<u64> = Vec::with_capacity(n);
+      assert!(n <= v.capacity());
+      v.set_len(n);
+      let mut i = 0;
+      while i < n && i < $LEN {
+          v[i] = i as u64;
+          i += 1;
+      }
+      v
+  }

@@ -1,0 +1,36 @@
+# CString::from_raw — pattern 6: modify CString contents through a reconstructed CString.
+api: "CString::from_raw"
+pattern_id: 6
+replaceability: Y
+verdict: replaceable
+difficulty: easy
+contract: "Contents are mutated through a CString rebuilt from its own raw pointer while the true owner sits in this frame; the safe version mutates through the existing &mut (KB: CString::from_raw p6 -> Y)."
+grid:
+  N: [bump, add_to, incr]
+unsafe: |
+  fn $N(p: *mut std::os::raw::c_char) {
+      unsafe {
+          let s = std::ffi::CString::from_raw(p);
+          let mut t = s.into_string().unwrap();
+          t.push('!');
+          let s2 = std::ffi::CString::new(t).unwrap();
+          std::mem::forget(std::ffi::CString::into_raw(s2));
+      }
+  }
+  fn caller_$N() {
+      let c = std::ffi::CString::new("syn").unwrap();
+      let p = c.as_ptr() as *mut std::os::raw::c_char;
+      std::mem::forget(c);
+      $N(p);
+      let _ = unsafe { std::ffi::CString::from_raw(p) };
+  }
+safe: |
+  fn $N(s: &mut std::ffi::CString) {
+      let mut t = s.to_str().unwrap().to_string();
+      t.push('!');
+      *s = std::ffi::CString::new(t).unwrap();
+  }
+  fn caller_$N() {
+      let mut c = std::ffi::CString::new("syn").unwrap();
+      $N(&mut c);
+  }

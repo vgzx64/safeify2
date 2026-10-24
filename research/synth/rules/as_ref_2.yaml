@@ -1,0 +1,21 @@
+# as_ref — pattern 2: only the raw pointer is available and the reference is needed.
+api: "as_ref"
+pattern_id: 2
+replaceability: N
+verdict: irreplaceable
+difficulty: medium
+contract: "The frame owns nothing; a shared reference can only be minted from the raw pointer, and dropping it would lose access."
+encapsulatable: true
+grid:
+  T: [i32, u64, f64, i64]
+  N: [peek, show, log_val]
+unsafe: |
+  fn $N(raw: *const $T) -> Option<$T> {
+      unsafe { raw.as_ref().copied() }
+  }
+encap: |
+  /// SAFETY: raw must be non-null and point to a valid, initialized $T for reads.
+  pub unsafe fn $N(raw: *const $T) -> Option<$T> {
+      assert!(!raw.is_null());
+      raw.as_ref().copied()
+  }

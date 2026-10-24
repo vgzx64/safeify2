@@ -1,0 +1,76 @@
+{
+  "_doc": [
+    "Gold replaceability verdict per (api, pattern_id) for the 18 testdata APIs.",
+    "Transcribed from vendors/SafeNet/knowledgebase/README.md (the protocol's",
+    "single source of truth for pattern ids and Y/M/N). Y=replaceable,",
+    "M=conditional, N=irreplaceable. Used by make_eval.py and eval_protocol.py",
+    "to report FP rates on irreplaceable (N) snippets.",
+    "Non-KB rule families (unchecked_add/mul/get_unchecked_mut/unwrap_unchecked)",
+    "are listed for completeness but have no testdata/KB-snippet counterpart.",
+    "4-arg pattern-id caveats: Rc::from_raw p1 (README prose says 'Y'),",
+    "as_ref p3 (README row exists, no rule file), set_len p1/p2/p3 (README says",
+    "May/Should/Hard -> M/M/N), assume_init p1 (README 'Y', prose elsewhere 'N')."
+  ],
+  "apis": {
+    "Box::from_raw": {
+      "1": "N", "2": "M", "3": "N", "4": "Y", "5": "Y", "6": "Y"
+    },
+    "CStr::from_ptr": {
+      "1": "N", "2": "M", "3": "N", "4": "Y", "5": "Y", "6": "Y"
+    },
+    "CString::from_raw": {
+      "1": "N", "2": "M", "3": "N", "4": "Y", "5": "Y", "6": "Y"
+    },
+    "Rc::from_raw": {
+      "1": "Y", "2": "M", "3": "N", "4": "Y", "5": "Y", "6": "Y"
+    },
+    "Vec::from_raw_parts": {
+      "1": "N", "2": "M", "3": "N", "4": "Y", "5": "Y", "6": "Y"
+    },
+    "mem::transmute": {
+      "1": "Y", "2": "Y", "3": "Y", "4": "N", "5": "M", "6": "N"
+    },
+    "mem::transmute_copy": {
+      "1": "Y", "2": "Y", "3": "Y", "4": "Y", "5": "M", "6": "N"
+    },
+    "mem::zeroed": {
+      "1": "Y", "2": "Y", "3": "N", "4": "M"
+    },
+    "assume_init": {
+      "1": "Y", "2": "N", "3": "N", "4": "M"
+    },
+    "ptr::copy": {
+      "1": "Y", "2": "N", "3": "Y", "4": "Y", "5": "Y"
+    },
+    "ptr::copy_nonoverlapping": {
+      "1": "Y", "2": "N", "3": "Y", "4": "Y", "5": "Y"
+    },
+    "ptr::read": {
+      "1": "Y", "2": "N", "3": "Y", "4": "Y", "5": "Y"
+    },
+    "ptr::write": {
+      "1": "Y", "2": "N", "3": "Y", "4": "Y", "5": "Y"
+    },
+    "ptr::write_bytes": {
+      "1": "Y", "2": "N", "3": "Y", "4": "Y", "5": "Y"
+    },
+    "ptr::deref": {
+      "1": "Y", "2": "N", "3": "Y", "4": "Y"
+    },
+    "offset_from": {
+      "1": "Y", "2": "N", "3": "Y", "4": "Y", "5": "Y"
+    },
+    "as_ref": {
+      "1": "Y", "2": "N", "3": "Y", "4": "Y"
+    },
+    "set_len": {
+      "1": "M", "2": "M", "3": "N"
+    },
+    "_non_testdata": {
+      "get_unchecked_mut": {"1": "Y"},
+      "unchecked_add": {"1": "Y"},
+      "unchecked_mul": {"1": "Y"},
+      "unwrap_unchecked": {"1": "Y"}
+    }
+  }
+}

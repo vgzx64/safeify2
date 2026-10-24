@@ -1,0 +1,29 @@
+# set_len — pattern 3: vector shrink to avoid dual ownership.
+api: "set_len"
+pattern_id: 3
+replaceability: M
+verdict: conditional
+difficulty: hard
+contract: "Shrinking via set_len defers dropping the tail while another owner may still hold it; safe alternatives (pop/truncate/remove) drop eagerly, which costs the deferred cleanup (KB: set_len p3 'Hard' -> pop/remove)."
+encapsulatable: true
+grid:
+  N: [shrink_to, trim, drop_tail]
+unsafe: |
+  fn $N(v: &mut Vec<String>) {
+      unsafe {
+          let half = v.len() / 2;
+          v.set_len(half);
+      }
+  }
+safe: |
+  fn $N(v: &mut Vec<String>) {
+      let half = v.len() / 2;
+      v.truncate(half);
+  }
+encap: |
+  /// SAFETY: the dropped tail must not be referenced elsewhere; the new len must not exceed the live length.
+  pub unsafe fn $N(v: &mut Vec<String>) {
+      let half = v.len() / 2;
+      assert!(half <= v.len());
+      v.set_len(half);
+  }

@@ -1,0 +1,3 @@
+papers
+*.tar.xz
+__pycache__

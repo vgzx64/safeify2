@@ -1,0 +1,49 @@
+gold rows: 97 (split=test)
+
+=== detect/out/nirm3_eval_nolsp.json ===
+files=97 sinks=136 evaluated=105 unmatched_files=0 api_mismatch=31
+
+confusion (rows=gold, cols=pred):
+ gold     Y     M     N
+    Y     2    67     0
+    M     0     9     0
+    N     2    25     0
+
+accuracy: 0.1048 (11/105)
+FP-on-N (gold N -> pred Y): 2/27  recall_N=0.0000
+Y precision: 0.5000 (4 Y predictions)
+claim_rate: 0.0381  (M-rate 0.9619 — abstentions)
+pattern claims: 4/105 sinks, correct=1 (0.2500)
+  wrong hint: ptr::read/2-1.rs ptr::read hint=p1 gold=p2
+  wrong hint: ptr::read/2-1.rs ptr::read hint=p1 gold=p2
+  wrong hint: ptr::read/5-3.rs ptr::read hint=p1 gold=p5
+
+per-family accuracy (correct/total):
+  borrow_ffi       0/6   0.000
+  ptr_arith        0/6   0.000
+  rawmem           3/54  0.056
+  rawref           0/4   0.000
+  reconstitute     4/21  0.190
+  transmute        0/7   0.000
+  vec_len          4/5   0.800
+  zeroed           0/2   0.000
+
+per-API accuracy (correct/total):
+  Box::from_raw              1/5   0.200
+  CStr::from_ptr             0/6   0.000
+  CString::from_raw          1/4   0.250
+  Rc::from_raw               1/5   0.200
+  Vec::from_raw_parts        1/7   0.143
+  as_ref                     0/4   0.000
+  assume_init                1/5   0.200
+  mem::transmute             0/3   0.000
+  mem::transmute_copy        0/4   0.000
+  mem::zeroed                0/2   0.000
+  offset_from                0/6   0.000
+  ptr::copy                  0/11  0.000
+  ptr::copy_nonoverlapping   0/10  0.000
+  ptr::deref                 0/7   0.000
+  ptr::read                  2/8   0.250
+  ptr::write                 0/8   0.000
+  ptr::write_bytes           0/5   0.000
+  set_len                    4/5   0.800

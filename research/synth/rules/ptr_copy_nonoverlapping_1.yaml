@@ -1,0 +1,25 @@
+# ptr::copy_nonoverlapping — pattern 1: owner available in this function (misused).
+api: "ptr::copy_nonoverlapping"
+pattern_id: 1
+replaceability: Y
+verdict: replaceable
+difficulty: easy
+contract: "Source and destination both exist as safe values here; a clone/assignment replaces the raw non-overlapping copy."
+grid:
+  T: [i32, u64, f64, u8]
+  N: [dup_slot, clone_into, cpy]
+unsafe: |
+  fn $N() -> $T {
+      let v = 9 as $T;
+      let mut out = 0 as $T;
+      unsafe {
+          std::ptr::copy_nonoverlapping(&v as *const $T, &mut out as *mut $T, 1);
+      }
+      out
+  }
+safe: |
+  fn $N() -> $T {
+      let v = 9 as $T;
+      let out = v;
+      out
+  }

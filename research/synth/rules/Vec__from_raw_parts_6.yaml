@@ -1,0 +1,25 @@
+# Vec::from_raw_parts — pattern 6: modify Vec contents through a reconstructed Vec.
+api: "Vec::from_raw_parts"
+pattern_id: 6
+replaceability: Y
+verdict: replaceable
+difficulty: easy
+contract: "Contents are mutated through a Vec rebuilt from its own raw parts while the true owner sits in this frame; the safe version mutates through the existing &mut (KB: Vec::from_raw_parts p6 -> Y)."
+grid:
+  T: [u8, i32, u64]
+  N: [bump, add_to, incr]
+unsafe: |
+  fn $N() {
+      let mut v = vec![0 as $T; 3];
+      let p = v.as_mut_ptr();
+      let len = v.len();
+      let cap = v.capacity();
+      std::mem::forget(v);
+      let mut v2 = unsafe { Vec::from_raw_parts(p, len, cap) };
+      v2[0] = 9 as $T;
+  }
+safe: |
+  fn $N() {
+      let mut v = vec![0 as $T; 3];
+      v[0] = 9 as $T;
+  }

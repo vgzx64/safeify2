@@ -1,0 +1,32 @@
+# Box::from_raw — pattern 2: function parameter: self (raw ptr stored in the struct).
+api: "Box::from_raw"
+pattern_id: 2
+replaceability: M
+verdict: conditional
+difficulty: hard
+contract: "The raw pointer lives in a field of self, so rebuilding the Box inside a method fights the struct's own ownership; the safe version stores the Box itself and lends &mut, which restructures the struct (KB: Box::from_raw p2 -> M)."
+grid:
+  T: [i32, u64, i64]
+  N: [bump_self, touch_self, edit_self]
+unsafe: |
+  struct Holder_$N {
+      p: *mut $T,
+  }
+  impl Holder_$N {
+      fn bump(&mut self) {
+          unsafe {
+              let mut b = Box::from_raw(self.p);
+              *b = (*b).wrapping_add(1);
+              self.p = Box::into_raw(b);
+          }
+      }
+  }
+safe: |
+  struct Holder_$N {
+      b: Box<$T>,
+  }
+  impl Holder_$N {
+      fn bump(&mut self) {
+          *self.b = (*self.b).wrapping_add(1);
+      }
+  }

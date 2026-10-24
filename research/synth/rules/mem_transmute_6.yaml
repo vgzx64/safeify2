@@ -1,0 +1,21 @@
+# mem::transmute — pattern 6: MaybeUninit to initialized via transmute.
+api: "mem::transmute"
+pattern_id: 6
+replaceability: N
+verdict: irreplaceable
+difficulty: hard
+contract: "Transmuting MaybeUninit<T> to T forges initialization state; without proof that every byte was written there is no safe path, so the operation cannot be replaced in this frame (KB: transmute p6 -> N)."
+encapsulatable: true
+grid:
+  T: [u32, i32, u64]
+  N: [assume_like, init_via, to_ready]
+unsafe: |
+  fn $N(raw: *const std::mem::MaybeUninit<$T>) -> $T {
+      unsafe { std::mem::transmute(*raw) }
+  }
+encap: |
+  /// SAFETY: raw must be non-null, aligned, and point to a fully initialized MaybeUninit<$T>.
+  pub unsafe fn $N(raw: *const std::mem::MaybeUninit<$T>) -> $T {
+      assert!(!raw.is_null());
+      std::mem::transmute(*raw)
+  }

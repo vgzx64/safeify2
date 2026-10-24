@@ -1,0 +1,21 @@
+# ptr::copy_nonoverlapping — pattern 2: only the raw pointer is available.
+api: "ptr::copy_nonoverlapping"
+pattern_id: 2
+replaceability: N
+verdict: irreplaceable
+difficulty: medium
+contract: "Only raw pointers are in scope; without an owner the non-overlapping raw copy is the only option."
+encapsulatable: true
+grid:
+  T: [i32, u64, f64, u8]
+  N: [move_region, blk_copy, region]
+unsafe: |
+  fn $N(src: *const $T, dst: *mut $T, count: usize) {
+      unsafe { std::ptr::copy_nonoverlapping(src, dst, count); }
+  }
+encap: |
+  /// SAFETY: regions [src, src+count) and [dst, dst+count) must not overlap and be valid.
+  pub unsafe fn $N(src: *const $T, dst: *mut $T, count: usize) {
+      assert!(!src.is_null() && !dst.is_null());
+      std::ptr::copy_nonoverlapping(src, dst, count);
+  }

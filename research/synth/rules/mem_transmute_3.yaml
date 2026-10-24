@@ -1,0 +1,19 @@
+# mem::transmute — pattern 3: convert ContainerA<P> to ContainerA<Q> / ContainerA to ContainerB.
+api: "mem::transmute"
+pattern_id: 3
+replaceability: Y
+verdict: replaceable
+difficulty: medium
+contract: "Container-to-container reinterpretation where the safe conversion (map/collect over the elements) already exists; the transmute only avoids the copy (KB: transmute p3 -> Y)."
+grid:
+  T: [u8, u32]
+  U: [i8, i32]
+  N: [reinterp, recast, retag]
+unsafe: |
+  fn $N(v: Vec<$T>) -> Vec<$U> {
+      unsafe { std::mem::transmute(v) }
+  }
+safe: |
+  fn $N(v: Vec<$T>) -> Vec<$U> {
+      v.into_iter().map(|x| x as $U).collect()
+  }

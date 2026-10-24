@@ -1,0 +1,31 @@
+# Vec::from_raw_parts — pattern 4: the rebuilt Vec is used by another function.
+api: "Vec::from_raw_parts"
+pattern_id: 4
+replaceability: Y
+verdict: replaceable
+difficulty: medium
+contract: "The Vec is created in this frame and only lent out; the safe version keeps ownership and passes a reference across the call boundary instead of a raw rebuild (KB: Vec::from_raw_parts p4 -> Y)."
+grid:
+  T: [u8, i32, f64]
+  N: [use_, relay, forward]
+unsafe: |
+  fn $N(v: Vec<$T>) {
+      let _ = v.len();
+  }
+  fn caller_$N() {
+      let mut v = vec![1 as $T];
+      let p = v.as_mut_ptr();
+      let len = v.len();
+      let cap = v.capacity();
+      std::mem::forget(v);
+      let v2 = unsafe { Vec::from_raw_parts(p, len, cap) };
+      $N(v2);
+  }
+safe: |
+  fn $N(v: &Vec<$T>) {
+      let _ = v.len();
+  }
+  fn caller_$N() {
+      let v = vec![1 as $T];
+      $N(&v);
+  }

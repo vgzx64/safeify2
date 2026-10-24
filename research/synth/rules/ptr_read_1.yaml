@@ -1,0 +1,18 @@
+# ptr::read — pattern 1: the ref/owner is already available in this function (misused).
+api: "ptr::read"
+pattern_id: 1
+replaceability: Y
+verdict: replaceable
+difficulty: easy
+contract: "The owner is present in this frame, so copying behind its back with ptr::read is a misuse; clone/read through the owner instead (KB: ptr::read p1 -> Y)."
+grid:
+  T: ["String", "Vec<i32>", "Box<i64>"]
+  N: [dup_val, copy_out, snapshot]
+unsafe: |
+  fn $N(owner: &$T) -> $T {
+      unsafe { std::ptr::read(owner) }
+  }
+safe: |
+  fn $N(owner: &$T) -> $T {
+      owner.clone()
+  }

@@ -1,0 +1,19 @@
+# raw_ptr_deref — pattern 1: the ref/owner is already available in this function (misused).
+api: "ptr::deref"
+pattern_id: 1
+replaceability: Y
+verdict: replaceable
+difficulty: easy
+contract: "The owner/reference lives in this frame, so minting a raw pointer only to dereference it is a misuse; read through the reference directly (KB: raw_ptr_deref p1 -> Y)."
+grid:
+  T: [i32, u64, f64, i64]
+  N: [load_val, grab, take_deref]
+unsafe: |
+  fn $N(owner: &$T) -> $T {
+      let raw = owner as *const $T;
+      unsafe { *raw }
+  }
+safe: |
+  fn $N(owner: &$T) -> $T {
+      *owner
+  }

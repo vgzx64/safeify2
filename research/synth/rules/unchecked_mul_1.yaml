@@ -1,0 +1,18 @@
+# unchecked_mul — unchecked family / wrapping: overflow ignored instead of checked.
+api: "unchecked_mul"
+pattern_id: 1
+replaceability: Y
+verdict: replaceable
+difficulty: easy
+contract: "unchecked_mul skips the overflow check while still wrapping; wrapping_mul is the safe idiom with identical wrapping semantics (KB: unchecked/wrapping families — ignore arithmetic overflow -> wrapping_*)."
+grid:
+  T: [u8, u32, u64]
+  N: [mul_w, prod_wrap, scale]
+unsafe: |
+  fn $N(a: $T, b: $T) -> $T {
+      unsafe { a.unchecked_mul(b) }
+  }
+safe: |
+  fn $N(a: $T, b: $T) -> $T {
+      a.wrapping_mul(b)
+  }

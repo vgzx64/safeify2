@@ -1,0 +1,21 @@
+# raw_ptr_deref — pattern 2: only the raw pointer is available and the content is needed.
+api: "ptr::deref"
+pattern_id: 2
+replaceability: N
+verdict: irreplaceable
+difficulty: medium
+contract: "Only the raw pointer exists in this frame and its pointee must be read; there is no &T to dereference, so the raw deref cannot be replaced (KB: raw_ptr_deref p2 -> N)."
+encapsulatable: true
+grid:
+  T: [i32, u64, f64, i64]
+  N: [load_raw, grab_raw, take_raw]
+unsafe: |
+  fn $N(raw: *const $T) -> $T {
+      unsafe { *raw }
+  }
+encap: |
+  /// SAFETY: raw must be non-null, aligned, and point to a valid, initialized $T for reads.
+  pub unsafe fn $N(raw: *const $T) -> $T {
+      assert!(!raw.is_null());
+      *raw
+  }

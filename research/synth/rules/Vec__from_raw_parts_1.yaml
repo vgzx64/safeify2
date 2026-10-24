@@ -1,0 +1,21 @@
+# Vec::from_raw_parts — pattern 1: function parameter: raw (no owner in this frame).
+api: "Vec::from_raw_parts"
+pattern_id: 1
+replaceability: N
+verdict: irreplaceable
+difficulty: medium
+contract: "The pointer, length, and capacity arrive as function parameters; no Vec exists in this frame, so reconstruction steals ownership of a foreign allocation (KB: Vec::from_raw_parts p1 -> N)."
+encapsulatable: true
+grid:
+  T: [u8, i32, u64]
+  N: [consume, adopt, reclaim]
+unsafe: |
+  fn $N(p: *mut $T, len: usize, cap: usize) -> Vec<$T> {
+      unsafe { Vec::from_raw_parts(p, len, cap) }
+  }
+encap: |
+  /// SAFETY: p must come from the global allocator with capacity cap; the caller transfers ownership exactly once.
+  pub unsafe fn $N(p: *mut $T, len: usize, cap: usize) -> Vec<$T> {
+      assert!(!p.is_null() && len <= cap);
+      Vec::from_raw_parts(p, len, cap)
+  }

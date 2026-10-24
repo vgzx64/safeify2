@@ -1,0 +1,28 @@
+# Box::from_raw — pattern 5: convert the rebuilt Box to other Rust objects.
+api: "Box::from_raw"
+pattern_id: 5
+replaceability: Y
+verdict: replaceable
+difficulty: easy
+contract: "The Box is reconstructed only to build another Rust object while the owner sits in this frame; the safe version derives the object from the owner directly (KB: Box::from_raw p5 -> Y)."
+grid:
+  T: [i32, u64, f64]
+  N: [to_string, render, describe]
+unsafe: |
+  fn $N(p: *mut $T) -> String {
+      let b = unsafe { Box::from_raw(p) };
+      format!("{}", *b)
+  }
+  fn caller_$N() {
+      let b = Box::new(7 as $T);
+      let p = Box::into_raw(b);
+      let _ = $N(p);
+  }
+safe: |
+  fn $N(b: &$T) -> String {
+      format!("{}", *b)
+  }
+  fn caller_$N() {
+      let b = Box::new(7 as $T);
+      let _ = $N(&b);
+  }

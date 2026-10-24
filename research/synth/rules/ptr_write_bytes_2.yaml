@@ -1,0 +1,21 @@
+# ptr::write_bytes — pattern 2: only the raw pointer is available in this function.
+api: "ptr::write_bytes"
+pattern_id: 2
+replaceability: N
+verdict: irreplaceable
+difficulty: medium
+contract: "The destination exists only as a raw pointer in this frame; there is no slice or &mut to fill through, so byte-wise writing is the only option (KB: ptr::write_bytes p2 -> N)."
+encapsulatable: true
+grid:
+  T: [u8, i32, u64]
+  N: [zero_raw, wipe_raw, clear_raw]
+unsafe: |
+  fn $N(dst: *mut $T, count: usize) {
+      unsafe { std::ptr::write_bytes(dst, 0, count); }
+  }
+encap: |
+  /// SAFETY: dst must be non-null and valid for writes of count initialized $T elements.
+  pub unsafe fn $N(dst: *mut $T, count: usize) {
+      assert!(!dst.is_null());
+      std::ptr::write_bytes(dst, 0, count);
+  }

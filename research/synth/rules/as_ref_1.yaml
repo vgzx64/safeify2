@@ -1,0 +1,19 @@
+# as_ref — pattern 1: the owner/ref is already available in this function.
+api: "as_ref"
+pattern_id: 1
+replaceability: Y
+verdict: replaceable
+difficulty: easy
+contract: "The owner of the pointee is present in this frame, so deriving a reference through the raw pointer is a misuse; use the owner directly."
+grid:
+  T: [i32, u64, f64, i64]
+  N: [show, peek, read_out]
+unsafe: |
+  fn $N(raw: *const $T, owner: &Box<$T>) -> $T {
+      let _ = &**owner;
+      unsafe { *raw.as_ref().unwrap() }
+  }
+safe: |
+  fn $N(owner: &Box<$T>) -> $T {
+      **owner
+  }

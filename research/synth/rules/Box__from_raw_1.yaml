@@ -1,0 +1,22 @@
+# Box::from_raw — pattern table from vendors/SafeNet/knowledgebase/README.md
+api: "Box::from_raw"
+pattern_id: 1
+replaceability: N
+verdict: irreplaceable
+difficulty: medium
+contract: "Raw pointer arrives as a function parameter; no owner exists in this frame, so the Box cannot be reconstructed without stealing ownership."
+encapsulatable: true
+grid:
+  T: [i32, u64, f64, i64, u32, usize]
+  N: [p, raw, ptr_arg]
+unsafe: |
+  fn consume_$N(p: *mut $T) -> $T {
+      let b = unsafe { Box::from_raw(p) };
+      *b
+  }
+encap: |
+  /// SAFETY: $N must be a valid, uniquely-owned pointer to a $T allocated by Box.
+  pub unsafe fn consume_$N(p: *mut $T) -> $T {
+      assert!(!p.is_null());
+      *Box::from_raw(p)
+  }

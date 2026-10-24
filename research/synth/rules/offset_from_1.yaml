@@ -1,0 +1,21 @@
+# offset_from — pattern 1: the ref/owner is already available in this function (misused).
+api: "offset_from"
+pattern_id: 1
+replaceability: Y
+verdict: replaceable
+difficulty: easy
+contract: "Both pointers derive from the owner's array in this frame, so the distance is plain index arithmetic; the owner is already available (KB: offset_from p1 -> Y)."
+grid:
+  T: [i32, u64, usize]
+  N: [dist, gap, delta]
+unsafe: |
+  fn $N(arr: &[$T; 4], i: usize, j: usize) -> isize {
+      let base = arr.as_ptr();
+      let a = unsafe { base.add(i) };
+      let b = unsafe { base.add(j) };
+      unsafe { a.offset_from(b) }
+  }
+safe: |
+  fn $N(arr: &[$T; 4], i: usize, j: usize) -> isize {
+      (i as isize) - (j as isize)
+  }

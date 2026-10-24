@@ -1,0 +1,28 @@
+# assume_init — pattern 4: to be initialized by other APIs (MaybeUninit moves across frames).
+api: "assume_init"
+pattern_id: 4
+replaceability: M
+verdict: conditional
+difficulty: hard
+contract: "Initialization is delegated to another function, so assume_init is only sound if that callee wrote every byte; the safe version returns T directly from the callee."
+grid:
+  T: [i32, u64, f64, i64]
+  N: [make, build, produce]
+unsafe: |
+  use std::mem::MaybeUninit;
+
+  fn fill(m: &mut MaybeUninit<$T>) {
+      m.write(5 as $T);
+  }
+  fn $N() -> $T {
+      let mut m = MaybeUninit::uninit();
+      fill(&mut m);
+      unsafe { m.assume_init() }
+  }
+safe: |
+  fn fill() -> $T {
+      5 as $T
+  }
+  fn $N() -> $T {
+      fill()
+  }

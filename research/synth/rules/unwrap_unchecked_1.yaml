@@ -1,0 +1,18 @@
+# unwrap_unchecked — unchecked family: drop the unchecked call, keep the panic.
+api: "unwrap_unchecked"
+pattern_id: 1
+replaceability: Y
+verdict: replaceable
+difficulty: easy
+contract: "unwrap_unchecked yields UB on None where unwrap yields the same value plus a panic; dropping the unchecked call keeps behavior on the Some path (KB: unchecked family — replace by removing unchecked)."
+grid:
+  T: ["String", i32, u64]
+  N: [unwrap_it, take_val, expect_val]
+unsafe: |
+  fn $N(x: Option<$T>) -> $T {
+      unsafe { x.unwrap_unchecked() }
+  }
+safe: |
+  fn $N(x: Option<$T>) -> $T {
+      x.unwrap()
+  }

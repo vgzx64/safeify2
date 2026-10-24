@@ -1,0 +1,18 @@
+# get_unchecked_mut — unchecked family: drop the unchecked call, keep the check.
+api: "get_unchecked_mut"
+pattern_id: 1
+replaceability: Y
+verdict: replaceable
+difficulty: easy
+contract: "Mutating through get_unchecked_mut skips the bounds check; the safe replacement is plain indexing with the same check (KB: unchecked family — 'all unchecked APIs can be replaced by removing unchecked')."
+grid:
+  T: [u32, i64, f64]
+  N: [bump_at, incr_at, edit_at]
+unsafe: |
+  fn $N(v: &mut [$T], i: usize) {
+      unsafe { *v.get_unchecked_mut(i) = 7 as $T; }
+  }
+safe: |
+  fn $N(v: &mut [$T], i: usize) {
+      v[i] = 7 as $T;
+  }

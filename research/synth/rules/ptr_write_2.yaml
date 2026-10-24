@@ -1,0 +1,21 @@
+# ptr::write — pattern 2: only the raw pointer is available in this function.
+api: "ptr::write"
+pattern_id: 2
+replaceability: N
+verdict: irreplaceable
+difficulty: medium
+contract: "The destination only exists as a raw pointer in this frame; there is no &mut to assign through, so ptr::write is the only operation available."
+encapsulatable: true
+grid:
+  T: [i32, u64, f64, i64]
+  N: [put, store, place]
+unsafe: |
+  fn $N(dst: *mut $T, val: $T) {
+      unsafe { std::ptr::write(dst, val); }
+  }
+encap: |
+  /// SAFETY: dst must be valid for writes and not currently read by anyone else.
+  pub unsafe fn $N(dst: *mut $T, val: $T) {
+      assert!(!dst.is_null());
+      std::ptr::write(dst, val);
+  }

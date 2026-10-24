@@ -1,0 +1,21 @@
+# offset_from — pattern 2: only the raw pointers are available in this function.
+api: "offset_from"
+pattern_id: 2
+replaceability: N
+verdict: irreplaceable
+difficulty: medium
+contract: "Only two raw pointers exist in this frame; without the owner there is no slice or index to compute the distance from, so offset_from is the only operation (KB: offset_from p2 -> N)."
+encapsulatable: true
+grid:
+  T: [i32, u64, f64]
+  N: [dist_raw, gap_raw, delta_raw]
+unsafe: |
+  fn $N(a: *const $T, b: *const $T) -> isize {
+      unsafe { a.offset_from(b) }
+  }
+encap: |
+  /// SAFETY: a and b must be non-null and point into the same allocated object, in-bounds.
+  pub unsafe fn $N(a: *const $T, b: *const $T) -> isize {
+      assert!(!a.is_null() && !b.is_null());
+      a.offset_from(b)
+  }
