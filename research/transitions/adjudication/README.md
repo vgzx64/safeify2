@@ -1,6 +1,6 @@
 # LLM adjudication
 
-> Status: pilot labels, not a frozen dataset.
+> Status: v0.2 draft; all five dataset gates pass; not frozen.
 
 The rubric is [RUBRIC.md](RUBRIC.md). Labels are semantic decisions about the
 shown old/new hunk. Compilation, tests, and Miri are intentionally **not**
@@ -11,11 +11,17 @@ benchmark.
 
 ```bash
 cd /mnt/wd2023/home/dev2/Code/safeify2
-python research/transitions/collect_hunks.py      # strict unsafe hunks
-python research/transitions/adjudication/make_queue.py --pilot 30 --name pilot_002
-# adjudicate via LLM batches -> labels_002a.jsonl / labels_002b.jsonl
-python research/transitions/adjudication/merge_labels.py  # edit paths for the batch
+python research/transitions/collect_hunks.py                  # strict unsafe hunks
+python research/transitions/adjudication/build_batches.py     # 161 queue + 170 expansion rows
+# adjudicate gate_aNN / gate_bNN chunks via LLM -> labels_gate_*.jsonl
+python research/transitions/adjudication/validate_gate_labels.py
+python research/transitions/adjudication/merge_gate_batches.py --strict
+python research/transitions/adjudication/spotcheck_gate.py    # documented corrections
+python research/transitions/rebuild_v01.py                    # core + splits + gates
 ```
+
+`make_queue.py` / `merge_labels.py` are the older round-12 helpers; the gate
+run uses the batch scripts above.
 
 ## What the pilot showed
 
@@ -44,12 +50,48 @@ A human spot-check of five Y rows found one clipped-context overclaim
 unsafe writes not shown); it was corrected from `Y` to `M`. The LLM labels are
 useful but not self-validating.
 
-The manual 74-positive set and the 72 CVEfixes LLM `Y` set overlap on 56 rows;
-18 are manual-only and 16 are LLM-only. The union is 90 CVEfixes positives
-(97 with the 7 RustSec `Y` rows), or 89 distinct (repo, path, function) families.
-The manual-only positives were re-adjudicated: 16 kept `Y`, 2 were demoted to `M`.
-The reviewed negative core is **123 rows** (58 `N`, 65 `M`, including the 2
-reconciliation demotions).
+The manual 74-positive set and the CVEfixes LLM `Y` set overlap on 56 rows; 18
+are manual-only and 16 are LLM-only. The manual-only positives were
+re-adjudicated: 16 kept `Y`, 2 were demoted to `M`.
+
+## Gate-closing run (2026-11-07)
+
+The round-12 state (276 reviewed; 206/458 queue; 81 negative families) failed
+the negative and queue gates. A scoped run closed them:
+
+- **Batch A** — 161 unreviewed CVEfixes queue rows, one per family across all
+  118 remaining families, then second rows to reach the coverage target.
+- **Batch B** — 170 untouched crates.io/RustSec retained families, one row per
+  family.
+- **11 LLM batches** of 27–29 rows; every batch validated for exact id sets,
+  enum values, and evidence quotes (`validate_gate_labels.py`).
+
+Result: **331 new adjudications**, 302 with a usable `N`/`M` label, 1 `Y`, and 28
+vetoes. One of the two new `Y` claims was demoted on spot-check: the
+RUSTSEC-2021-0144 pointer cast keeps `T: ?Sized`, so the safe cast needs a
+`Sized` bound and the row is `M`, not `Y`. The correction is recorded in
+`out/spotcheck_gate.json` and applied by `spotcheck_gate.py`.
+
+Known batch artefacts: several `unsafe` calls appear without the keyword
+because the enclosing `unsafe {` line is outside the clipped snippet; the
+prompts treat `from_raw_parts`, `ptr::copy`, `set_len`, `uninitialized`, etc. as
+unsafe operations and do not veto them on the missing keyword.
+
+## Current state
+
+| Metric | Value |
+|---|---:|
+| Reviewed rows | 607 |
+| CVEfixes / crates.io / RustSec / Linux | 367 / 194 / 45 / 1 |
+| `Y` / `M` / `N` / `U` | 104 / 166 / 259 / 78 |
+| Vetoed | 76 |
+| Positive union | 120 rows / 110 families |
+| Negative core | 425 rows / 325 families |
+| Queue coverage | 367/458 (80.1%) |
+
+The v0.2 family core is 435 rows (110 `Y`, 194 `N`, 131 `M`), split 225 train /
+83 valid / 127 test. All five gates pass in
+`out/transitions_core_v0.2_quality.json`.
 
 ## RustSec
 
@@ -59,14 +101,18 @@ reconciliation demotions).
 - After strict filtering and deduplication, only **12 clean safe candidates**
   remain across 6 repositories. A 12-row adjudication produced 6 `Y`, 2 `M`,
   and 4 `U` (4 vetoes). Issue-URL resolution added 90 same-repo fixes, 59
-  hunks, and 4 more clean candidates (not yet adjudicated). RustSec is useful
-  for coverage, not a large source of safe replacements.
+  hunks, and 4 more clean candidates. RustSec is useful for coverage, not a
+  large source of safe replacements.
+- The gate run added 45 RustSec rows total; most are `N`/`M`, as expected.
 
 ## Current limits
 
-- Only 206 CVEfixes rows have been adjudicated; the queue has 458.
-- crates.io adds 54 adjudicated rows (23 Y / 5 M / 3 N / 23 U).
-- Manual spot-checks are not yet a systematic 10–20% sample.
+- Queue coverage just clears the gate at 80.1%; 91 CVEfixes queue rows remain.
+- crates.io contributes 194 reviewed rows but only 23 new `Y`; its value is
+  negative/guard coverage.
+- Manual spot-checks are not yet a systematic 10–20% sample; one demotion this
+  round and two in the earlier reconciliation are the current record.
+- Negatives are concentrated: google/flatbuffers is 57 of 325 negative families.
 - The negative queue is dominated by `unsafe fn`/`unsafe impl` contract changes;
   these are `M`/`U`, not hard negatives.
-- RustSec labels need their own adjudication pass.
+- A second independent spot-check is required before freezing.

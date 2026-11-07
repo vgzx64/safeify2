@@ -1,22 +1,19 @@
 {
-  "rows": 276,
+  "before": 579,
+  "added": 28,
+  "now": 607,
   "replaceability": {
-    "M": 65,
-    "U": 50,
-    "Y": 103,
-    "N": 58
+    "M": 165,
+    "U": 78,
+    "Y": 105,
+    "N": 259
   },
-  "action": {
-    "guard": 55,
-    "unknown": 50,
-    "replace": 109,
-    "keep": 56,
-    "encapsulate": 6
-  },
-  "vetoed": 48,
+  "vetoed": 76,
   "sources": {
-    "cvefixes": 206,
-    "rustsec": 16,
-    "cratesio": 54
-  }
+    "cvefixes": 367,
+    "rustsec": 45,
+    "cratesio": 194,
+    "rust-for-linux": 1
+  },
+  "y_with_unsafe_in_new_snippet": 0
 }

@@ -1,6 +1,6 @@
 # Unsafe-to-safe transition dataset — plan
 
-> **Status: plan v1 · 2026-10-26 · v0.1 exploratory; positive/test/reconciliation pass; blocked on negative and queue coverage**
+> **Status: plan v1 · 2026-11-07 · v0.2 draft; all five gates pass; not frozen**
 >
 > Scope: **classification and retrieval** for NIRM 4. Patch generation is
 > intentionally delegated to an LLM downstream and is not trained here.
@@ -275,7 +275,7 @@ A row is admissible only if:
 - provenance (commit, parent, extractor version, rubric, reviewer) is complete.
 
 Rejected rows should stay in `rejects.jsonl` with a reason. The pilot currently
-persists aggregate counts only; per-row rejects are a v0.1 requirement.
+persists aggregate counts only; per-row rejects are a v0.2 requirement.
 
 ## 10. Pilot before freeze
 
@@ -316,13 +316,16 @@ The pilot was executed against `CVEfixes.db` and the cloned repositories:
   positives.
 - Zero-shot on 74 positives: 31 produce no sink, only 18 have a Y; both known
   hard negatives are predicted Y.
-- LLM adjudication so far: 206 CVEfixes + 16 RustSec + 54 crates.io rows,
-  giving 103 `Y`, 65 `M`, 58 `N`, 50 `U`, and 48 vetoes. The reconciled
-  positive union is 119 rows / 109 families; the 100-family gate is met.
+- LLM adjudication now covers 607 rows: 367 CVEfixes, 194 crates.io, 45
+  RustSec, 1 Rust-for-Linux; 104 `Y`, 166 `M`, 259 `N`, 78 `U`, 76 vetoed.
+  The reconciled positive union is 120 rows / 110 families.
+- The 2026-11-07 gate-closing run added 331 rows (161 CVEfixes queue rows +
+  170 crates.io/RustSec families) and produced the v0.2 draft: 435 family rows,
+  110 positives, 325 negatives, 127 test rows, queue coverage 367/458 (80.1%).
 
-The 100-family positive gate is met, but the negative and queue-coverage gates
-are not. Do not train; use the 119-row / 109-family set as an evaluation seed. Full
-results: [transition dataset pilot](transition-dataset-pilot.md).
+All five gates now pass, but the artifact is **not frozen**: it needs NIRM 3
+sign-off and a second spot-check. Full results:
+[transition dataset pilot](transition-dataset-pilot.md).
 
 ## 11. Capacity and stop conditions
 
@@ -372,8 +375,9 @@ accuracy is below a constant-`Y` baseline, so accuracy alone is misleading.
 | 2026-10-24 | This plan |
 | 2026-10-25–27 | 30-row pilot; estimate yield |
 | 2026-10-28 | v0.1 exploratory: 109 positive families; negative/queue gates blocked |
+| 2026-11-07 | Gate-closing run: +331 rows; v0.2 draft passes all five gates |
 | 2026-10-29–11-08 | NIRM 3 report is the priority; do not start the full build |
-| after NIRM 3 sign-off | Recover remaining snapshots; cap/audit negatives; freeze `transitions-core` v0.1 |
+| after NIRM 3 sign-off | Second spot-check; cap flatbuffers family weight; freeze `transitions-core` v0.2 |
 | NIRM 4 | Run zero-shot baseline; train classifier only if the gate is met |
 
 The dataset build must not delay the NIRM 3 report. The pilot is enough to

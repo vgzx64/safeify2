@@ -1,6 +1,6 @@
 # Transition dataset pilot — results
 
-> **Status: pilot · 2026-10-24 · Not a frozen dataset**
+> **Status: v0.2 draft · 2026-11-07 · all five gates pass; not frozen**
 >
 > Design: [transition dataset plan](transition-dataset.md)
 > Pipeline: [research/transitions/README.md](../../research/transitions/README.md)
@@ -217,7 +217,7 @@ CVEfixes-style transitions.
 
 - **crates.io version pairs**: 200 advisories paired, 872 unsafe-changing
   hunks, 191 safe candidates. A 54-row adjudication gave 23 `Y`, 5 `M`, 3 `N`,
-  23 `U`/veto. These rows are included in the 276-row total.
+  23 `U`/veto. These rows are included in the round-12 276-row total.
 - **official Rust docs / rust-src 1.99.1**: 897 `# Safety` sections, 310 public
   contracts after filtering, 469 doc examples. These are contract/alternative
   data, not transition rows; not yet merged.
@@ -307,82 +307,91 @@ This is too small to support a headline result. It is a schema/split dry run. Th
 files are `transitions_core_draft.jsonl`, `splits_draft.json`, and
 `transitions_core_draft_stats.json`.
 
-## Exploratory v0.1 and gate report
+## Gate-closing run (2026-11-07, round 13)
 
-A family-level exploratory core was built by collapsing duplicate
-`(repo, path, function)` families:
+The 12-round budget ended blocked, so the follow-up was scoped to close the two
+failing gates instead of labeling the whole remaining pool. Two selections were
+built with `adjudication/build_batches.py`:
 
-- **190 rows**: 109 Y, 43 M, 38 N.
-- **97 repositories**; split 97 train / 36 valid / 57 test.
-- Test: 25 Y + 18 M + 14 N.
+- **Batch A**: 161 unreviewed CVEfixes queue rows spanning all 118 remaining
+  families (one row per family first), to lift queue coverage.
+- **Batch B**: 170 untouched crates.io/RustSec retained families (one row per
+  family), to add hard-negative families.
 
-The honest gate report is in
-`transitions_core_v0.1_quality.json`. The positive-family gate now passes; the
-remaining freeze gates fail:
+Eleven LLM batches (27-29 rows each) were adjudicated against
+[`RUBRIC.md`](../../research/transitions/adjudication/RUBRIC.md), merged with
+strict id-set validation, and QC'd for evidence quotes and Y-with-unsafe-new.
+One new Y claim (RUSTSEC-2021-0144 pointer cast) was demoted to `M` on
+spot-check because the shown cast keeps `T: ?Sized`; the correction is recorded
+in `out/spotcheck_gate.json`.
 
-- positive families ≥100: **true** (109)
-- negative rows ≥300: **false** (81 after family collapse)
-- test rows ≥50: **true** (64)
-- queue coverage ≥80%: **false** (206/458)
-- manual/LLM tracks reconciled: **false**
+Result: **607 reviewed rows** (+331), 76 vetoed. Labels: 104 `Y`, 166 `M`,
+259 `N`, 78 `U`. The negative core grew to 425 rows (259 `N` / 166 `M`); the
+positive union is 120 rows / 110 families.
 
-Status: **not frozen; exploratory only**.
+## v0.2 draft and gate report
 
-## Final status (2026-10-26, round 12)
+Family-level collapse (`out/transitions_core_v0.2_draft.jsonl`):
 
-The deliverable is an **exploratory v0.1**, not a frozen final dataset. Round
-12 ends blocked on negative and queue coverage:
+- **435 rows**: 110 Y, 194 N, 131 M.
+- **189 repositories**; split 225 train / 83 valid / 127 test
+  (51.7 / 19.1 / 29.2).
+- Test: 30 Y + 33 N + 64 M.
 
-- `transitions_core_v0.1_exploratory.jsonl`: **190 rows** (109 Y, 43 M, 38 N).
-- `splits_v0.1.json`: **97 train / 36 valid / 57 test**.
-- Positive-family gate: **pass (109 families)**.
-- Test-size gate: **pass (64)**.
-- Negative gate: **fail (123 reviewed, <300)**.
-- Queue coverage: **fail (206/458)**.
-- Manual/LLM reconciliation: **pass** (18 manual-only rows re-adjudicated; 16 kept Y, 2 demoted to M).
+All five gates pass in `out/transitions_core_v0.2_quality.json`:
 
-crates.io is now the main external positive source: 200 advisories, 872
-unsafe-changing hunks, 191 safe candidates, 54 adjudications (23 Y). Official
-docs and Rust-for-Linux are separate contract/encapsulation sources.
+- positive families >= 100: **true** (110)
+- negative rows >= 300: **true** (325)
+- test rows >= 50: **true** (127)
+- queue coverage >= 80%: **true** (367/458 = 80.1%)
+- manual/LLM tracks reconciled: **true**
+
+Status: **v0.2 draft; all gates pass; not frozen** (freeze still requires NIRM 3
+sign-off and a second spot-check).
 
 ## Critical assessment
 
-This is **not a final dataset**.
-
-1. **Positive count is no longer the blocker.** 119 rows / 109 families pass the
-   gate, but duplicates remain in `id-map`/`diesel`/`smallvec`/crates.io.
-2. **Negatives are the blocker.** 123 reviewed vs 300; most retained rows are
-   guards or contract changes.
-3. **Queue coverage is 45%.** 252 CVEfixes rows remain unlabeled.
-4. **The split is uneven.** 97 train / 36 valid / 57 test passes the size gate
-   but is not source-balanced enough for a final claim.
-5. **Manual and LLM positives are reconciled**, with two disagreements recorded.
-6. **crates.io yield is low per advisory.** 200 advisories → 23 Y.
-7. **Docs/Rust-for-Linux are not positive padding.** They add `M`/`N`/
-   `encapsulate` evidence.
-8. **No compile/test/Miri gate**, by design.
+1. **Positives pass but are small.** 110 families, 120 rows: 72 manual + 48
+   LLM-only. Duplicates remain in id-map/diesel/smallvec/crates.io.
+2. **Negatives pass but are concentrated.** 325 families across 153 repos, but
+   google/flatbuffers alone is 57 families (17.5%) because its `fn` -> `unsafe
+   fn` lint refactor produced many near-identical `N` rows.
+3. **Queue coverage is 80.1%**, one row over the line; 91 CVEfixes queue rows
+   remain unlabeled.
+4. **Split proportions are close to target** (51.7 / 19.1 / 29.2 vs 50/20/30),
+   but the split is by repository, so a hunk-heavy repo can still dominate.
+5. **Labels are semantic LLM decisions**, spot-checked (1 demotion this round,
+   2 in the earlier reconciliation), with no compile/test/Miri gate by design.
+6. **crates.io remains low-yield**: 200 advisories -> 23 `Y`; the 170 new rows
+   came from version-pair retained hunks, not new positives.
+7. **RustSec/OSV/GHSA aliases** are covered by CVEfixes/RustSec; there is no
+   separate artifact.
+8. **No date cutoff** was applied; dates are used only for evaluation holdouts.
 
 ## Implication
 
-Use the 111-family v0.1 as an **exploratory seed**, not as the final training
-set. The remaining blockers are negative coverage, queue coverage, split
-quality, and positive-track reconciliation.
+v0.2 is the first draft that clears every stated gate. It is still a **draft**:
+usable to train a NIRM 4 prototype, not a frozen benchmark. Before freezing, run
+a second independent spot-check (Y precision and the N/M boundary), cap the
+flatbuffers family influence, and finish the last 91 queue rows.
 
 ## Next
 
-1. Finish the retained queue toward 300 negatives.
-2. Rebuild a source-stratified split with adequate train/valid/test.
-3. Reconcile manual and LLM positives.
-4. Adjudicate more docs contracts/examples.
-5. Freeze only after all gates pass.
+1. Freeze only after NIRM 3 sign-off and a second spot-check sample.
+2. Cap per-repo family weight (flatbuffers) for a balanced v0.3.
+3. Finish the 91 remaining CVEfixes queue rows (optional; coverage passes).
+4. Adjudicate more docs contracts/examples for the downstream retriever.
+5. Keep evaluation holdout dates separate from training collection.
 
 ## Artifacts
 
-- [Positive union: 121](../../research/transitions/out/positive_union.jsonl)
-- [Negative core: 106](../../research/transitions/out/negative_core.jsonl)
-- [Family-level v0.1 core: 189](../../research/transitions/out/transitions_core_v0.1_exploratory.jsonl)
-- [Quality gates](../../research/transitions/out/transitions_core_v0.1_quality.json)
-- [Splits](../../research/transitions/out/splits_v0.1.json)
+- [Positive union: 120](../../research/transitions/out/positive_union.jsonl)
+- [Negative core: 425](../../research/transitions/out/negative_core.jsonl)
+- [v0.2 family core: 435](../../research/transitions/out/transitions_core_v0.2_draft.jsonl)
+- [Quality gates](../../research/transitions/out/transitions_core_v0.2_quality.json)
+- [Splits](../../research/transitions/out/splits_v0.2.json)
+- [Batch manifest](../../research/transitions/adjudication/gate_batches.json)
+- [Spot-check corrections](../../research/transitions/out/spotcheck_gate.json)
 - [crates.io candidates](../../research/transitions/out/cratesio_candidates.jsonl)
 - [Public docs contracts](../../research/transitions/out/docs_public_safety.jsonl)
 - [Rust-for-Linux sample](../../research/transitions/out/rust_for_linux_hunks.jsonl)

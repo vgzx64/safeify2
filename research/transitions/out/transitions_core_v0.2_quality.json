@@ -1,0 +1,41 @@
+{
+  "dataset_version": "v0.2-draft",
+  "frozen": false,
+  "gates": {
+    "positive_families_ge_100": true,
+    "negative_rows_ge_300": true,
+    "test_rows_ge_50": true,
+    "queue_coverage_ge_80pct": true,
+    "manual_llm_tracks_reconciled": true
+  },
+  "counts": {
+    "rows": 435,
+    "positives": 110,
+    "negatives": 325,
+    "by_label": {
+      "Y": 110,
+      "N": 194,
+      "M": 131
+    },
+    "by_split": {
+      "valid": 83,
+      "train": 225,
+      "test": 127
+    },
+    "by_split_label": {
+      "valid:Y": 30,
+      "train:Y": 50,
+      "test:Y": 30,
+      "valid:N": 33,
+      "train:N": 128,
+      "train:M": 47,
+      "test:M": 64,
+      "valid:M": 20,
+      "test:N": 33
+    },
+    "repos": 189,
+    "queue_labeled": 367,
+    "queue_total": 458
+  },
+  "verdict": "all gates pass; not frozen (requires NIRM 3 sign-off)"
+}

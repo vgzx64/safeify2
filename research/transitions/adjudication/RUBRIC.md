@@ -40,6 +40,10 @@ safe wrapper. The `unsafe` keyword may remain in a guard/encapsulation case.
    operation, use `U`/`false_positive`.
 6. Do not infer a replacement that is not shown in the new snippet.
 7. Do not reward a patch that merely moves the same unsafe operation.
+8. Clipped snippets may omit the enclosing `unsafe {` line. A call to a known
+   unsafe API (`from_raw_parts`, `get_unchecked`, `set_len`, `assume_init`,
+   `transmute`, `ptr::read`/`copy`/`write`, ...) still counts as the unsafe
+   operation; do not veto only because the `unsafe` keyword is absent.
 
 ## Output JSONL
 

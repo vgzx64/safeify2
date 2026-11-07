@@ -1,0 +1,15 @@
+{
+  "seed": 20261107,
+  "a_rows": 0,
+  "b_rows": 170,
+  "a_families": 0,
+  "b_families": 170,
+  "a_repos": 0,
+  "b_repos": 90,
+  "gate_b01": 29,
+  "gate_b02": 29,
+  "gate_b03": 28,
+  "gate_b04": 28,
+  "gate_b05": 28,
+  "gate_b06": 28
+}

@@ -1,6 +1,6 @@
 # research/transitions — CVEfixes transition mining
 
-> **Status: pilot analysis · 2026-10-24 · not a frozen dataset**
+> **Status: v0.2 draft · 2026-11-07 · all gates pass; not frozen**
 >
 > Design: [transition dataset plan](../../notes/research/transition-dataset.md)
 > Findings: [pilot report](../../notes/research/transition-dataset-pilot.md)
@@ -62,14 +62,17 @@ The DB is opened read-only. Parent commits come from `ext_commits`, because
 | `adjudication/labels_002.jsonl` | 30 clean pilot labels |
 | `out/rustsec_hunks.jsonl` | 189 unsafe-changing RustSec PR/commit hunks |
 | `out/source_inventory.json` | counts for CVEfixes, SafeNet, synth, RustSec, crates.io, docs, Linux |
-| `adjudication/reviewed_all.jsonl` | 82 adjudicated rows (CVEfixes + RustSec) |
-| `adjudication/reviewed_all_stats.json` | 103 Y / 65 M / 58 N / 50 U, 48 vetoed |
-| `out/positive_union.jsonl` | 119 candidate positives / 109 families |
-| `out/negative_core.jsonl` | 123 reviewed M/N rows (58 N, 65 M, 2 reconciled) |
+| `adjudication/reviewed_all.jsonl` | 607 adjudicated rows (CVEfixes + crates.io + RustSec + Linux) |
+| `adjudication/reviewed_all_stats.json` | 104 Y / 166 M / 259 N / 78 U, 76 vetoed |
+| `out/positive_union.jsonl` | 120 candidate positives / 110 families |
+| `out/negative_core.jsonl` | 425 reviewed M/N rows (259 N, 166 M) |
 | `out/transitions_core_draft.jsonl` | 231-row unfrozen core draft (118 Y / 57 M / 56 N) |
-| `out/transitions_core_v0.1_exploratory.jsonl` | 190-row family-level exploratory core |
-| `out/transitions_core_v0.1_quality.json` | gate report: positive-family gate passes; negative/test/coverage/reconciliation fail |
-| `out/splits_v0.1.json` | family-core repo split |
+| `out/transitions_core_v0.2_draft.jsonl` | 435-row family-level v0.2 draft (110 Y / 194 N / 131 M) |
+| `out/transitions_core_v0.2_quality.json` | gate report: all five gates pass; not frozen |
+| `out/splits_v0.2.json` | family-core repo split (225/83/127) |
+| `adjudication/gate_batches.json` | gate-closing run: 161 queue rows + 170 expansion families |
+| `adjudication/labels_gate_*.jsonl` | 11 adjudication batch outputs (331 rows) |
+| `out/spotcheck_gate.json` | documented spot-check correction (1 Y -> M) |
 | `out/splits_draft.json` | repo-level 70/10/20 draft split |
 | `out/stats.json`, `out/diff_stats.json`, `out/pattern_stats.json` | extractor counters and rejects |
 | `out/manifest_stats.json` | merged distributions |
@@ -94,21 +97,23 @@ The DB is opened read-only. Parent commits come from `ext_commits`, because
   that the source is invalid.
 - **Reject rows are aggregate only.** The pilot writes rejection counts to
   `stats.json`; it does not persist one row per rejected block. Per-row reject
-  records are a v0.1 requirement.
+  records are a v0.2 requirement.
 
 LLM adjudication uses [adjudication/RUBRIC.md](adjudication/RUBRIC.md). The
 first queue was contaminated by generic `ptr::deref`/`as_ref` matches (31/60
 vetoes); the strict queue uses only actual `unsafe` keywords/known unsafe APIs.
-The adjudicated set is 276 rows: 103 Y / 65 M / 58 N / 50 U, with 48 vetoes
-(206 CVEfixes + 16 RustSec + 54 crates.io). This is a pipeline start, not a completed label
-set: only 206/458 CVEfixes queue rows are labeled. The reconciled positive
-union is 119 candidates across 109 families.
+The adjudicated set is 607 rows: 104 Y / 166 M / 259 N / 78 U, with 76 vetoes
+(367 CVEfixes + 194 crates.io + 45 RustSec + 1 Rust-for-Linux). Queue coverage
+is 367/458 (80.1%). The reconciled positive union is 120 candidates across
+110 families.
 
-The reviewed negative core is 123 rows (58 N, 65 M). The old 84-row capped
-audit found 12 guards, 15 refactors, 1 different-unsafe row, and 0 hard
-negatives; the newer retained batches added real N/M rows. The current detector
-zero-shot run on 74 positives produced no sink for 31, a Y for only 18, and
-predicted Y on both known hard negatives.
+The reviewed negative core is 425 rows (259 N, 166 M), collapsing to 325
+families. The 2026-11-07 gate-closing run added 331 rows: 161 CVEfixes queue
+rows and 170 crates.io/RustSec families. One new Y claim was demoted to M on
+spot-check. The old 84-row capped audit found 12 guards, 15 refactors, 1
+different-unsafe row, and 0 hard negatives; the newer retained batches added
+real N/M rows. The detector zero-shot run on 74 positives produced no sink for
+31, a Y for only 18, and predicted Y on both known hard negatives.
 
 See the [pilot report](../../notes/research/transition-dataset-pilot.md) for the
 counts, audit, examples, and decision.

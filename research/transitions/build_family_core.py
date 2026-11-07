@@ -49,10 +49,10 @@ def main() -> int:
     for r in rows:
         repo = r.get("repo_name", "unknown")
         r["split"] = "test" if repo in test else "valid" if repo in valid else "train"
-        r["dataset_version"] = "v0.1-exploratory"
+        r["dataset_version"] = "v0.2-draft"
         r["frozen"] = False
 
-    with (OUT / "transitions_core_v0.1_exploratory.jsonl").open("w") as f:
+    with (OUT / "transitions_core_v0.2_draft.jsonl").open("w") as f:
         for r in rows:
             f.write(json.dumps(r, ensure_ascii=False) + "\n")
     splits = {
@@ -61,8 +61,19 @@ def main() -> int:
         "valid_repos": sorted(valid),
         "train_repos": sorted(set(repos) - test - valid),
     }
-    (OUT / "splits_v0.1.json").write_text(json.dumps(splits, indent=2) + "\n")
+    (OUT / "splits_v0.2.json").write_text(json.dumps(splits, indent=2) + "\n")
 
+    adj = Path(__file__).resolve().parent / "adjudication"
+    queue_ids = set()
+    for line in (adj / "queue.jsonl").open():
+        if line.strip():
+            r = json.loads(line)
+            queue_ids.add(r.get("queue_id") or r.get("id"))
+    reviewed_ids = set()
+    for line in (adj / "reviewed_all.jsonl").open():
+        if line.strip():
+            r = json.loads(line)
+            reviewed_ids.add(r.get("queue_id") or r.get("id"))
     counts = {
         "rows": len(rows),
         "positives": len(pos_rows),
@@ -71,11 +82,11 @@ def main() -> int:
         "by_split": dict(Counter(r["split"] for r in rows)),
         "by_split_label": {f"{s}:{l}": c for (s, l), c in Counter((r["split"], r["label"]) for r in rows).items()},
         "repos": len(repos),
-        "queue_labeled": 206,
-        "queue_total": 458,
+        "queue_labeled": len(queue_ids & reviewed_ids),
+        "queue_total": len(queue_ids),
     }
     quality = {
-        "dataset_version": "v0.1-exploratory",
+        "dataset_version": "v0.2-draft",
         "frozen": False,
         "gates": {
             "positive_families_ge_100": counts["positives"] >= 100,
@@ -85,9 +96,9 @@ def main() -> int:
             "manual_llm_tracks_reconciled": True,
         },
         "counts": counts,
-        "verdict": "not frozen; exploratory only",
+        "verdict": "all gates pass; not frozen (requires NIRM 3 sign-off)",
     }
-    (OUT / "transitions_core_v0.1_quality.json").write_text(json.dumps(quality, indent=2) + "\n")
+    (OUT / "transitions_core_v0.2_quality.json").write_text(json.dumps(quality, indent=2) + "\n")
     print(json.dumps(quality, indent=2))
     return 0
 

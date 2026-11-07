@@ -20,7 +20,7 @@ Working notes for the dissertation and the SafeNet experiments.
 | [research/synthetic-data-theory.md](research/synthetic-data-theory.md) | Active | Why and how to build synthetic data without a circular evaluation |
 | [research/gnn-coder-evaluation.md](research/gnn-coder-evaluation.md) | Historical | 2026-09-22 evaluation of GNN-Coder as a research candidate |
 | [research/transition-dataset.md](research/transition-dataset.md) | Draft | Classification/retrieval dataset: labels, splits, gates |
-| [research/transition-dataset-pilot.md](research/transition-dataset-pilot.md) | Provisional | CVEfixes/repo pilot: v0.1 exploratory 190 rows; 276 adjudicated; 109 positive families; negatives/queue still short |
+| [research/transition-dataset-pilot.md](research/transition-dataset-pilot.md) | Draft | v0.2 draft: 435 rows; 607 adjudicated; 110 positive / 325 negative families; all five gates pass; not frozen |
 
 ## Archive
 

@@ -1,0 +1,9 @@
+[
+  {
+    "id": "rustsec-issue:RUSTSEC-2021-0144:src/lib.rs:5:0",
+    "from": "Y",
+    "to": "M",
+    "action": "replace",
+    "reason": "Spot-check: the new snippet still shows `T: ?Sized` while casting `*const T`/`*mut T` to `*const ()`/`*mut ()`; that thin-pointer cast is only valid with a Sized bound, so the safe replacement needs signature restructuring. Demoted Y -> M."
+  }
+]

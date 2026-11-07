@@ -1,8 +1,8 @@
 # Transition dataset — source expansion plan
 
-> **Status: active plan · 2026-10-26**
+> **Status: v0.2 draft · 2026-11-07; all five gates pass**
 >
-> Existing v0.1 exploratory core: [pilot results](transition-dataset-pilot.md).
+> Current v0.2 draft: [pilot results](transition-dataset-pilot.md).
 > This page defines the new sources and what must be reworked. It is deliberately
 > short; detailed counts live in the pilot/QA artifacts.
 
@@ -12,7 +12,7 @@ No full rework of the extraction or labels. Keep:
 
 - CVEfixes strict hunk mining and adjudication.
 - RustSec PR/commit/issue mining.
-- The 276 reviewed labels and the v0.1 exploratory family core.
+- The 607 reviewed labels and the v0.2 family core.
 - The LLM rubric.
 
 What must be reworked:
@@ -31,7 +31,7 @@ What must be reworked:
 
 | Source | Role | Expected contribution |
 |---|---|---|
-| CVEfixes + RustSec/OSV/GHSA | CVE transition pairs | existing 119 rows / 109 families |
+| CVEfixes + RustSec/OSV/GHSA | CVE transition pairs | existing 120 rows / 110 families |
 | **crates.io version pairs** | vulnerable→patched published versions | **new Y/M families** |
 | **official Rust docs / rust-src** | `# Safety` contracts, canonical safe alternatives | `N`/`encapsulate` candidates, retrieval gallery, guard rules |
 | **Rust-for-Linux `rust/kernel`** | safe wrappers around unsafe kernel/FFI code | `encapsulate`/`M` examples; not CVE positives |
@@ -86,9 +86,11 @@ Mine Linux history/patch series filtered to `rust/`, not the whole kernel.
 
 - 200 advisories with simple `patched` ranges were paired.
 - 872 unsafe-changing hunks; 191 safe candidates.
-- 54 adjudications: 23 `Y`, 5 `M`, 3 `N`, 23 `U`/veto.
+- 54 adjudications in the first pass: 23 `Y`, 5 `M`, 3 `N`, 23 `U`/veto.
+- The 2026-11-07 gate-closing run adjudicated 170 additional crates.io/RustSec
+  retained families; crates.io now accounts for 194 reviewed rows.
 - crates.io added the families that pushed the union past 100; the current
-  reconciled union is **119 rows / 109 families**. Many version pairs still
+  reconciled union is **120 rows / 110 families**. Many version pairs still
   contain no unsafe change.
 
 The first implementation had a path bug (tarball root included
@@ -113,9 +115,17 @@ abstraction commits produced 3 unsafe-changing hunks: 2 unsafe-added and 1
 retained. No safe-candidate row appeared. It remains an `encapsulate` source,
 not a CVE-positive source.
 
+## Gate-closing result (2026-11-07)
+
+A 331-row run (161 CVEfixes queue rows + 170 crates.io/RustSec families) closed
+the two failing gates. The v0.2 draft has 435 family rows: 110 positives,
+325 negatives, 127 test rows, and 367/458 queue coverage (80.1%). All five gates
+pass; the dataset is still **not frozen**.
+
 ## Next phases
 
-1. Finish the retained queue toward 300 negatives.
-2. Rebuild a source-stratified split with adequate train/valid/test.
-3. Adjudicate more of the 310 public doc contracts and 469 examples.
-4. Freeze only after all quality gates pass.
+1. Second independent spot-check (Y precision, N/M boundary).
+2. Cap per-repo family weight (google/flatbuffers is 57 of 325 negative families).
+3. Finish the 91 remaining CVEfixes queue rows (optional; coverage passes).
+4. Adjudicate more of the 310 public doc contracts and 469 examples.
+5. Freeze only after NIRM 3 sign-off and the spot-check.

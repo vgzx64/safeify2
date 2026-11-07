@@ -31,7 +31,7 @@ transitions from `CVEfixes.db` and the cloned repositories.
 
 - Entry point: [transitions/README.md](transitions/README.md)
 - Pilot results: [notes/research/transition-dataset-pilot.md](../notes/research/transition-dataset-pilot.md)
-- **Status:** v0.1 exploratory; 190 rows, 109 Y families; positive/test/reconciliation pass; negatives and queue coverage fail.
+- **Status:** v0.2 draft; 435 rows, 110 Y families, 325 negative families; all five gates pass; not frozen.
 
 ### `gnn/` — GNN-Coder prototype
 

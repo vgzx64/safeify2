@@ -58,25 +58,35 @@
   },
   "notes": [
     "CVEfixes strict_unsafe_hunks uses only unsafe keyword/known unsafe APIs, not generic pointer/as_ref heuristics.",
-    "RustSec diff rows are fetched from public PR/commit .diff URLs; not yet adjudicated at scale."
+    "RustSec diff rows are fetched from public PR/commit .diff URLs.",
+    "v0.2 gate-closing run: 161 CVEfixes queue rows + 170 crates.io/RustSec families, adjudicated in 11 LLM batches.",
+    "One new Y claim (RUSTSEC-2021-0144 pointer cast) was demoted to M on spot-check; see out/spotcheck_gate.json."
   ],
   "adjudication": {
     "cvefixes_queue": 458,
-    "cvefixes_labeled": 206,
-    "rustsec_labeled": 16,
-    "cratesio_labeled": 54,
-    "combined_labeled": 276,
+    "cvefixes_labeled": 367,
+    "queue_coverage": 0.8013,
+    "rustsec_labeled": 45,
+    "cratesio_labeled": 194,
+    "rust_for_linux_labeled": 1,
+    "combined_labeled": 607,
     "combined_labels": {
-      "Y": 103,
-      "M": 65,
-      "N": 58,
-      "U": 50
+      "Y": 104,
+      "M": 166,
+      "N": 259,
+      "U": 78
     },
-    "vetoed": 48,
-    "positive_union": 119,
-    "positive_families": 109,
-    "negative_core": 123,
-    "reconciled": true
+    "vetoed": 76,
+    "positive_union": 120,
+    "positive_families": 110,
+    "negative_core": 425,
+    "negative_families": 325,
+    "gate_batch_rows": 331,
+    "spotcheck_corrections": 1,
+    "reconciled": true,
+    "dataset_version": "v0.2-draft",
+    "gates_pass": true,
+    "frozen": false
   },
   "cratesio": {
     "advisories_piloted": 200,
