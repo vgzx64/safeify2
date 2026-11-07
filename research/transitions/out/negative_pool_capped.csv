@@ -1,0 +1,836 @@
+id,method,observed,repo,cve,package,severity,sfp_categories,commit,parent_commit,path,fn,api,span_start,span_end,old_snippet,safe_snippet,auto_category,label,notes
+cvefixes:586:f70a16a09a:map::post_exec:1246-1246,analyzer,unsafe,AFLplusplus_LibAFL,586,libafl,Medium,,f70a16a09a8096d3c50159dd8a912a75c2af157c,761a77fce079a36346bcfd7e43de742a72317629,libafl/src/observers/map.rs,map::post_exec,ptr::deref,1246,1246,"        let map16 = unsafe { core::slice::from_raw_parts_mut(map.as_mut_ptr() as *mut u16, cnt) };","
+        let map16 = unsafe {
+            slice::from_raw_parts_mut(map.as_mut_ptr().add(align_offset) as *mut u16, cnt)
+        };
+",other,unreviewed,
+cvefixes-diff:586:f70a16a09a:libafl/src/observers/map.rs:72-80,diff,unsafe,AFLplusplus_LibAFL,586,libafl,Medium,,f70a16a09a8096d3c50159dd8a912a75c2af157c,761a77fce079a36346bcfd7e43de742a72317629,libafl/src/observers/map.rs,hash_slice,from_raw_parts,72,80,"    let map_size = slice.len() / core::mem::size_of::<T>();
+        hasher.write(from_raw_parts(ptr, map_size));","    let map_size = slice.len() / size_of::<T>();
+        hasher.write(slice::from_raw_parts(ptr, map_size));",same_api_refactor,unreviewed,
+cvefixes-diff:1106:719df35f55:src/lib.rs:126-152,diff,unsafe,BrokenLamp_slock-rs,1106,slock,High,Memory Management;Synchronization;Tainted Input,719df35f55b6cab4ca2a7f840347a06ecbd8aac6,301f598fbbea005bd07b12f2e31abf2e47ddd3c9,src/lib.rs,set,ptr::deref,126,152,"        match self.lock.write() {
+            Ok(mut data) => {
+                let ptr = &mut data.value as *mut T;
+                unsafe {
+                    let new = timeout(std::time::Duration::from_secs(1), async {
+                        setter(ptr.read())
+                    })
+                    .await;","        let mut data = self.lock.write().await;
+        let ptr = &mut data.value as *mut T;
+        let new = timeout(std::time::Duration::from_secs(1), async {
+            setter(unsafe { ptr.read() })
+        })
+        .await;
+        if let Ok(new) = new {
+            timeout(std::time::Duration::from_secs(1), async {
+                data.hook.as_mut().map(|hook| hook(&new));
+            })
+            .await
+            .ok();
+            unsafe { ptr.write(new) };
+
+        data.version += 1;",other,unreviewed,
+cvefixes:1106:719df35f55:::set:132-145,analyzer,unsafe,BrokenLamp_slock-rs,1106,slock,High,Memory Management;Synchronization;Tainted Input,719df35f55b6cab4ca2a7f840347a06ecbd8aac6,301f598fbbea005bd07b12f2e31abf2e47ddd3c9,src/lib.rs,::set,,132,145,"                unsafe {
+                    let new = timeout(std::time::Duration::from_secs(1), async {
+                        setter(ptr.read())
+                    })
+                    .await;
+                    if let Ok(new) = new {
+                        timeout(std::time::Duration::from_secs(1), async {
+                            data.hook.as_mut().map(|hook| hook(&new));
+                        })
+                        .await
+                        .ok();
+                        ptr.write(new);
+                    }
+                }","        let mut data = self.lock.write().await;
+        let ptr = &mut data.value as *mut T;
+        let new = timeout(std::time::Duration::from_secs(1), async {
+            setter(unsafe { ptr.read() })
+        })
+        .await;
+        if let Ok(new) = new {
+            timeout(std::time::Duration::from_secs(1), async {
+                data.hook.as_mut().map(|hook| hook(&new));
+            })
+            .await
+            .ok();
+            unsafe { ptr.write(new) };
+
+        data.version += 1;",other,unreviewed,
+cvefixes:24:0dca1a705a:condition::poll:76-76,analyzer,unsafe,actix_actix-net,24,actix-utils,Critical,Memory Management;Resource Management,0dca1a705ad1ff4885b3491ecb809a808e1de66c,5d6d309e66b79d837ede20a26d654274bfb68d8f,actix-utils/src/condition.rs,condition::poll,get_unchecked_mut,76,76,        let inner = unsafe { this.inner.get_mut().data.get_unchecked_mut(this.token) };,"        let mut inner = this.inner.borrow_mut();
+        let inner = unsafe { inner.data.get_unchecked_mut(this.token) };",same_api_refactor,unreviewed,
+cvefixes-diff:24:0dca1a705a:actix-utils/src/oneshot.rs:184-191,diff,unsafe,actix_actix-net,24,actix-utils,Critical,Memory Management;Resource Management,0dca1a705ad1ff4885b3491ecb809a808e1de66c,5d6d309e66b79d837ede20a26d654274bfb68d8f,actix-utils/src/oneshot.rs,clone,get_unchecked_mut,184,191,"    pub fn send(mut self, val: T) -> Result<(), T> {
+        let inner = unsafe { self.inner.get_mut().get_unchecked_mut(self.token) };","    pub fn send(self, val: T) -> Result<(), T> {
+        let mut inner = self.inner.borrow_mut();
+        let inner = unsafe { inner.get_unchecked_mut(self.token) };",same_api_refactor,unreviewed,
+cvefixes:24:0dca1a705a:oneshot::send:188-188,analyzer,unsafe,actix_actix-net,24,actix-utils,Critical,Memory Management;Resource Management,0dca1a705ad1ff4885b3491ecb809a808e1de66c,5d6d309e66b79d837ede20a26d654274bfb68d8f,actix-utils/src/oneshot.rs,oneshot::send,get_unchecked_mut,188,188,        let inner = unsafe { self.inner.get_mut().get_unchecked_mut(self.token) };,"    pub fn send(self, val: T) -> Result<(), T> {
+        let mut inner = self.inner.borrow_mut();
+        let inner = unsafe { inner.get_unchecked_mut(self.token) };",same_api_refactor,unreviewed,
+cvefixes-diff:150:1bdaa14da6:src/unsafe_casts.rs:59-72,diff,unsafe,alexpyattaev_borrowck_sacrifices,150,borrowck_sacrifices,Low,Memory Access,1bdaa14da68a6e8207f9e81359116f53139800f2,3d22abb693bcc037cfce2c49b5489ac935e0ae55,src/unsafe_casts.rs,lifetime_detach,,59,72,"            let rv = self.data.get_mut(self.index)?;            
+            // Here we rebind the lifetime of rv to match the Iterator's own lifetime. 
+            Some(unsafe{lifetime_detach(rv)})
+    ","            let rv = self.data.get_mut(self.index)?;
+            // Here we rebind the lifetime of rv to match the Iterator's own lifetime.
+            Some(unsafe { lifetime_detach(rv) })
+",other,unreviewed,
+cvefixes-diff:40:4790c47518:crates/primitives/src/utils/mod.rs:75-84,diff,unsafe,alloy-rs_core,40,alloy-json-abi,Medium,Resource Management,4790c47518024bd391bbd6815b00f501bad76a15,6540523385ea10c9adce31beae7106cfa7da770f,crates/primitives/src/utils/mod.rs,box_try_new_uninit,Box::from_raw,75,84,"    let ptr = vec.as_mut_ptr();
+    core::mem::forget(vec);
+    Ok(unsafe { Box::from_raw(ptr) })","    let mut vec = ManuallyDrop::new(vec);
+
+    Ok(unsafe { Box::from_raw(vec.as_mut_ptr()) })",same_api_refactor,unreviewed,
+cvefixes:40:4790c47518:utils::box_try_new_uninit:81-81,analyzer,unsafe,alloy-rs_core,40,alloy-json-abi,Medium,Resource Management,4790c47518024bd391bbd6815b00f501bad76a15,6540523385ea10c9adce31beae7106cfa7da770f,crates/primitives/src/utils/mod.rs,utils::box_try_new_uninit,Box::from_raw,81,81,    Ok(unsafe { Box::from_raw(ptr) }),"    let mut vec = ManuallyDrop::new(vec);
+
+    Ok(unsafe { Box::from_raw(vec.as_mut_ptr()) })",same_api_refactor,unreviewed,
+cvefixes-diff:1273:e6e16d5a97:src/toodee.rs:1073-1079,diff,unsafe,antonmarsden_toodee,1273,toodee,High,Memory Access;Memory Management,e6e16d5a97e6258ffbedbae1bde65b45c60f242f,0467f3d66116eebf7d6f3f5f60e28a19702161ea,src/toodee.rs,drop,ptr::copy,1073,1079,"                    ptr::copy(src, dest, orig_cols - col);","                    ptr::copy(src, dest, orig_cols - col - 1);",same_api_refactor,unreviewed,
+cvefixes-diff:93:2c98b6f384:ash/src/util.rs:113-127,diff,unsafe,ash-rs_ash,93,ash,High,Exception Management;Memory Access,2c98b6f384a017de031698bd623551a45f24c8f9,17149bd791cd6e09b145063a238d3e27d855780c,ash/src/util.rs,read_spv,ptr::deref,113,127,"    let mut result = Vec::<u32>::with_capacity(words);
+    unsafe {
+        x.read_exact(slice::from_raw_parts_mut(
+            result.as_mut_ptr() as *mut u8,
+            words * 4,
+        ))?;
+        result.set_len(words);
+    }","    // https://github.com/MaikKlein/ash/issues/354:
+    // Zero-initialize the result to prevent read_exact from possibly
+    // reading uninitialized memory.
+    let mut result = vec![0u32; words];
+    x.read_exact(unsafe { slice::from_raw_parts_mut(result.as_mut_ptr() as *mut u8, words * 4) })?;",other,unreviewed,
+cvefixes:93:2c98b6f384:util::read_spv:118-124,analyzer,unsafe,ash-rs_ash,93,ash,High,Exception Management;Memory Access,2c98b6f384a017de031698bd623551a45f24c8f9,17149bd791cd6e09b145063a238d3e27d855780c,ash/src/util.rs,util::read_spv,ptr::deref,118,124,"    unsafe {
+        x.read_exact(slice::from_raw_parts_mut(
+            result.as_mut_ptr() as *mut u8,
+            words * 4,
+        ))?;
+        result.set_len(words);
+    }","    // https://github.com/MaikKlein/ash/issues/354:
+    // Zero-initialize the result to prevent read_exact from possibly
+    // reading uninitialized memory.
+    let mut result = vec![0u32; words];
+    x.read_exact(unsafe { slice::from_raw_parts_mut(result.as_mut_ptr() as *mut u8, words * 4) })?;",other,unreviewed,
+cvefixes-diff:1095:9a2e7891f0:src/inline_array/mod.rs:164-175,diff,unsafe,bodil_sized-chunks,1095,sized-chunks,High,Resource Management;Tainted Input,9a2e7891f0dc9f4fa411c81a86b8c80f3ce6bf80,40aa74b824688a4d4b1e1c65a50c679abb58b41e,src/inline_array/mod.rs,is_full,ptr::deref,164,175,"        debug_assert!(Self::HOST_SIZE > Self::HEADER_SIZE);
+            phantom: PhantomData,
+        unsafe { *self_.len_mut() = 0 }","        assert!(Self::HOST_SIZE > Self::HEADER_SIZE);
+            _header_align: [],
+            _data_align: [],
+        // Sanity check our assumptions about what is guaranteed by the compiler. If we are right,
+        // these should completely optimize out of the resulting binary.
+        assert_eq!(
+            &self_ as *const _ as usize,
+            self_.data.as_ptr() as usize,
+            ""Padding at the start of struct"",
+        );
+        assert_eq!(mem::size_of::<Self>(), mem::size_of::<T>());
+        assert_eq!(
+            self_.data.as_ptr() as usize % mem::align_of::<usize>(),
+            0,
+            ""Unaligned header""
+        );
+        assert_eq!(
+            self_.data.as_ptr() as usize % mem::align_of::<A>(),
+            0,
+            ""Unaligned elements""
+        );
+        assert!(
+            mem::align_of::<A>() % mem::align_of::<usize>() == 0
+                || mem::align_of::<usize>() % mem::align_of::<A>() == 0
+        );
+        assert!(Self::ELEMENT_SKIP == 0 || Self::HEADER_SKIP == 0);
+        unsafe { ptr::write(self_.len_mut(), 0usize) };",guard_or_init,unreviewed,
+cvefixes:1095:9a2e7891f0:inline_array::new:172-172,analyzer,unsafe,bodil_sized-chunks,1095,sized-chunks,High,Resource Management;Tainted Input,9a2e7891f0dc9f4fa411c81a86b8c80f3ce6bf80,40aa74b824688a4d4b1e1c65a50c679abb58b41e,src/inline_array/mod.rs,inline_array::new,ptr::deref,172,172,        unsafe { *self_.len_mut() = 0 },"        assert!(Self::HOST_SIZE > Self::HEADER_SIZE);
+            _header_align: [],
+            _data_align: [],
+        // Sanity check our assumptions about what is guaranteed by the compiler. If we are right,
+        // these should completely optimize out of the resulting binary.
+        assert_eq!(
+            &self_ as *const _ as usize,
+            self_.data.as_ptr() as usize,
+            ""Padding at the start of struct"",
+        );
+        assert_eq!(mem::size_of::<Self>(), mem::size_of::<T>());
+        assert_eq!(
+            self_.data.as_ptr() as usize % mem::align_of::<usize>(),
+            0,
+            ""Unaligned header""
+        );
+        assert_eq!(
+            self_.data.as_ptr() as usize % mem::align_of::<A>(),
+            0,
+            ""Unaligned elements""
+        );
+        assert!(
+            mem::align_of::<A>() % mem::align_of::<usize>() == 0
+                || mem::align_of::<usize>() % mem::align_of::<A>() == 0
+        );
+        assert!(Self::ELEMENT_SKIP == 0 || Self::HEADER_SKIP == 0);
+        unsafe { ptr::write(self_.len_mut(), 0usize) };",guard_or_init,unreviewed,
+cvefixes-diff:891:8026286:src/tape.rs:56-62,diff,unsafe,bodoni_postscript,891,postscript,High,Exception Management;Memory Access,8026286,e0e1a4e03b7be5a6ece3e310f61e6beca12cfe33,src/tape.rs,read,uninitialized,56,62,        let mut buffer: [u8; $size] = ::std::mem::uninitialized();,        let mut buffer: [u8; $size] = ::std::mem::zeroed();,guard_or_init,unreviewed,
+cvefixes-diff:1031:df3c3a192c:src/backend/libc/fs/dir.rs:114-120,diff,unsafe,bytecodealliance_rustix,1031,rustix,Medium,Resource Management,df3c3a192cf144af0da8a57417fb4addbdc611f6,b78aeff1a271863ecc75ccca37f014d33b9f6705,src/backend/libc/fs/dir.rs,read,,114,120,        fstat(unsafe { BorrowedFd::borrow_raw(c::dirfd(self.0.as_ptr())) }),        fstat(unsafe { BorrowedFd::borrow_raw(c::dirfd(self.libc_dir.as_ptr())) }),other,unreviewed,
+cvefixes-diff:1031:31fd98ca72:src/backend/libc/fs/dir.rs:120-126,diff,unsafe,bytecodealliance_rustix,1031,rustix,Medium,Resource Management,31fd98ca723b93cc6101a3e29843ea5cf094e159,4bb2f4bbcd3a482112aadb4a226e0fce21fe5d8c,src/backend/libc/fs/dir.rs,read,,120,126,        fstat(unsafe { BorrowedFd::borrow_raw(c::dirfd(self.0.as_ptr())) }),        fstat(unsafe { BorrowedFd::borrow_raw(c::dirfd(self.libc_dir.as_ptr())) }),other,unreviewed,
+cvefixes-diff:1031:df3c3a192c:src/backend/libc/fs/dir.rs:127-147,diff,unsafe,bytecodealliance_rustix,1031,rustix,Medium,Resource Management,df3c3a192cf144af0da8a57417fb4addbdc611f6,b78aeff1a271863ecc75ccca37f014d33b9f6705,src/backend/libc/fs/dir.rs,stat,,127,147,"        fstatfs(unsafe { BorrowedFd::borrow_raw(c::dirfd(self.0.as_ptr())) })
+        fstatvfs(unsafe { BorrowedFd::borrow_raw(c::dirfd(self.0.as_ptr())) })
+        fchdir(unsafe { BorrowedFd::borrow_raw(c::dirfd(self.0.as_ptr())) })","        fstatfs(unsafe { BorrowedFd::borrow_raw(c::dirfd(self.libc_dir.as_ptr())) })
+        fstatvfs(unsafe { BorrowedFd::borrow_raw(c::dirfd(self.libc_dir.as_ptr())) })
+        fchdir(unsafe { BorrowedFd::borrow_raw(c::dirfd(self.libc_dir.as_ptr())) })",other,unreviewed,
+cvefixes-diff:1386:3535acbf3b:crates/runtime/src/cow.rs:675-687,diff,unsafe,bytecodealliance_wasmtime,1386,wasmtime,High,Information Leak;Memory Access,3535acbf3be032ef1ba0b469b8ab92538a8a18a6,47fa1ad6a854f793bc98f23d5f30bb0d400892e6,crates/runtime/src/cow.rs,madvise_reset,ptr::deref,675,687,"    fn set_protection(&self, range: Range<usize>, flags: rustix::mm::MprotectFlags) -> Result<()> {
+        let mprotect_start = self.base.checked_add(range.start).unwrap();
+        if range.len() > 0 {
+            unsafe {
+                rustix::mm::mprotect(mprotect_start as *mut _, range.len(), flags)?;","    fn set_protection(&self, range: Range<usize>, readwrite: bool) -> Result<()> {
+        let start = self.base.checked_add(range.start).unwrap();
+        if range.len() == 0 {
+            return Ok(());
+        }
+
+        unsafe {
+            cfg_if::cfg_if! {
+                if #[cfg(unix)] {
+                    let flags = if readwrite {
+                        rustix::mm::MprotectFlags::READ | rustix::mm::MprotectFlags::WRITE
+                    } else {
+                        rustix::mm::MprotectFlags::empty()
+                    };
+                    rustix::mm::mprotect(start as *mut _, range.len(), flags)?;
+                } else {
+                    use windows_sys::Win32::System::Memory::*;
+
+                    let failure = if readwrite {
+                        VirtualAlloc(start as _, range.len(), MEM_COMMIT, PAGE_READWRITE).is_null()
+                    } else {
+                        VirtualFree(start as _, range.len(), MEM_DECOMMIT) == 0
+                    };
+                    if failure {
+                        return Err(std::io::Error::last_os_error().into());
+                    }
+                }",guard_or_init,unreviewed,
+cvefixes-diff:1391:0977952dcd:crates/runtime/src/instance.rs:183-202,diff,unsafe,bytecodealliance_wasmtime,1391,wasmtime,Low,API;Memory Management,0977952dcd9d482bff7c288868ccb52769b3a92e,f14bb4fb14687951de7d21f5e65b977ac284f8d8,crates/runtime/src/instance.rs,imported_global,ptr::deref,183,202,"    fn table(&self, index: DefinedTableIndex) -> VMTableDefinition {
+    fn set_table(&self, index: DefinedTableIndex, table: VMTableDefinition) {
+    fn table_ptr(&self, index: DefinedTableIndex) -> *mut VMTableDefinition {
+        unsafe { self.vmctx_plus_offset(self.offsets().vmctx_vmtable_definition(index)) }","    fn table(&mut self, index: DefinedTableIndex) -> VMTableDefinition {
+    fn set_table(&mut self, index: DefinedTableIndex, table: VMTableDefinition) {
+    fn table_ptr(&mut self, index: DefinedTableIndex) -> *mut VMTableDefinition {
+        unsafe { self.vmctx_plus_offset_mut(self.offsets().vmctx_vmtable_definition(index)) }",other,unreviewed,
+cvefixes-diff:1391:0977952dcd:crates/runtime/src/instance.rs:238-250,diff,unsafe,bytecodealliance_wasmtime,1391,wasmtime,Low,API;Memory Management,0977952dcd9d482bff7c288868ccb52769b3a92e,f14bb4fb14687951de7d21f5e65b977ac284f8d8,crates/runtime/src/instance.rs,memory_ptr,ptr::deref,238,250,"    fn global(&self, index: DefinedGlobalIndex) -> &VMGlobalDefinition {
+    fn global_ptr(&self, index: DefinedGlobalIndex) -> *mut VMGlobalDefinition {
+        unsafe { self.vmctx_plus_offset(self.offsets().vmctx_vmglobal_definition(index)) }","    fn global(&mut self, index: DefinedGlobalIndex) -> &VMGlobalDefinition {
+    fn global_ptr(&mut self, index: DefinedGlobalIndex) -> *mut VMGlobalDefinition {
+        unsafe { self.vmctx_plus_offset_mut(self.offsets().vmctx_vmglobal_definition(index)) }",other,unreviewed,
+cvefixes-diff:426:8daba15728:src/mnt/fuse3.rs:32-38,diff,unsafe,cberner_fuser,426,fuser,High,Exception Management;Other,8daba15728da46d9299a2b23daa3aeb9954e114e,f5d27ff82dcadf6095d91c451f8eacc55572d9e7,src/mnt/fuse3.rs,new,,32,38,"            let fuse_session = unsafe { fuse_session_new(args, ptr::null(), 0, ptr::null_mut()) };","            let ops = fuse_lowlevel_ops::default();
+
+            let fuse_session = unsafe {
+                fuse_session_new(
+                    args,
+                    &ops as *const _,
+                    std::mem::size_of::<fuse_lowlevel_ops>(),
+                    ptr::null_mut(),
+                )
+            };",other,unreviewed,
+cvefixes-diff:633:df65b33f8a:src/lib.rs:1135-1141,diff,unsafe,contain-rs_linked-hash-map,633,linked-hash-map,Critical,Memory Access,df65b33f8a9dbd06b95b0a6af7521f0d47233545,4485163fe6aa2567d77fa7ff1d372512ca02245e,src/lib.rs,into_iter,uninitialized,1135,1141,        self.map = unsafe { mem::uninitialized() };,        unsafe { ptr::drop_in_place(&mut self.map); },other,unreviewed,
+cvefixes-diff:307:38d308785f:crossbeam-channel/src/flavors/list.rs:72-78,diff,unsafe,crossbeam-rs_crossbeam,307,crossbeam,Medium,,38d308785f84f7037e63c04c0de1cb20d1c8284d,0e91b789483fbfa88207988e600c794f74499d12,crossbeam-channel/src/flavors/list.rs,wait_write,zeroed,72,78,        unsafe { mem::zeroed() },"        // SAFETY: This is safe because:
+        //  [1] `Block::next` (AtomicPtr) may be safely zero initialized.
+        //  [2] `Block::slots` (Array) may be safely zero initialized because of [3, 4].
+        //  [3] `Slot::msg` (UnsafeCell) may be safely zero initialized because it
+        //       holds a MaybeUninit.
+        //  [4] `Slot::state` (AtomicUsize) may be safely zero initialized.
+        unsafe { MaybeUninit::zeroed().assume_init() }",guard_or_init,unreviewed,
+cvefixes-diff:307:68e8708c2d:crossbeam-deque/src/lib.rs:1170-1176,diff,unsafe,crossbeam-rs_crossbeam,307,crossbeam,Medium,,68e8708c2dda24e4b3b1807f5f301ca2b8ffa357,7b35a3d17f5c5ec53f70576d4ca0e18be8ed289b,crossbeam-deque/src/lib.rs,wait_write,zeroed,1170,1176,        unsafe { mem::zeroed() },"        // SAFETY: This is safe because:
+        //  [1] `Block::next` (AtomicPtr) may be safely zero initialized.
+        //  [2] `Block::slots` (Array) may be safely zero initialized because of [3, 4].
+        //  [3] `Slot::task` (UnsafeCell) may be safely zero initialized because it
+        //       holds a MaybeUninit.
+        //  [4] `Slot::state` (AtomicUsize) may be safely zero initialized.
+        unsafe { MaybeUninit::zeroed().assume_init() }",guard_or_init,unreviewed,
+cvefixes-diff:307:e0fd465b9b:crossbeam-epoch/src/deferred.rs:49-64,diff,unsafe,crossbeam-rs_crossbeam,307,crossbeam,Medium,,e0fd465b9b7de8b60b0b588e264aca1fa92fbd18,68e8708c2dda24e4b3b1807f5f301ca2b8ffa357,crossbeam-epoch/src/deferred.rs,call,ptr::write,49,64,"                    data,
+                // TODO(taiki-e): when the minimum supported Rust version is bumped to 1.36+,
+                // replace this with `mem::MaybeUninit`.
+                #[allow(deprecated)]
+                let mut data: Data = mem::uninitialized();
+                ptr::write(&mut data as *mut Data as *mut Box<F>, b);","                    data: data.assume_init(),
+                let mut data = MaybeUninit::<Data>::uninit();
+                ptr::write(data.as_mut_ptr() as *mut Box<F>, b);",guard_or_init,unreviewed,
+cvefixes-diff:326:339efb90fd:rust/dbn/src/record/conv.rs:124-132,diff,unsafe,databento_dbn,326,dbn,Medium,Memory Access;Memory Management,339efb90fdb980920a5e8829008abc1114f4bfdd,99222f1a9e49b70c045c397d00a79db93ed51fe2,rust/dbn/src/record/conv.rs,str_to_c_chars,CStr::from_ptr,124,132,"/// This function returns an error if `chars` contains invalid UTF-8.
+    let cstr = unsafe { CStr::from_ptr(chars.as_ptr()) };","/// This function returns an error if `chars` contains invalid UTF-8 or is not null-terminated.
+    // Safety: Casting from i8 to u8 slice should be safe
+    let bytes = unsafe { as_u8_slice(chars) };
+    let cstr = CStr::from_bytes_until_nul(bytes).map_err(|_| Error::Conversion {
+        input: format!(""{chars:?}""),
+        desired_type: ""CStr (null-terminated)"",
+    })?;
+",other,unreviewed,
+cvefixes:326:339efb90fd:conv::c_chars_to_str:129-129,analyzer,unsafe,databento_dbn,326,dbn,Medium,Memory Access;Memory Management,339efb90fdb980920a5e8829008abc1114f4bfdd,99222f1a9e49b70c045c397d00a79db93ed51fe2,rust/dbn/src/record/conv.rs,conv::c_chars_to_str,CStr::from_ptr,129,129,    let cstr = unsafe { CStr::from_ptr(chars.as_ptr()) };,"/// This function returns an error if `chars` contains invalid UTF-8 or is not null-terminated.
+    // Safety: Casting from i8 to u8 slice should be safe
+    let bytes = unsafe { as_u8_slice(chars) };
+    let cstr = CStr::from_bytes_until_nul(bytes).map_err(|_| Error::Conversion {
+        input: format!(""{chars:?}""),
+        desired_type: ""CStr (null-terminated)"",
+    })?;
+",other,unreviewed,
+cvefixes-diff:357:55fac9f5ea:ext/node/ops/ipc.rs:109-122,diff,unsafe,denoland_deno,357,deno,High,,55fac9f5ead6d30996400e8597c969b675c5a22b,aefa205f63d6e4d0d56b9fd45b3d25e03509b9fb,ext/node/ops/ipc.rs,close,,109,122,"    fn new(stream: RawFd) -> Result<Self, std::io::Error> {
+      // Safety: The fd is part of a pair of connected sockets create by child process
+      // implementation.
+      let unix_stream = UnixStream::from_std(unsafe {
+        std::os::unix::net::UnixStream::from_raw_fd(stream)
+      })?;
+      let (read_half, write_half) = unix_stream.into_split();","  #[cfg(unix)]
+  fn pipe(stream: RawFd) -> Result<(OwnedReadHalf, OwnedWriteHalf), io::Error> {
+    // Safety: The fd is part of a pair of connected sockets create by child process
+    // implementation.
+    let unix_stream = UnixStream::from_std(unsafe {
+      std::os::unix::net::UnixStream::from_raw_fd(stream)
+    })?;
+    Ok(unix_stream.into_split())
+  }
+
+  #[cfg(windows)]
+  fn pipe(
+    handle: i64,
+  ) -> Result<
+    (
+      tokio::io::ReadHalf<NamedPipeClient>,
+      tokio::io::WriteHalf<NamedPipeClient>,
+    ),
+    io::Error,
+  > {
+    // Safety: We cannot use `get_osfhandle` because Deno statically links to msvcrt. It is not guaranteed that the
+    // fd handle map will be the same.
+    let pipe = unsafe { NamedPipeClient::from_raw_handle(handle as _)? };
+    Ok(tokio::io::split(pipe))
+  }
+
+    pub fn new(stream: i64) -> Result<Self, std::io::Error> {
+      let (read_half, write_half) = pipe(stream as _)?;",other,unreviewed,
+cvefixes-diff:372:e4a29e145c:diesel/src/mysql/connection/bind.rs:187-196,diff,unsafe,diesel-rs_diesel,372,diesel,Medium,Other,e4a29e145c61aa3981f8e9dda861c2eecead6944,df1f3ee56d8c8ae17dfab081de36a17668bfb31c,diesel/src/mysql/connection/bind.rs,clone,from_raw_parts,187,196,"                core::slice::from_raw_parts(
+                    ptr.as_ptr(),
+                    self.length.try_into().expect(""usize is at least 32bit""),
+                )","                core::slice::from_raw_parts(ptr.as_ptr(), length)",same_api_refactor,unreviewed,
+cvefixes-diff:372:e4a29e145c:diesel/src/sqlite/connection/functions.rs:156-162,diff,unsafe,diesel-rs_diesel,372,diesel,Medium,Other,e4a29e145c61aa3981f8e9dda861c2eecead6944,df1f3ee56d8c8ae17dfab081de36a17668bfb31c,diesel/src/sqlite/connection/functions.rs,new,Vec::from_raw_parts,156,162,            Vec::from_raw_parts(,            core::slice::from_raw_parts(,other,unreviewed,
+cvefixes-diff:372:e4a29e145c:diesel/src/sqlite/connection/raw.rs:543-573,diff,unsafe,diesel-rs_diesel,372,diesel,Medium,Other,e4a29e145c61aa3981f8e9dda861c2eecead6944,df1f3ee56d8c8ae17dfab081de36a17668bfb31c,diesel/src/sqlite/connection/raw.rs,run_aggregator_step,ptr::deref,543,573,"    static NO_AGGREGATOR_FOUND: &str = ""We've written to the aggregator in the xStep callback. If xStep was never called, then ffi::sqlite_aggregate_context() would have returned a NULL pointer."";
+    let aggregate_context = unsafe {
+        // Within the xFinal callback, it is customary to set nBytes to 0 so no pointless memory
+        // allocations occur, a null pointer is returned in this case
+        // See: https://www.sqlite.org/c3ref/aggregate_context.html
+        //
+        // For the reasoning about the safety of the OptionalAggregator handling
+        // see the comment in run_aggregator_step_function.
+        ffi::sqlite3_aggregate_context(ctx, 0)
+    };
+
+        let mut aggregate_context = NonNull::new(aggregate_context as *mut OptionalAggregator<A>);
+
+        let aggregator = if let Some(a) = aggregate_context.as_mut() {
+            let a = unsafe { a.as_mut() };
+            match core::mem::replace(a, OptionalAggregator::None) {
+                OptionalAggregator::None => {
+                    return Err(SqliteCallbackError::Abort(NO_AGGREGATOR_FOUND));
+                }","        let aggregator = unsafe {
+            // SAFETY:
+            // * We set the corresponding data in `register_aggregate_function` above
+            // * It has the correct type
+            let aggregate_context = ffi::sqlite3_user_data(ctx) as *mut Option<A>;
+            // SAFETY:
+            // * The value has the correct layout as we initialised it on the rust side
+            // * The value has the correct alignment as we initialised it on the rust side
+            aggregate_context.as_mut()
+        }
+        .and_then(|a| a.take());",other,unreviewed,
+cvefixes-diff:417:cdc8204a11:rust/flatbuffers/src/array.rs:105-112,diff,unsafe,google_flatbuffers,417,flatbuffers,Critical,,cdc8204a111293a362280855e37ce4cd32c1280b,4534bf31b45d19ba5df58955a5425ccdc1bb2601,rust/flatbuffers/src/array.rs,emplace_scalar_array,ptr::copy_nonoverlapping,105,112,"        core::ptr::copy_nonoverlapping(&item_le as *const T as *const u8, buf_ptr, size_of::<T>());
+        buf_ptr = buf_ptr.add(size_of::<T>());","        core::ptr::copy_nonoverlapping(
+            &item_le as *const T::Scalar as *const u8,
+            buf_ptr,
+            size_of::<T::Scalar>(),
+        );
+        buf_ptr = buf_ptr.add(size_of::<T::Scalar>());",same_api_refactor,unreviewed,
+cvefixes-diff:417:f0547f7b73:rust/flatbuffers/src/array.rs:96-109,diff,unsafe,google_flatbuffers,417,flatbuffers,Critical,,f0547f7b73aa240ef84232c177c504928f86daa2,f124e41ae62ae548e045dadb26b6ad172bf8020b,rust/flatbuffers/src/array.rs,emplace_scalar_array,ptr::copy_nonoverlapping,96,109,"        unsafe {
+            core::ptr::copy_nonoverlapping(
+                &item_le as *const T as *const u8,
+                buf_ptr,
+                size_of::<T>(),
+            );","        core::ptr::copy_nonoverlapping(&item_le as *const T as *const u8, buf_ptr, size_of::<T>());
+        buf_ptr = buf_ptr.add(size_of::<T>());",same_api_refactor,unreviewed,
+cvefixes-diff:417:cdc8204a11:rust/flatbuffers/src/endian_scalar.rs:176-183,diff,unsafe,google_flatbuffers,417,flatbuffers,Critical,,cdc8204a111293a362280855e37ce4cd32c1280b,4534bf31b45d19ba5df58955a5425ccdc1bb2601,rust/flatbuffers/src/endian_scalar.rs,read_scalar_at,ptr::copy_nonoverlapping,176,183,"    let mut mem = core::mem::MaybeUninit::<T>::uninit();
+    core::ptr::copy_nonoverlapping(s.as_ptr(), mem.as_mut_ptr() as *mut u8, size_of::<T>());
+    mem.assume_init().from_little_endian()","    let mut mem = core::mem::MaybeUninit::<T::Scalar>::uninit();
+    core::ptr::copy_nonoverlapping(
+        s.as_ptr(),
+        mem.as_mut_ptr() as *mut u8,
+        size_of::<T::Scalar>(),
+    );
+    T::from_little_endian(mem.assume_init())",guard_or_init,unreviewed,
+cvefixes-diff:943:91b676eecd:src/lib.rs:4027-4045,diff,unsafe,gz_rust-cpuid,943,raw-cpuid,High,Memory Management;Other;Resource Management;Tainted Input,91b676eecd01f2163e2984215e2c0ac89e30ce75,72492c8c4ecaa2d18b2ab43471272325ee80c755,src/lib.rs,next,ptr::deref,4027,4045,"    #[allow(dead_code)]
+            let brand_string_start = self as *const SoCVendorBrand as *const u8;
+            let slice =
+                slice::from_raw_parts(brand_string_start, core::mem::size_of::<SoCVendorBrand>());
+            let byte_array: &'a [u8] = transmute(slice);
+            str::from_utf8_unchecked(byte_array)","#[repr(C)]
+        let brand_string_start = self as *const SoCVendorBrand as *const u8;
+            // Safety: SoCVendorBrand is laid out with repr(C).
+            let slice: &'a [u8] = slice::from_raw_parts(brand_string_start, size_of::<SoCVendorBrand>());
+            // Safety: The field is specified to be ASCII.
+            str::from_utf8_unchecked(slice)",other,unreviewed,
+cvefixes:943:91b676eecd:::processor_brand_string:4155-4166,analyzer,unsafe,gz_rust-cpuid,943,raw-cpuid,High,Memory Management;Other;Resource Management;Tainted Input,91b676eecd01f2163e2984215e2c0ac89e30ce75,72492c8c4ecaa2d18b2ab43471272325ee80c755,src/lib.rs,::processor_brand_string,ptr::deref,4155,4166,"            Some(unsafe {
+                let brand_string_start = &self.data[2] as *const CpuIdResult as *const u8;
+                let mut slice = slice::from_raw_parts(brand_string_start, 3 * 4 * 4);
+
+                match slice.iter().position(|&x| x == 0) {
+                    Some(index) => slice = slice::from_raw_parts(brand_string_start, index),
+                    None => (),
+                }
+
+                let byte_array: &'a [u8] = transmute(slice);
+                str::from_utf8_unchecked(byte_array)
+            })","            let brand_string_start = &self.data[2] as *const CpuIdResult as *const u8;
+            // Safety: CpuIdResult is laid out with repr(C), and the array
+            // self.data contains 9 continguous elements.
+            let slice: &'a [u8] = unsafe { slice::from_raw_parts(brand_string_start, 3 * size_of::<CpuIdResult>()) };
+            // Brand terminated at nul byte or end, whichever comes first.
+            let slice = slice.split(|&x| x == 0).next().unwrap();
+            // Safety: Field is specified to be ASCII.
+            Some(unsafe { str::from_utf8_unchecked(slice) })",other,unreviewed,
+cvefixes-diff:943:91b676eecd:src/lib.rs:594-604,diff,unsafe,gz_rust-cpuid,943,raw-cpuid,High,Memory Management;Other;Resource Management;Tainted Input,91b676eecd01f2163e2984215e2c0ac89e30ce75,72492c8c4ecaa2d18b2ab43471272325ee80c755,src/lib.rs,get_memory_encryption_info,ptr::deref,594,604,"            let brand_string_start = self as *const VendorInfo as *const u8;
+            let slice = slice::from_raw_parts(brand_string_start, 3 * 4);
+            let byte_array: &'a [u8] = transmute(slice);
+            str::from_utf8_unchecked(byte_array)","        let brand_string_start = self as *const VendorInfo as *const u8;
+            // Safety: VendorInfo is laid out with repr(C).
+            let slice: &'a [u8] = slice::from_raw_parts(brand_string_start, size_of::<VendorInfo>());
+            // Safety: The field is specified to be ASCII.
+            str::from_utf8_unchecked(slice)",other,unreviewed,
+cvefixes-diff:529:3c607a003e:src/rust/iced-x86/src/decoder.rs:281-301,diff,unsafe,icedland_iced,529,iced-x86,Critical,Memory Access,3c607a003e03b773108401d109167d1840487dce,8209aa94f9b62c5be606292038fb86eee232fb85,src/rust/iced-x86/src/decoder.rs,test_decodererror_try_from_usize,ptr::deref,281,301,"#[rustfmt::skip] // It tried its best but failed
+	($slf:ident, $ty:ty, $from_le:path) => {
+		const SIZE: usize = mem::size_of::<$ty>();
+		#[allow(trivial_casts)]
+		unsafe {
+			let data_ptr = $slf.data_ptr;
+			if data_ptr.add(SIZE - 1) < $slf.max_data_ptr {
+				let result = $from_le(ptr::read_unaligned(data_ptr as *const $ty)) as usize;
+				$slf.data_ptr = data_ptr.add(SIZE);","	($slf:ident, $mem_ty:ty, $from_le:path) => {
+		const SIZE: usize = mem::size_of::<$mem_ty>();
+		const_assert!(SIZE >= 1);
+		const_assert!(SIZE <= Decoder::MAX_READ_SIZE);
+		let data_ptr = $slf.data_ptr;
+		// This doesn't overflow data_ptr (verified in ctor since SIZE <= MAX_READ_SIZE)
+		if data_ptr + SIZE - 1 < $slf.max_data_ptr {
+			// SAFETY:
+			// - cast: It's OK to cast to an unaligned `*const uXX` since we call read_unaligned()
+			// - ptr::read_unaligned: ptr is readable and data (u8 slice) is initialized
+			let result = $from_le(unsafe { ptr::read_unaligned(data_ptr as *const $mem_ty) }) as usize;
+			// - data_ptr + SIZE doesn't overflow (verified in ctor since SIZE <= MAX_READ_SIZE)
+			// - data_ptr + SIZE <= self.max_data_ptr (see `if` check above)
+			$slf.data_ptr = data_ptr + SIZE;
+			result
+		} else {
+			$slf.state.flags |= StateFlags::IS_INVALID | StateFlags::NO_MORE_BYTES;
+			0",other,unreviewed,
+cvefixes-diff:534:5cbe1e6767:src/color.rs:253-259,diff,unsafe,image-rs_image,534,image,Medium,Resource Management,5cbe1e6767d11aff3f14c7ad69a06b04e8d583c7,1ec76c9db1a2551c0a590ff285473f8fc0fd7bc9,src/color.rs,from_slice,ptr::deref,253,259,        unsafe { &mut *(slice.as_ptr() as *mut $ident<T>) },        unsafe { &mut *(slice.as_mut_ptr() as *mut $ident<T>) },other,unreviewed,
+cvefixes-diff:620:7fd282aef7:pulse-binding/src/context/introspect.rs:2182-2191,diff,unsafe,jnqnfe_pulse-binding-rust,620,libpulse-binding,High,Exception Management;Memory Management,7fd282aef7787577c385aed88cb25d004b85f494,c1e20e87c6a6f975b48b959cfafec24fd2eae14f,pulse-binding/src/context/introspect.rs,stat,as_ref,2182,2191,"    assert!(!i.is_null());
+    // Note, destroys closure callback after use - restoring outer box means it gets dropped
+    let mut callback = ::callbacks::get_su_callback::<dyn FnMut(&StatInfo)>(userdata);
+    callback(unsafe { i.as_ref().unwrap() });","    let _ = std::panic::catch_unwind(|| {
+        assert!(!i.is_null());
+        // Note, destroys closure callback after use - restoring outer box means it gets dropped
+        let mut callback = ::callbacks::get_su_callback::<dyn FnMut(&StatInfo)>(userdata);
+        (callback)(unsafe { i.as_ref().unwrap() });
+    });",guard_or_init,unreviewed,
+cvefixes:620:7fd282aef7:introspect::get_stat_info_cb_proxy:2188-2188,analyzer,unsafe,jnqnfe_pulse-binding-rust,620,libpulse-binding,High,Exception Management;Memory Management,7fd282aef7787577c385aed88cb25d004b85f494,c1e20e87c6a6f975b48b959cfafec24fd2eae14f,pulse-binding/src/context/introspect.rs,introspect::get_stat_info_cb_proxy,as_ref,2188,2188,    callback(unsafe { i.as_ref().unwrap() });,"    let _ = std::panic::catch_unwind(|| {
+        assert!(!i.is_null());
+        // Note, destroys closure callback after use - restoring outer box means it gets dropped
+        let mut callback = ::callbacks::get_su_callback::<dyn FnMut(&StatInfo)>(userdata);
+        (callback)(unsafe { i.as_ref().unwrap() });
+    });",guard_or_init,unreviewed,
+cvefixes-diff:621:9e31c82d71:pulse-binding/src/context/mod.rs:213-219,diff,unsafe,jnqnfe_pulse-binding-rust,621,libpulse-binding,Medium,Memory Management;Resource Management,9e31c82d71749619387cb9d0c9698134d05b28c9,b6b1010847c1eb2d3a533820c8ff5cdbf9993d9e,pulse-binding/src/context/mod.rs,new_with_proplist,transmute,213,219,"            std::mem::transmute(mainloop.inner().get_api()), c_name.as_ptr(), proplist.ptr) };","            std::mem::transmute(mainloop.inner().get_api()), c_name.as_ptr(), proplist.0.ptr) };",same_api_refactor,unreviewed,
+cvefixes-diff:1251:28860d4a38:src/osx.rs:1-24,diff,unsafe,jzeuzs_thread-amount,1251,thread-amount,High,Resource Management,28860d4a38286609cb884c13b5b7941edc2390e5,0c9709ee48cd18eed36b336433084818abe0317a,src/osx.rs,,ptr::deref,1,24,"    let mut state = [0u32; 1296];
+    let mut count: u32 = 0;
+    let rc = unsafe {
+        task_threads(
+            mach_task_self(),
+            &mut state.as_mut_ptr() as *mut *mut u32,
+            &mut count as *mut _,","use std::{mem, ptr};
+use mach2::mach_types::thread_act_array_t;
+use mach2::message::mach_msg_type_number_t;
+use mach2::port::mach_port_t;
+use mach2::vm::mach_vm_deallocate;
+use mach2::vm_types::{mach_vm_address_t, mach_vm_size_t};
+    unsafe {
+        let task = mach_task_self();
+        let mut thread_list: thread_act_array_t = ptr::null_mut();
+        let mut count: mach_msg_type_number_t = 0;
+        let rc = task_threads(task, &mut thread_list, &mut count);
+        if rc != KERN_SUCCESS {
+            return None;
+        }
+
+        let result = NonZeroUsize::new(count as usize);
+        let size = (count as usize * mem::size_of::<mach_port_t>()) as mach_vm_size_t;
+        let _ = mach_vm_deallocate(task, thread_list as mach_vm_address_t, size);
+
+        result",other,unreviewed,
+cvefixes-diff:1052:a134e06d74:src/lib.rs:314-320,diff,unsafe,nabijaczleweli_safe-transmute-rs,1052,safe-transmute,Critical,Memory Access,a134e06d740f9d7c287f74c0af2cd06206774364,c79ebfdb5858982af59a78df471c7cad7a78fd23,src/lib.rs,guarded_transmute_vec_permissive,ptr::deref,314,320,"    Vec::from_raw_parts(ptr as *mut T, capacity, len)","    Vec::from_raw_parts(ptr as *mut T, len, capacity)",other,unreviewed,
+cvefixes-diff:1052:a134e06d74:src/to_bytes.rs:231-237,diff,unsafe,nabijaczleweli_safe-transmute-rs,1052,safe-transmute,Critical,Memory Access,a134e06d740f9d7c287f74c0af2cd06206774364,c79ebfdb5858982af59a78df471c7cad7a78fd23,src/to_bytes.rs,guarded_transmute_to_bytes_vec,ptr::deref,231,237,"    Vec::from_raw_parts(ptr as *mut u8, capacity, len)","    Vec::from_raw_parts(ptr as *mut u8, len, capacity)",other,unreviewed,
+cvefixes:1093:5e0524c1db:::with_capacity:44-46,analyzer,unsafe,nathansizemore_simple-slab,1093,simple-slab,Critical,Memory Access;Other,5e0524c1db836e2192e1cd818848d96937c0b587,f1b18e1ed42b5477d43c837155998d566fdaf461,src/lib.rs,::with_capacity,ptr::deref,44,46,"        let maybe_ptr = unsafe {
+            libc::malloc((mem::size_of::<T>() * capacity)) as *mut T
+        };","        let maybe_ptr =
+            unsafe { libc::malloc(mem::size_of::<T>() * capacity) as *mut T };",other,unreviewed,
+cvefixes-diff:649:ad382d0379:src/lib.rs:698-704,diff,unsafe,not-fl3_macroquad,649,macroquad,High,Memory Management;Resource Management,ad382d0379842d81d3d5de3c10022f92035bb947,1dcc721dfec8817584b191e7a0c5942c6b6fe029,src/lib.rs,from_config,,698,704,                unsafe { CONTEXT = Some(Context::new(ctx)) };,                unsafe { CONTEXT = RacyCell::new(Some(Context::new(ctx))) };,other,unreviewed,
+cvefixes:963:3f00e1fa01:syscall::sys_rand:498-498,analyzer,unsafe,risc0_risc0,963,risc0-zkvm-platform,Critical,Tainted Input,3f00e1fa0159599c1601e788021f2169d1f0a4dc,040353b1986d6fd30f29d5e9adda58dac4a8265b,risc0/zkvm/platform/src/syscall.rs,syscall::sys_rand,,498,498,"    unsafe { syscall_0(nr::SYS_RANDOM, recv_buf, words) };","    unsafe { syscall_0_nr(Syscall::Random.into(), nr::SYS_RANDOM, recv_buf, words) };",other,unreviewed,
+cvefixes:963:3f00e1fa01:syscall::sys_panic:506-506,analyzer,unsafe,risc0_risc0,963,risc0-zkvm-platform,Critical,Tainted Input,3f00e1fa0159599c1601e788021f2169d1f0a4dc,040353b1986d6fd30f29d5e9adda58dac4a8265b,risc0/zkvm/platform/src/syscall.rs,syscall::sys_panic,,506,506,"    unsafe { syscall_2(nr::SYS_PANIC, null_mut(), 0, msg_ptr as u32, len as u32) };","    unsafe {
+        syscall_2_nr(
+            Syscall::Panic.into(),
+            nr::SYS_PANIC,
+            null_mut(),
+            0,
+            msg_ptr as u32,
+            len as u32,
+        )
+    };",other,unreviewed,
+cvefixes-diff:963:3f00e1fa01:risc0/zkvm/platform/src/syscall.rs:518-532,diff,unsafe,risc0_risc0,963,risc0-zkvm-platform,Critical,Tainted Input,3f00e1fa0159599c1601e788021f2169d1f0a4dc,040353b1986d6fd30f29d5e9adda58dac4a8265b,risc0/zkvm/platform/src/syscall.rs,ecall_4,,518,532,"    unsafe { syscall_2(nr::SYS_LOG, null_mut(), 0, msg_ptr as u32, len as u32) };
+    let Return(hi, lo) = unsafe { syscall_0(nr::SYS_CYCLE_COUNT, null_mut(), 0) };","    unsafe {
+        syscall_2_nr(
+            Syscall::Log.into(),
+            nr::SYS_LOG,
+            null_mut(),
+            0,
+            msg_ptr as u32,
+            len as u32,
+        )
+    };
+    let Return(hi, lo) = unsafe {
+        syscall_0_nr(
+            Syscall::CycleCount.into(),
+            nr::SYS_CYCLE_COUNT,
+            null_mut(),
+            0,
+        )
+    };
+#[allow(dead_code)]
+fn print(msg: &str) {
+    let msg = msg.as_bytes();
+    unsafe {
+        sys_log(msg.as_ptr(), msg.len());
+    }
+}
+",other,unreviewed,
+cvefixes-diff:965:b48a86e8b5:rkyv/src/impls/alloc/boxed.rs:44-50,diff,unsafe,rkyv_rkyv,965,rkyv,,Memory Management,b48a86e8b55cb01f8749483910a86bacd0a1d028,2c49abc663699c9513199c9c419e32fd4674d27f,rkyv/src/impls/alloc/boxed.rs,deserialize,,44,50,            unsafe { alloc(layout) },"            let ptr = unsafe { alloc(layout) };
+            if ptr.is_null() {
+                handle_alloc_error(layout);
+            }
+            ptr",other,unreviewed,
+cvefixes-diff:965:b48a86e8b5:rkyv/src/impls/alloc/collections/vec_deque.rs:56-62,diff,unsafe,rkyv_rkyv,965,rkyv,,Memory Management,b48a86e8b55cb01f8749483910a86bacd0a1d028,2c49abc663699c9513199c9c419e32fd4674d27f,rkyv/src/impls/alloc/collections/vec_deque.rs,deserialize,,56,62,            unsafe { alloc(layout) },"            let ptr = unsafe { alloc(layout) };
+            if ptr.is_null() {
+                handle_alloc_error(layout);
+            }
+            ptr",other,unreviewed,
+cvefixes-diff:965:b48a86e8b5:rkyv/src/impls/alloc/ffi.rs:41-47,diff,unsafe,rkyv_rkyv,965,rkyv,,Memory Management,b48a86e8b55cb01f8749483910a86bacd0a1d028,2c49abc663699c9513199c9c419e32fd4674d27f,rkyv/src/impls/alloc/ffi.rs,deserialize,,41,47,            unsafe { alloc(layout) },"            let ptr = unsafe { alloc(layout) };
+            if ptr.is_null() {
+                handle_alloc_error(layout);
+            }
+            ptr",other,unreviewed,
+cvefixes-diff:10:342de83f7c:abi_stable/src/std_types/string.rs:643-652,diff,unsafe,rodrimati1992_abi_stable_crates,10,abi_stable,High,Memory Management;Resource Management;Tainted Input,342de83f7c26e227ed1d3c6783609c837c5d69c9,2bff3b3aaf6b35aa0b36a81d7d91bff786958aee,abi_stable/src/std_types/string.rs,retain,get_unchecked,643,652,"            let ch = unsafe {
+                self.get_unchecked(idx..len).chars().next().unwrap()
+            };","        unsafe {
+            self.inner.set_len(0);
+        }
+
+            let ch = unsafe { self.get_unchecked(idx..len).chars().next().unwrap() };",same_api_refactor,unreviewed,
+cvefixes-diff:10:bfdbd146a9:abi_stable/src/std_types/string.rs:643-652,diff,unsafe,rodrimati1992_abi_stable_crates,10,abi_stable,High,Memory Management;Resource Management;Tainted Input,bfdbd146a93b9063df6b0793cfeda7f145994bb5,2bff3b3aaf6b35aa0b36a81d7d91bff786958aee,abi_stable/src/std_types/string.rs,retain,get_unchecked,643,652,"            let ch = unsafe {
+                self.get_unchecked(idx..len).chars().next().unwrap()
+            };","        unsafe {
+            self.inner.set_len(0);
+        }
+
+            let ch = unsafe { self.get_unchecked(idx..len).chars().next().unwrap() };",same_api_refactor,unreviewed,
+cvefixes-diff:10:342de83f7c:abi_stable/src/std_types/string.rs:656-671,diff,unsafe,rodrimati1992_abi_stable_crates,10,abi_stable,High,Memory Management;Resource Management;Tainted Input,342de83f7c26e227ed1d3c6783609c837c5d69c9,2bff3b3aaf6b35aa0b36a81d7d91bff786958aee,abi_stable/src/std_types/string.rs,retain,set_len,656,671,"                        ch_len
+        if del_bytes > 0 {
+            unsafe { self.inner.set_len(len - del_bytes); }","                        ch_len,
+            // Point idx to the next char
+        unsafe {
+            self.inner.set_len(len - del_bytes);",same_api_refactor,unreviewed,
+cvefixes-diff:996:71b2f5187b:src/functions.rs:192-211,diff,unsafe,rusqlite_rusqlite,996,rusqlite,Critical,Resource Management;Synchronization;Tainted Input,71b2f5187b0cbace3f8b6ff53432ff2ca0defcf0,38aea89809ea4154975d853bffe3cb7715fe84d6,src/functions.rs,set_aux,ptr::deref,192,211,"        let p = unsafe { ffi::sqlite3_get_auxdata(self.ctx, arg) as *mut (std::any::TypeId, T) };
+            let id_val = unsafe { &*p };
+            if std::any::TypeId::of::<T>() != id_val.0 {
+                Ok(Some(&id_val.1))","        let p = unsafe { ffi::sqlite3_get_auxdata(self.ctx, arg) as *const AuxData<T> };
+            let id = unsafe { (*p).id };
+            if TypeId::of::<T>() != id {
+                Ok(Some(unsafe { &(*p).value }))
+#[repr(C)]
+struct AuxData<T: 'static> {
+    id: TypeId,
+    value: T,
+}
+",other,unreviewed,
+cvefixes-diff:996:45fd77ee43:src/unlock_notify.rs:43-54,diff,unsafe,rusqlite_rusqlite,996,rusqlite,Critical,Resource Management;Synchronization;Tainted Input,45fd77ee43c38eea4d6f4e2e56c1667a55ec654f,c9ef5bd63cad5c0c123344c072b490a1a9bcbe1f,src/unlock_notify.rs,wait,ptr::deref,43,54,"    let args = from_raw_parts(ap_arg, n_arg as usize);
+    for arg in args {
+        let _ = catch_unwind(|| {
+            let un: &mut UnlockNotification = &mut *(*arg as *mut UnlockNotification);
+            un.fired()","    let args = from_raw_parts(ap_arg as *const &UnlockNotification, n_arg as usize);
+    for un in args {
+        let _ = catch_unwind(std::panic::AssertUnwindSafe(|| un.fired()));",guard_or_init,unreviewed,
+cvefixes-diff:444:2eafc457a4:src/blame.rs:106-123,diff,unsafe,rust-lang_git2-rs,444,git2,,,2eafc457a4c59a7eae03846fede70b44a2042635,bc35a5080d8a5395b39eb4dff9bf4adcd253ea2a,src/blame.rs,final_commit_id,ptr::deref,106,123,"    /// Returns signature for the author of the final commit.
+    pub fn final_signature(&self) -> Signature<'_> {
+        unsafe { signature::from_raw_const(self, (*self.raw).final_signature) }
+    /// Returns signature for the committer of the final commit.
+    pub fn final_committer(&self) -> Signature<'_> {
+        unsafe { signature::from_raw_const(self, (*self.raw).final_committer) }","    /// Returns signature for the author of the final commit, if present.
+    pub fn final_signature(&self) -> Option<Signature<'_>> {
+        let ptr = unsafe { (*self.raw).final_signature };
+        if ptr.is_null() {
+            None
+        } else {
+            Some(unsafe { signature::from_raw_const(self, ptr) })
+        }
+    /// Returns signature for the committer of the final commit, if present.
+    pub fn final_committer(&self) -> Option<Signature<'_>> {
+        let ptr = unsafe { (*self.raw).final_committer };
+        if ptr.is_null() {
+            None
+        } else {
+            Some(unsafe { signature::from_raw_const(self, ptr) })
+        }",other,unreviewed,
+cvefixes:444:2eafc457a4:blame::final_committer:120-120,analyzer,unsafe,rust-lang_git2-rs,444,git2,,,2eafc457a4c59a7eae03846fede70b44a2042635,bc35a5080d8a5395b39eb4dff9bf4adcd253ea2a,src/blame.rs,blame::final_committer,ptr::deref,120,120,"        unsafe { signature::from_raw_const(self, (*self.raw).final_committer) }","    /// Returns signature for the author of the final commit, if present.
+    pub fn final_signature(&self) -> Option<Signature<'_>> {
+        let ptr = unsafe { (*self.raw).final_signature };
+        if ptr.is_null() {
+            None
+        } else {
+            Some(unsafe { signature::from_raw_const(self, ptr) })
+        }
+    /// Returns signature for the committer of the final commit, if present.
+    pub fn final_committer(&self) -> Option<Signature<'_>> {
+        let ptr = unsafe { (*self.raw).final_committer };
+        if ptr.is_null() {
+            None
+        } else {
+            Some(unsafe { signature::from_raw_const(self, ptr) })
+        }",other,unreviewed,
+cvefixes-diff:444:2eafc457a4:src/blame.rs:136-153,diff,unsafe,rust-lang_git2-rs,444,git2,,,2eafc457a4c59a7eae03846fede70b44a2042635,bc35a5080d8a5395b39eb4dff9bf4adcd253ea2a,src/blame.rs,orig_commit_id,ptr::deref,136,153,"    /// Returns signature of the author of the original commit.
+    pub fn orig_signature(&self) -> Signature<'_> {
+        unsafe { signature::from_raw_const(self, (*self.raw).orig_signature) }
+    /// Returns signature of the committer of the original commit.
+    pub fn orig_committer(&self) -> Signature<'_> {
+        unsafe { signature::from_raw_const(self, (*self.raw).orig_committer) }","    /// Returns signature of the author of the original commit, if present.
+    pub fn orig_signature(&self) -> Option<Signature<'_>> {
+        let ptr = unsafe { (*self.raw).orig_signature };
+        if ptr.is_null() {
+            None
+        } else {
+            Some(unsafe { signature::from_raw_const(self, ptr) })
+        }
+    /// Returns signature of the committer of the original commit, if present.
+    pub fn orig_committer(&self) -> Option<Signature<'_>> {
+        let ptr = unsafe { (*self.raw).orig_committer };
+        if ptr.is_null() {
+            None
+        } else {
+            Some(unsafe { signature::from_raw_const(self, ptr) })
+        }",other,unreviewed,
+cvefixes-diff:566:f7c68d5189:kvm-ioctls/src/ioctls/vm.rs:1300-1306,diff,unsafe,rust-vmm_kvm,566,kvm-ioctls,Medium,Risky Values,f7c68d51890dd2f3ab61a94529602c4d1addccd3,4508a0fe2532e4dc8bcaba7b5825b981c9701467,kvm-ioctls/src/ioctls/vm.rs,create_vcpu_from_rawfd,,1300,1306,"        let ret = unsafe { ioctl_with_ref(self, KVM_CREATE_DEVICE(), device) };","        let ret = unsafe { ioctl_with_mut_ref(self, KVM_CREATE_DEVICE(), device) };",other,unreviewed,
+cvefixes-diff:1366:30172fca2a:src/fam.rs:220-226,diff,unsafe,rust-vmm_vmm-sys-util,1366,vmm-sys-util,Medium,Memory Access;Memory Management,30172fca2a8e0a38667d934ee56682247e13f167,0bafbc13ec8f6483c5a10352ebdd6fa706edcc58,src/fam.rs,new,set_len,220,226,        mem_allocator[0].set_len(num_elements);,"        // SAFETY: The flexible array part of the struct has `num_elements` capacity. We just
+        // initialized this in `mem_allocator`.
+        unsafe {
+            mem_allocator[0].set_len(num_elements);
+        }",same_api_refactor,unreviewed,
+cvefixes-diff:1366:30172fca2a:src/fam.rs:395-401,diff,unsafe,rust-vmm_vmm-sys-util,1366,vmm-sys-util,Medium,Memory Access;Memory Management,30172fca2a8e0a38667d934ee56682247e13f167,0bafbc13ec8f6483c5a10352ebdd6fa706edcc58,src/fam.rs,set_len,set_len,395,401,        self.as_mut_fam_struct().set_len(len);,"        // SAFETY: We just adjusted the memory for the underlying `mem_allocator` to hold `len`
+        // entries.
+        unsafe {
+            self.as_mut_fam_struct().set_len(len);
+        }",same_api_refactor,unreviewed,
+cvefixes-diff:1430:7b06ad38ed:src/base.rs:464-486,diff,unsafe,rust-x-bindings_rust-xcb,1430,xcb,Critical,Exception Management;Memory Access;Memory Management;Other,7b06ad38ed13a9f14fc9d8d9cfb21329dd246a48,42644603929c7d0f6fb8e14f08d46381e4754031,src/base.rs,poll_for_queued_event,transmute,464,486,"            let setup = xcb_get_setup(self.c);
+            if setup.is_null() {
+                panic!(""NULL setup on connection"")
+            }
+            mem::transmute(setup)
+    /// Some errors that occur in the context of a `Connection`
+    /// `Connection` have no effect, but memory will not be freed until
+    /// the `Connection` is dropped.","    pub fn get_setup(&self) -> &Setup {
+            let ptr = xcb_get_setup(self.c);
+            let len = Setup::compute_wire_len(ptr, ());
+            Setup::from_data(slice::from_raw_parts(ptr, len))
+    /// Some errors that occur in the context of a connection
+    /// connection have no effect.",other,unreviewed,
+cvefixes-diff:477:76bc9b5fba:src/array.rs:174-199,diff,unsafe,rustgd_glsl-layout,477,glsl-layout,High,Memory Management,76bc9b5fbae73262307c41e72dbcfa0796073f30,119f5ec524dca42403db2aa07569baa349793e9b,src/array.rs,next_back,zeroed,174,199,"                    // Each element of `values` read once and then forgotten.
+                    // Hence safe in case `f` never panics.
+                    // TODO: Make it panic-safe.
+                    let mut result: ::std::mem::MaybeUninit<[U; $size]> =
+                        ::std::mem::MaybeUninit::zeroed();
+                    forget(values);","            fn map_array(values: [T; $size], mut f: F) -> Self {
+                    mem::{ManuallyDrop, MaybeUninit},
+                // Use `ManuallyDrop<_>` to guard against panic safety issue.
+                // Upon panic in `f`, `values` isn't dropped
+                // and thus item copied by `read()` is dropped only once.
+                let mut values = ManuallyDrop::new(values);
+                    let mut result: MaybeUninit<[U; $size]> = MaybeUninit::zeroed();",guard_or_init,unreviewed,
+cvefixes-diff:304:c2fde19caf:src/res/shortcut.rs:61-68,diff,unsafe,shawnscode_crayon,304,crayon,High,Exception Management;Memory Management,c2fde19caf6149d91faa504263f0bc5cafc35de5,26f7764e79bf16706f69edb2cf04c208d3990270,src/res/shortcut.rs,resolve,get_unchecked,61,68,"                    if let Some(fullname) = self.registry.get(dst.get_unchecked(0..index + 1)) {
+                        dst.replace_range(0..index + 1, fullname);","                    if let Some(fullname) = self.registry.get(dst.get_unchecked(0..=index)) {
+                        dst.replace_range(0..=index, fullname);",same_api_refactor,unreviewed,
+cvefixes-diff:304:c2fde19caf:src/res/url.rs:144-154,diff,unsafe,shawnscode_crayon,304,crayon,High,Exception Management;Memory Management,c2fde19caf6149d91faa504263f0bc5cafc35de5,26f7764e79bf16706f69edb2cf04c208d3990270,src/res/url.rs,queries,get_unchecked,144,154,"                    } else {
+                        if end > lhs {
+                            let k = self.url.get_unchecked(lhs..end);
+                            queries.insert(k.into(), None);
+                        }","                    } else if end > lhs {
+                        let k = self.url.get_unchecked(lhs..end);
+                        queries.insert(k.into(), None);",same_api_refactor,unreviewed,
+cvefixes-diff:304:c2fde19caf:src/utils/object_pool.rs:94-101,diff,unsafe,shawnscode_crayon,304,crayon,High,Exception Management;Memory Management,c2fde19caf6149d91faa504263f0bc5cafc35de5,26f7764e79bf16706f69edb2cf04c208d3990270,src/utils/object_pool.rs,retain,uninitialized,94,101,"                let mut w = ::std::mem::uninitialized();
+                ::std::mem::swap(&mut v, &mut w);","                #[allow(clippy::invalid_ref)]
+                std::mem::swap(&mut v, &mut std::mem::uninitialized());",same_api_refactor,unreviewed,
+cvefixes-diff:246:7389a24d84:src/util/mod.rs:5-15,diff,unsafe,strake_containers.rs,246,containers,Critical,Memory Management,7389a24d84ee7ff1d60dc87270882897679c4afa,d27a2677db4225b2b3744229b0234c500dcd3a83,src/util/mod.rs,,ptr::read,5,15,"pub fn mutate<T, F: FnOnce(T) -> T>(p: &mut T, f: F) { unsafe { ptr::write(p, f(ptr::read(p))) } }
+    let (x, y) = f(ptr::read(p), ptr::read(q));","pub fn mutate<T, F: FnOnce(T) -> T>(p: &mut T, f: F) { unsafe {
+    let x = ptr::read(p);
+    let x = abort_on_unwind(move || f(x));
+    ptr::write(p, x)
+} }
+    let (x, y) = (ptr::read(p), ptr::read(q));
+    let (x, y) = abort_on_unwind(move || f(x, y));",same_api_refactor,unreviewed,
+cvefixes-diff:525:0819f928a0:src/tz_macos.rs:4-23,diff,unsafe,strawlab_iana-time-zone,525,iana-time-zone,Medium,Memory Access;Resource Management,0819f928a08d4e4cdc60fee728880749465a921d,fe425a808cdfbd80b01f0d8199366aace123d5c1,src/tz_macos.rs,,CStr::from_ptr,4,23,"                    None
+                } else {
+                    Some(name)
+            })
+            .and_then(|name| std::ffi::CStr::from_ptr(name).to_str().ok())
+            .map(|name| name.to_owned())
+            .ok_or(crate::GetTimezoneError::OsError)","        if let Some(tz) = Dropping::new(CFTimeZoneCopySystem()) {
+            if let Some(name) = Dropping::new(CFTimeZoneGetName(tz.0)) {
+                if !name.is_null() {
+                    let name = std::ffi::CStr::from_ptr(name);
+                    if let Ok(name) = name.to_str() {
+                        return Ok(name.to_owned());
+                    }
+            }
+        }
+    Err(crate::GetTimezoneError::OsError)",same_api_refactor,unreviewed,
+cvefixes-diff:1131:79884ffb1a:crates/prover/src/lib.rs:83-147,diff,unsafe,succinctlabs_sp1,1131,sp1-recursion-circuit,Low,,79884ffb1a2d10bfd2c272f864033577a052468a,6512b56296c2c5e53b10cce1a741173a3d2dde68,crates/prover/src/lib.rs,,uninitialized,83,147,"    /// The machine used for proving the shrink step.
+    pub shrink_prover: C::ShrinkProver,
+    /// The machine used for proving the wrapping step.
+    pub wrap_prover: C::WrapProver,
+        let prover = Self::uninitialized();
+        // Initialize everything except wrap key which is a bit slow.
+        prover.recursion_program();
+        prover.deferred_program();
+        prover.compress_program();","    /// The machine used for proving the core step.
+    pub core_prover: C::CoreProver,
+    /// The machine used for proving the recursive and reduction steps.
+    pub compress_prover: C::CompressProver,
+    /// The machine used for proving the shrink step.
+    pub shrink_prover: C::ShrinkProver,
+    /// The machine used for proving the wrapping step.
+    pub wrap_prover: C::WrapProver,
+    pub recursion_programs: Mutex<LruCache<SP1RecursionShape, Arc<RecursionProgram<BabyBear>>>>,
+    pub recursion_cache_misses: AtomicUsize,
+    pub compress_programs:
+        Mutex<LruCache<SP1CompressWithVkeyShape, Arc<RecursionProgram<BabyBear>>>>,
+    pub compress_cache_misses: AtomicUsize,
+    pub vk_root: <InnerSC as FieldHasher<BabyBear>>::Digest,
+    pub allowed_vk_map: BTreeMap<<InnerSC as FieldHasher<BabyBear>>::Digest, usize>,
+    pub vk_merkle_tree: MerkleTree<BabyBear, InnerSC>,
+    pub core_shape_config: Option<CoreShapeConfig<BabyBear>>,
+    pub recursion_shape_config: Option<RecursionShapeConfig<BabyBear, CompressAir<BabyBear>>>,
+    pub wrap_program: OnceLock<Arc<RecursionProgram<BabyBear>>>,
+
+    pub wrap_vk: OnceLock<StarkVerifyingKey<OuterSC>>,
+
+    pub vk_verification: bool,
+        Self::uninitialized()",same_api_refactor,unreviewed,
+cvefixes-diff:1131:79884ffb1a:crates/zkvm/lib/src/secp256k1.rs:37-45,diff,unsafe,succinctlabs_sp1,1131,sp1-recursion-circuit,Low,,79884ffb1a2d10bfd2c272f864033577a052468a,6512b56296c2c5e53b10cce1a741173a3d2dde68,crates/zkvm/lib/src/secp256k1.rs,add_assign,,37,45,"        let a = self.limbs_mut();
+        unsafe {
+            syscall_secp256k1_double(a);","        match &mut self.0 {
+            WeierstrassPoint::Infinity => (),
+            WeierstrassPoint::Affine(limbs) => unsafe {
+                syscall_secp256k1_double(limbs);
+            },",other,unreviewed,
+cvefixes-diff:1146:2a4d53809e:src/stack.rs:143-149,diff,unsafe,thepowersgang_stack_dst-rs,1146,stack_dst,Critical,Exception Management;Memory Management,2a4d53809e3000f40085f2b229b6b1a33759881d,807e9d45019c02369e11d40bd181cbf7bb7981fc,src/stack.rs,pop,,143,149,        self.push_inner(v).map(|d| unsafe {,"        self.push_inner(v).map(|(_,d)| unsafe {",other,unreviewed,
+cvefixes-diff:1146:2a4d538:src/stack.rs:143-149,diff,unsafe,thepowersgang_stack_dst-rs,1146,stack_dst,Critical,Exception Management;Memory Management,2a4d538,807e9d45019c02369e11d40bd181cbf7bb7981fc,src/stack.rs,pop,,143,149,        self.push_inner(v).map(|d| unsafe {,"        self.push_inner(v).map(|(_,d)| unsafe {",other,unreviewed,
+cvefixes:1146:2a4d53809e:stack::push_cloned:154-160,analyzer,unsafe,thepowersgang_stack_dst-rs,1146,stack_dst,Critical,Exception Management;Memory Management,2a4d53809e3000f40085f2b229b6b1a33759881d,807e9d45019c02369e11d40bd181cbf7bb7981fc,src/stack.rs,stack::push_cloned,ptr::write,154,160,"        self.push_inner(&v).map(|d| unsafe {
+            let mut ptr = d.as_mut_ptr() as *mut T;
+            for val in v {
+                ptr::write(ptr, val.clone());
+                ptr = ptr.offset(1);
+            }
+        })","        let (meta,d) = self.push_inner(&v)?;
+		// Prepare the slot with zeros (as if it's an empty slice)
+		// The length is updated as each item is written
+		// - This ensures that there's no drop issues during write
+		meta[0] = 0;
+		for v in d.iter_mut() {
+			*v = 0;
+		}
+
+		unsafe {
+			let mut ptr = d.as_mut_ptr() as *mut T;
+			for val in v {
+				ptr::write(ptr, val.clone());
+				meta[0] += 1;
+				ptr = ptr.offset(1);
+			}
+		}
+
+		Ok( () )",same_api_refactor,unreviewed,
+cvefixes-diff:172:d0293b0e35:src/bytes_mut.rs:742-754,diff,unsafe,tokio-rs_bytes,172,bytes,Medium,Memory Management,d0293b0e35838123c51ca5dfdf468ecafee4398f,a7952fb4478f6dc226f623b217432fbc6f8dad24,src/bytes_mut.rs,reserve_inner,set_len,742,754,"                    debug_assert!(off + len <= v.capacity());
+                    v.set_len(off + len);
+                    self.ptr = vptr(v.as_mut_ptr().add(off));
+                    self.cap = v.capacity() - off;","                    debug_assert!(offset + len <= v.capacity());
+                    v.set_len(offset + len);
+                    self.ptr = vptr(v.as_mut_ptr().add(offset));
+                    self.cap = v.capacity() - offset;",same_api_refactor,unreviewed,
+cvefixes-diff:688:152e0751f0:src/sys/windows/tcp.rs:108-130,diff,unsafe,tokio-rs_mio,688,mio,Medium,Other,152e0751f0be1c9b0cbd6778645b76bcb0eba93c,13e82ced655bbb6e2729226e485a7de9f2c2ccd9,src/sys/windows/tcp.rs,get_reuseaddr,ptr::deref,108,130,"    let mut addr: SOCKADDR_STORAGE = unsafe { std::mem::zeroed() };
+    let mut length = std::mem::size_of_val(&addr) as c_int;
+        &mut addr as *mut _ as *mut _,
+            let storage: *const SOCKADDR_STORAGE = (&addr) as *const _;
+            if addr.ss_family as c_int == AF_INET {
+                let sock_addr : SocketAddrV4 = unsafe { *(storage as *const SOCKADDR_IN as *const _) };
+                Ok(sock_addr.into())
+                let sock_addr : SocketAddrV6 = unsafe { *(storage as *const SOCKADDR_IN6_LH as *const _) };
+                Ok(sock_addr.into())","    let mut storage: SOCKADDR_STORAGE = unsafe { std::mem::zeroed() };
+    let mut length = std::mem::size_of_val(&storage) as c_int;
+        &mut storage as *mut _ as *mut _,
+            if storage.ss_family as c_int == AF_INET {
+                // Safety: if the ss_family field is AF_INET then storage must be a sockaddr_in.
+                let addr: &SOCKADDR_IN = unsafe { &*(&storage as *const _ as *const SOCKADDR_IN) };
+                let ip_bytes = unsafe { addr.sin_addr.S_un.S_un_b() };
+                let ip = Ipv4Addr::from([ip_bytes.s_b1, ip_bytes.s_b2, ip_bytes.s_b3, ip_bytes.s_b4]);
+                let port = u16::from_be(addr.sin_port);
+                Ok(SocketAddr::V4(SocketAddrV4::new(ip, port)))
+            } else if storage.ss_family as c_int == AF_INET6 {
+                // Safety: if the ss_family field is AF_INET6 then storage must be a sockaddr_in6.
+                let addr: &SOCKADDR_IN6_LH = unsafe { &*(&storage as *const _ as *const SOCKADDR_IN6_LH) };
+                let ip = Ipv6Addr::from(*unsafe { addr.sin6_addr.u.Byte() });
+                let port = u16::from_be(addr.sin6_port);
+                let scope_id = unsafe { *addr.u.sin6_scope_id() };
+                Ok(SocketAddr::V6(SocketAddrV6::new(ip, port, addr.sin6_flowinfo, scope_id)))
+                Err(std::io::ErrorKind::InvalidInput.into())",guard_or_init,unreviewed,
+cvefixes-diff:91:762094069e:src/ascii_char.rs:732-738,diff,unsafe,tomprogrammer_rust-ascii,91,ascii,Medium,Memory Access;Memory Management,762094069e1b89f261097580b0b123ee6972b040,4f3098c0daa6c105566dc4c7853f33e0f868ab9c,src/ascii_char.rs,arbitrary,,732,738,"                unsafe { AsciiChar::from_unchecked(g.gen_range(0, 0x7F) as u8) }","                unsafe { AsciiChar::from_unchecked(g.gen_range(0, 0x80) as u8) }",other,unreviewed,
+cvefixes-diff:388:3ec9935954:src/elf/elf.rs:62-116,diff,unsafe,vincenthouyi_elf_rs,388,elf_rs,Medium,Memory Management,3ec9935954bff0525b54b1ca4cbafbd6687f99a4,e7aaaaf3b4e77e16fefa8d7661db9d79e49cf7b7,src/elf/elf.rs,elf_header_raw,ptr::deref,62,116,"    fn program_header_raw(&'a self) -> &'a [ET::ProgramHeader] {
+        unsafe {
+            let ph_ptr = self.content().as_ptr().add(ph_off);
+            from_raw_parts(ph_ptr as *const ET::ProgramHeader, ph_num)
+        }
+    pub fn program_header_nth(&self, index: usize) -> Option<ProgramHeaderWrapper> {
+        self.program_header_raw()
+            .get(index)
+            .map(|ph| ProgramHeaderWrapper::new(self, ph))
+    fn section_header_raw(&self) -> &[ET::SectionHeader] {
+        unsafe {
+            let sh_ptr = self.content().as_ptr().add(sh_off);
+            from_raw_parts(sh_ptr as *const ET::SectionHeader, sh_num)
+        }
+    pub fn section_header_nth(&self, index: usize) -> Option<SectionHeaderWrapper> {
+        self.section_header_raw()
+            .get(index)","    pub fn program_headers_raw(&self) -> Option<&'a [ET::ProgramHeader]> {
+        let ph_top = ph_off.saturating_add(ph_num.saturating_mul(size_of::<ET::ProgramHeader>()));
+        self.content()
+            .get(ph_off..ph_top)
+            .map(|mem| unsafe { from_raw_parts(mem.as_ptr() as *const ET::ProgramHeader, ph_num) })
+    pub fn program_header_nth(&self, index: usize) -> Option<ProgramHeaderEntry> {
+        self.program_headers_raw()
+            .and_then(|s| s.get(index))
+            .map(|ph| ProgramHeaderEntry::new(self, ph))
+    pub fn section_headers_raw(&'a self) -> Option<&'a [ET::SectionHeader]> {
+        let sh_top = sh_off.saturating_add(sh_num.saturating_mul(size_of::<ET::SectionHeader>()));
+        self.content()
+            .get(sh_off..sh_top)
+            .map(|mem| unsafe { from_raw_parts(mem.as_ptr() as *const ET::SectionHeader, sh_num) })
+    pub fn section_header_nth(&self, index: usize) -> Option<SectionHeaderEntry> {
+        self.section_headers_raw()
+            .and_then(|s| s.get(index))
+            .map(|sh| SectionHeaderEntry::new(self, sh))
+impl<'a, ET: ElfType> ElfFile for Elf<'a, ET> {
+    fn elf_header(&self) -> ElfHeader {
+        ElfHeader::new(self, self.elf_header_raw())
+    fn program_header_nth(&self, index: usize) -> Option<ProgramHeaderEntry> {",guard_or_init,unreviewed,
+cvefixes-diff:388:3ec9935954:src/section_header/section_header.rs:28-34,diff,unsafe,vincenthouyi_elf_rs,388,elf_rs,Medium,Memory Management,3ec9935954bff0525b54b1ca4cbafbd6687f99a4,e7aaaaf3b4e77e16fefa8d7661db9d79e49cf7b7,src/section_header/section_header.rs,sh_type,,28,34,        let flags = unsafe { read_unaligned(&self.sh_flags).to_u64().unwrap() };,        let flags = unsafe { read_unaligned(&self.sh_flags).into() };,other,unreviewed,
+cvefixes:1373:0e6f0d2a83:buffer::get_vec:193-193,analyzer,unsafe,wasmi-labs_wasmi,1373,wasmi,High,Resource Management,0e6f0d2a8325602c58d6a53ce1c0e6045eb6a490,8cbba53e23f4f08b68663bfcac7680cd8b5f70fa,crates/core/src/memory/buffer.rs,buffer::get_vec,Vec::from_raw_parts,193,193,"        Some(unsafe { Vec::from_raw_parts(self.ptr, self.len, self.capacity) })","        // - The returned `Vec` is returned as [`ManuallyDrop`] to prevent its buffer from being free
+        //   upon going out of scope.
+        let vec = unsafe { Vec::from_raw_parts(self.ptr, self.len, self.capacity) };
+        Some(ManuallyDrop::new(vec))",same_api_refactor,unreviewed,

@@ -1,0 +1,12 @@
+{
+  "issues": 144,
+  "rows": 59,
+  "stats": {
+    "resolved": 90,
+    "safe_candidate": 9,
+    "unsafe_retained": 18,
+    "no_same_repo_fix": 54,
+    "unsafe_added": 32
+  },
+  "failure_count": 0
+}

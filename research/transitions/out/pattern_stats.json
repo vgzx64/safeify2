@@ -1,0 +1,62 @@
+{
+  "rows": 44,
+  "types": {
+    "pattern_safe": 38,
+    "pattern_conditional": 6
+  },
+  "by_pattern": {
+    "get_unchecked": 13,
+    "set_len": 11,
+    "uninit": 10,
+    "from_raw": 4,
+    "ptr_write": 3,
+    "pin": 1,
+    "ptr_read": 1,
+    "copy": 1
+  },
+  "by_repo": {
+    "andrewhickman_id-map": 17,
+    "servo_rust-smallvec": 5,
+    "badboy_lzf-rs": 3,
+    "Enet4_bra-rs": 2,
+    "crossbeam-rs_crossbeam": 2,
+    "diesel-rs_diesel": 2,
+    "Alexhuszagh_rust-lexical": 2,
+    "actix_actix-net": 1,
+    "ash-rs_ash": 1,
+    "hrektts_cdr-rs": 1,
+    "mozilla_grcov": 1,
+    "blackbeam_rust-marc": 1,
+    "SolraBizna_outer_cgi": 1,
+    "bodoni_postscript": 1,
+    "tectonic-typesetting_tectonic": 1,
+    "Yoric_telemetry.rs": 1,
+    "near_borsh-rs": 1,
+    "libpnet_libpnet": 1
+  },
+  "by_cve": {
+    "531": 17,
+    "1111": 5,
+    "648": 3,
+    "160": 2,
+    "307": 2,
+    "372": 2,
+    "584": 2,
+    "17": 1,
+    "93": 1,
+    "193": 1,
+    "478": 1,
+    "654": 1,
+    "842": 1,
+    "891": 1,
+    "1240": 1,
+    "1241": 1,
+    "151": 1,
+    "885": 1
+  },
+  "rejects": {
+    "deleted_or_bad_path": 360,
+    "hunk_too_large": 383,
+    "missing_snapshot": 50
+  }
+}

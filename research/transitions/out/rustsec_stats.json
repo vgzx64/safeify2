@@ -1,0 +1,20 @@
+{
+  "advisories": 1332,
+  "packages": 967,
+  "in_cvefixes": 863,
+  "not_in_cvefixes": 469,
+  "categories": {
+    "memory-corruption": 287,
+    "denial-of-service": 142,
+    "crypto-failure": 97,
+    "memory-exposure": 91,
+    "malicious": 75,
+    "thread-safety": 65,
+    "code-execution": 41,
+    "format-injection": 25,
+    "privilege-escalation": 22,
+    "file-disclosure": 19
+  },
+  "with_url": 1180,
+  "with_patched": 825
+}

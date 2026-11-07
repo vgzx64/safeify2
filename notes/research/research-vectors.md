@@ -32,6 +32,8 @@ Proposed:    AST → Graph Construction → GNN + Transformer Fusion → Enhance
   high-quality sources such as advisories.
 - Add data for irreplaceable, conditionally replaceable, and encapsulatable code
   to reduce false positives. Synthetic dataset generation may help.
+- The data, label, and split design is in the
+  [transition dataset plan](transition-dataset.md).
 
 ## Enhance dataflow analysis with advanced static analysis
 

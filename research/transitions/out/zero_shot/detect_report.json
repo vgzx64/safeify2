@@ -1,0 +1,3614 @@
+{
+  "reports": [
+    {
+      "file": "/mnt/wd2023/home/dev2/Code/safeify2/research/transitions/out/zero_shot/inputs/n000.rs",
+      "unsafe_regions": 1,
+      "sinks": [
+        {
+          "file": "/mnt/wd2023/home/dev2/Code/safeify2/research/transitions/out/zero_shot/inputs/n000.rs",
+          "line": 2,
+          "col": 24,
+          "api": "as_ref",
+          "kind": "call",
+          "callee": "as_ref",
+          "call_text": "i.as_ref()",
+          "args": [],
+          "span": [
+            35,
+            44
+          ],
+          "region": {
+            "kind": "block",
+            "name": null,
+            "span": [
+              25,
+              55
+            ]
+          },
+          "fn": {
+            "name": "main",
+            "signature": "fn main()",
+            "guards": []
+          },
+          "evidence": {
+            "recv_type": null,
+            "arg_types": [],
+            "ret_type": null,
+            "lsp": false
+          },
+          "verdict": {
+            "v": "M",
+            "confidence": "low",
+            "reason": "as_ref through a raw pointer without in-frame owner evidence; classify pattern before claiming Y.",
+            "safe_alternative": null,
+            "encapsulate": true,
+            "pattern_hint": null,
+            "kb_gold": null,
+            "rules": [
+              "as_ref_1.yaml",
+              "as_ref_2.yaml"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "file": "/mnt/wd2023/home/dev2/Code/safeify2/research/transitions/out/zero_shot/inputs/n001.rs",
+      "unsafe_regions": 1,
+      "sinks": [
+        {
+          "file": "/mnt/wd2023/home/dev2/Code/safeify2/research/transitions/out/zero_shot/inputs/n001.rs",
+          "line": 4,
+          "col": 28,
+          "api": "CStr::from_ptr",
+          "kind": "call",
+          "callee": "CStr::from_ptr",
+          "call_text": "CStr::from_ptr(name)",
+          "args": [
+            "name"
+          ],
+          "span": [
+            83,
+            103
+          ],
+          "region": {
+            "kind": "block",
+            "name": null,
+            "span": [
+              74,
+              105
+            ]
+          },
+          "fn": {
+            "name": "main",
+            "signature": "fn main()",
+            "guards": [
+              "null_check",
+              "assert"
+            ]
+          },
+          "evidence": {
+            "recv_type": null,
+            "arg_types": [],
+            "ret_type": null,
+            "lsp": false
+          },
+          "verdict": {
+            "v": "M",
+            "confidence": "low",
+            "reason": "CStr::from_ptr without evidence: classify pattern.",
+            "safe_alternative": null,
+            "encapsulate": true,
+            "pattern_hint": null,
+            "kb_gold": null,
+            "rules": [
+              "CStr__from_ptr_1.yaml",
+              "CStr__from_ptr_4.yaml"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "file": "/mnt/wd2023/home/dev2/Code/safeify2/research/transitions/out/zero_shot/inputs/n002.rs",
+      "unsafe_regions": 0,
+      "sinks": []
+    },
+    {
+      "file": "/mnt/wd2023/home/dev2/Code/safeify2/research/transitions/out/zero_shot/inputs/n003.rs",
+      "unsafe_regions": 1,
+      "sinks": [
+        {
+          "file": "/mnt/wd2023/home/dev2/Code/safeify2/research/transitions/out/zero_shot/inputs/n003.rs",
+          "line": 2,
+          "col": 18,
+          "api": "ptr::deref",
+          "kind": "raw_deref",
+          "callee": "*self_.len_mut",
+          "call_text": "*self_.len_mut",
+          "args": [],
+          "span": [
+            29,
+            43
+          ],
+          "region": {
+            "kind": "block",
+            "name": null,
+            "span": [
+              20,
+              51
+            ]
+          },
+          "fn": {
+            "name": "main",
+            "signature": "fn main()",
+            "guards": []
+          },
+          "evidence": {
+            "recv_type": null,
+            "arg_types": [],
+            "ret_type": null,
+            "lsp": false
+          },
+          "verdict": {
+            "v": "M",
+            "confidence": "low",
+            "reason": "ptr::deref: raw memory op; preconditions (provenance/validity/lifetime) must be verified. Encapsulate behind a documented unsafe fn, or find the owner in-frame (KB p1).",
+            "safe_alternative": null,
+            "encapsulate": true,
+            "pattern_hint": null,
+            "kb_gold": null,
+            "rules": [
+              "ptr_deref_1.yaml",
+              "ptr_deref_2.yaml"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "file": "/mnt/wd2023/home/dev2/Code/safeify2/research/transitions/out/zero_shot/inputs/n004.rs",
+      "unsafe_regions": 1,
+      "sinks": [
+        {
+          "file": "/mnt/wd2023/home/dev2/Code/safeify2/research/transitions/out/zero_shot/inputs/n004.rs",
+          "line": 2,
+          "col": 55,
+          "api": "get_unchecked_mut",
+          "kind": "call",
+          "callee": "get_unchecked_mut",
+          "call_text": ").data.get_unchecked_mut(this.token)",
+          "args": [
+            "this.token"
+          ],
+          "span": [
+            66,
+            96
+          ],
+          "region": {
+            "kind": "block",
+            "name": null,
+            "span": [
+              32,
+              98
+            ]
+          },
+          "fn": {
+            "name": "main",
+            "signature": "fn main()",
+            "guards": []
+          },
+          "evidence": {
+            "recv_type": null,
+            "arg_types": [],
+            "ret_type": null,
+            "lsp": false
+          },
+          "verdict": {
+            "v": "Y",
+            "confidence": "high",
+            "reason": "unchecked family: keep the bounds check (KB: all unchecked APIs are replaceable).",
+            "safe_alternative": "data[this.token]",
+            "encapsulate": false,
+            "pattern_hint": 1,
+            "kb_gold": null,
+            "rules": [
+              "get_unchecked_mut_1.yaml"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "file": "/mnt/wd2023/home/dev2/Code/safeify2/research/transitions/out/zero_shot/inputs/n005.rs",
+      "unsafe_regions": 0,
+      "sinks": []
+    },
+    {
+      "file": "/mnt/wd2023/home/dev2/Code/safeify2/research/transitions/out/zero_shot/inputs/n006.rs",
+      "unsafe_regions": 1,
+      "sinks": [
+        {
+          "file": "/mnt/wd2023/home/dev2/Code/safeify2/research/transitions/out/zero_shot/inputs/n006.rs",
+          "line": 2,
+          "col": 39,
+          "api": "get_unchecked",
+          "kind": "call",
+          "callee": "get_unchecked",
+          "call_text": ").get_unchecked(self.token)",
+          "args": [
+            "self.token"
+          ],
+          "span": [
+            50,
+            76
+          ],
+          "region": {
+            "kind": "block",
+            "name": null,
+            "span": [
+              21,
+              78
+            ]
+          },
+          "fn": {
+            "name": "main",
+            "signature": "fn main()",
+            "guards": []
+          },
+          "evidence": {
+            "recv_type": null,
+            "arg_types": [],
+            "ret_type": null,
+            "lsp": false
+          },
+          "verdict": {
+            "v": "Y",
+            "confidence": "high",
+            "reason": "unchecked family: keep the bounds/validity check.",
+            "safe_alternative": "use the checked form (`get`/`[]`/indexing/`+`)",
+            "encapsulate": false,
+            "pattern_hint": 1,
+            "kb_gold": null,
+            "rules": []
+          }
+        }
+      ]
+    },
+    {
+      "file": "/mnt/wd2023/home/dev2/Code/safeify2/research/transitions/out/zero_shot/inputs/n007.rs",
+      "unsafe_regions": 1,
+      "sinks": []
+    },
+    {
+      "file": "/mnt/wd2023/home/dev2/Code/safeify2/research/transitions/out/zero_shot/inputs/n008.rs",
+      "unsafe_regions": 1,
+      "sinks": []
+    },
+    {
+      "file": "/mnt/wd2023/home/dev2/Code/safeify2/research/transitions/out/zero_shot/inputs/p000.rs",
+      "unsafe_regions": 1,
+      "sinks": [
+        {
+          "file": "/mnt/wd2023/home/dev2/Code/safeify2/research/transitions/out/zero_shot/inputs/p000.rs",
+          "line": 2,
+          "col": 17,
+          "api": "set_len",
+          "kind": "call",
+          "callee": "set_len",
+          "call_text": "out.set_len(out_buf_len)",
+          "args": [
+            "out_buf_len"
+          ],
+          "span": [
+            28,
+            49
+          ],
+          "region": {
+            "kind": "block",
+            "name": null,
+            "span": [
+              16,
+              51
+            ]
+          },
+          "fn": {
+            "name": "main",
+            "signature": "fn main()",
+            "guards": []
+          },
+          "evidence": {
+            "recv_type": null,
+            "arg_types": [],
+            "ret_type": null,
+            "lsp": false
+          },
+          "verdict": {
+            "v": "M",
+            "confidence": "low",
+            "reason": "set_len exposes uninitialized slots (KB p1/p2 -> M, p3 -> N): prefer push/resize; encapsulate with an initialization invariant if kept.",
+            "safe_alternative": "v.push(..) / v.resize(..)",
+            "encapsulate": true,
+            "pattern_hint": null,
+            "kb_gold": null,
+            "rules": [
+              "set_len_1.yaml",
+              "set_len_2.yaml",
+              "set_len_3.yaml"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "file": "/mnt/wd2023/home/dev2/Code/safeify2/research/transitions/out/zero_shot/inputs/p001.rs",
+      "unsafe_regions": 1,
+      "sinks": []
+    },
+    {
+      "file": "/mnt/wd2023/home/dev2/Code/safeify2/research/transitions/out/zero_shot/inputs/p002.rs",
+      "unsafe_regions": 2,
+      "sinks": []
+    },
+    {
+      "file": "/mnt/wd2023/home/dev2/Code/safeify2/research/transitions/out/zero_shot/inputs/p003.rs",
+      "unsafe_regions": 2,
+      "sinks": []
+    },
+    {
+      "file": "/mnt/wd2023/home/dev2/Code/safeify2/research/transitions/out/zero_shot/inputs/p004.rs",
+      "unsafe_regions": 1,
+      "sinks": []
+    },
+    {
+      "file": "/mnt/wd2023/home/dev2/Code/safeify2/research/transitions/out/zero_shot/inputs/p005.rs",
+      "unsafe_regions": 1,
+      "sinks": []
+    },
+    {
+      "file": "/mnt/wd2023/home/dev2/Code/safeify2/research/transitions/out/zero_shot/inputs/p006.rs",
+      "unsafe_regions": 1,
+      "sinks": []
+    },
+    {
+      "file": "/mnt/wd2023/home/dev2/Code/safeify2/research/transitions/out/zero_shot/inputs/p007.rs",
+      "unsafe_regions": 1,
+      "sinks": []
+    },
+    {
+      "file": "/mnt/wd2023/home/dev2/Code/safeify2/research/transitions/out/zero_shot/inputs/p008.rs",
+      "unsafe_regions": 1,
+      "sinks": [
+        {
+          "file": "/mnt/wd2023/home/dev2/Code/safeify2/research/transitions/out/zero_shot/inputs/p008.rs",
+          "line": 4,
+          "col": 26,
+          "api": "get_unchecked",
+          "kind": "call",
+          "callee": "get_unchecked",
+          "call_text": "input.get_unchecked(..len)",
+          "args": [
+            "..len"
+          ],
+          "span": [
+            112,
+            133
+          ],
+          "region": {
+            "kind": "block",
+            "name": null,
+            "span": [
+              78,
+              203
+            ]
+          },
+          "fn": {
+            "name": "main",
+            "signature": "fn main()",
+            "guards": []
+          },
+          "evidence": {
+            "recv_type": null,
+            "arg_types": [],
+            "ret_type": null,
+            "lsp": false
+          },
+          "verdict": {
+            "v": "Y",
+            "confidence": "high",
+            "reason": "unchecked family: keep the bounds check (KB: all unchecked APIs are replaceable).",
+            "safe_alternative": "input.get(..len)",
+            "encapsulate": false,
+            "pattern_hint": 1,
+            "kb_gold": null,
+            "rules": []
+          }
+        },
+        {
+          "file": "/mnt/wd2023/home/dev2/Code/safeify2/research/transitions/out/zero_shot/inputs/p008.rs",
+          "line": 5,
+          "col": 23,
+          "api": "get_unchecked",
+          "kind": "call",
+          "callee": "get_unchecked",
+          "call_text": "input.get_unchecked(len..)",
+          "args": [
+            "len.."
+          ],
+          "span": [
+            157,
+            178
+          ],
+          "region": {
+            "kind": "block",
+            "name": null,
+            "span": [
+              78,
+              203
+            ]
+          },
+          "fn": {
+            "name": "main",
+            "signature": "fn main()",
+            "guards": []
+          },
+          "evidence": {
+            "recv_type": null,
+            "arg_types": [],
+            "ret_type": null,
+            "lsp": false
+          },
+          "verdict": {
+            "v": "Y",
+            "confidence": "high",
+            "reason": "unchecked family: keep the bounds check (KB: all unchecked APIs are replaceable).",
+            "safe_alternative": "input.get(len..)",
+            "encapsulate": false,
+            "pattern_hint": 1,
+            "kb_gold": null,
+            "rules": []
+          }
+        }
+      ]
+    },
+    {
+      "file": "/mnt/wd2023/home/dev2/Code/safeify2/research/transitions/out/zero_shot/inputs/p009.rs",
+      "unsafe_regions": 2,
+      "sinks": [
+        {
+          "file": "/mnt/wd2023/home/dev2/Code/safeify2/research/transitions/out/zero_shot/inputs/p009.rs",
+          "line": 14,
+          "col": 29,
+          "api": "set_len",
+          "kind": "call",
+          "callee": "set_len",
+          "call_text": "self.buf.set_len(b + o)",
+          "args": [
+            "b + o"
+          ],
+          "span": [
+            550,
+            565
+          ],
+          "region": {
+            "kind": "block",
+            "name": null,
+            "span": [
+              377,
+              584
+            ]
+          },
+          "fn": {
+            "name": null,
+            "signature": "",
+            "guards": []
+          },
+          "evidence": {
+            "recv_type": null,
+            "arg_types": [],
+            "ret_type": null,
+            "lsp": false
+          },
+          "verdict": {
+            "v": "M",
+            "confidence": "low",
+            "reason": "set_len exposes uninitialized slots (KB p1/p2 -> M, p3 -> N): prefer push/resize; encapsulate with an initialization invariant if kept.",
+            "safe_alternative": "v.push(..) / v.resize(..)",
+            "encapsulate": true,
+            "pattern_hint": null,
+            "kb_gold": null,
+            "rules": [
+              "set_len_1.yaml",
+              "set_len_2.yaml",
+              "set_len_3.yaml"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "file": "/mnt/wd2023/home/dev2/Code/safeify2/research/transitions/out/zero_shot/inputs/p010.rs",
+      "unsafe_regions": 1,
+      "sinks": [
+        {
+          "file": "/mnt/wd2023/home/dev2/Code/safeify2/research/transitions/out/zero_shot/inputs/p010.rs",
+          "line": 7,
+          "col": 25,
+          "api": "ptr::write",
+          "kind": "call",
+          "callee": "std::ptr::write",
+          "call_text": "std::ptr::write(&mut result[i], <T>::read_bytes_default_le(&bytes[pos .. pos + len]))",
+          "args": [
+            "&mut result[i]",
+            "<T>::read_bytes_default_le(&bytes[pos .. pos + len])"
+          ],
+          "span": [
+            229,
+            314
+          ],
+          "region": {
+            "kind": "block",
+            "name": null,
+            "span": [
+              99,
+              391
+            ]
+          },
+          "fn": {
+            "name": "main",
+            "signature": "fn main()",
+            "guards": []
+          },
+          "evidence": {
+            "recv_type": null,
+            "arg_types": [],
+            "ret_type": null,
+            "lsp": false
+          },
+          "verdict": {
+            "v": "M",
+            "confidence": "low",
+            "reason": "ptr::write: raw memory op; preconditions (provenance/validity/lifetime) must be verified. Encapsulate behind a documented unsafe fn, or find the owner in-frame (KB p1).",
+            "safe_alternative": null,
+            "encapsulate": true,
+            "pattern_hint": null,
+            "kb_gold": null,
+            "rules": [
+              "ptr_write_2.yaml"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "file": "/mnt/wd2023/home/dev2/Code/safeify2/research/transitions/out/zero_shot/inputs/p011.rs",
+      "unsafe_regions": 1,
+      "sinks": [
+        {
+          "file": "/mnt/wd2023/home/dev2/Code/safeify2/research/transitions/out/zero_shot/inputs/p011.rs",
+          "line": 7,
+          "col": 25,
+          "api": "ptr::write",
+          "kind": "call",
+          "callee": "std::ptr::write",
+          "call_text": "std::ptr::write(&mut result[i], <T>::read_bytes_default_be(&bytes[pos .. pos + len]))",
+          "args": [
+            "&mut result[i]",
+            "<T>::read_bytes_default_be(&bytes[pos .. pos + len])"
+          ],
+          "span": [
+            229,
+            314
+          ],
+          "region": {
+            "kind": "block",
+            "name": null,
+            "span": [
+              99,
+              391
+            ]
+          },
+          "fn": {
+            "name": "main",
+            "signature": "fn main()",
+            "guards": []
+          },
+          "evidence": {
+            "recv_type": null,
+            "arg_types": [],
+            "ret_type": null,
+            "lsp": false
+          },
+          "verdict": {
+            "v": "M",
+            "confidence": "low",
+            "reason": "ptr::write: raw memory op; preconditions (provenance/validity/lifetime) must be verified. Encapsulate behind a documented unsafe fn, or find the owner in-frame (KB p1).",
+            "safe_alternative": null,
+            "encapsulate": true,
+            "pattern_hint": null,
+            "kb_gold": null,
+            "rules": [
+              "ptr_write_2.yaml"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "file": "/mnt/wd2023/home/dev2/Code/safeify2/research/transitions/out/zero_shot/inputs/p012.rs",
+      "unsafe_regions": 1,
+      "sinks": [
+        {
+          "file": "/mnt/wd2023/home/dev2/Code/safeify2/research/transitions/out/zero_shot/inputs/p012.rs",
+          "line": 2,
+          "col": 21,
+          "api": "set_len",
+          "kind": "call",
+          "callee": "set_len",
+          "call_text": "buf.set_len(len as usize)",
+          "args": [
+            "len as usize"
+          ],
+          "span": [
+            32,
+            54
+          ],
+          "region": {
+            "kind": "block",
+            "name": null,
+            "span": [
+              20,
+              56
+            ]
+          },
+          "fn": {
+            "name": "main",
+            "signature": "fn main()",
+            "guards": []
+          },
+          "evidence": {
+            "recv_type": null,
+            "arg_types": [],
+            "ret_type": null,
+            "lsp": false
+          },
+          "verdict": {
+            "v": "M",
+            "confidence": "low",
+            "reason": "set_len exposes uninitialized slots (KB p1/p2 -> M, p3 -> N): prefer push/resize; encapsulate with an initialization invariant if kept.",
+            "safe_alternative": "v.push(..) / v.resize(..)",
+            "encapsulate": true,
+            "pattern_hint": null,
+            "kb_gold": null,
+            "rules": [
+              "set_len_1.yaml",
+              "set_len_2.yaml",
+              "set_len_3.yaml"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "file": "/mnt/wd2023/home/dev2/Code/safeify2/research/transitions/out/zero_shot/inputs/p013.rs",
+      "unsafe_regions": 1,
+      "sinks": []
+    },
+    {
+      "file": "/mnt/wd2023/home/dev2/Code/safeify2/research/transitions/out/zero_shot/inputs/p014.rs",
+      "unsafe_regions": 1,
+      "sinks": [
+        {
+          "file": "/mnt/wd2023/home/dev2/Code/safeify2/research/transitions/out/zero_shot/inputs/p014.rs",
+          "line": 4,
+          "col": 23,
+          "api": "get_unchecked_mut",
+          "kind": "call",
+          "callee": "get_unchecked_mut",
+          "call_text": "lines.get_unchecked_mut((*line_num - 1) as usize)",
+          "args": [
+            "(*line_num - 1) as usize"
+          ],
+          "span": [
+            97,
+            141
+          ],
+          "region": {
+            "kind": "block",
+            "name": null,
+            "span": [
+              66,
+              214
+            ]
+          },
+          "fn": {
+            "name": null,
+            "signature": "",
+            "guards": []
+          },
+          "evidence": {
+            "recv_type": null,
+            "arg_types": [],
+            "ret_type": null,
+            "lsp": false
+          },
+          "verdict": {
+            "v": "Y",
+            "confidence": "high",
+            "reason": "unchecked family: keep the bounds check (KB: all unchecked APIs are replaceable).",
+            "safe_alternative": "lines[(*line_num - 1) as usize]",
+            "encapsulate": false,
+            "pattern_hint": 1,
+            "kb_gold": null,
+            "rules": [
+              "get_unchecked_mut_1.yaml"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "file": "/mnt/wd2023/home/dev2/Code/safeify2/research/transitions/out/zero_shot/inputs/p015.rs",
+      "unsafe_regions": 1,
+      "sinks": [
+        {
+          "file": "/mnt/wd2023/home/dev2/Code/safeify2/research/transitions/out/zero_shot/inputs/p015.rs",
+          "line": 3,
+          "col": 46,
+          "api": "get_unchecked",
+          "kind": "call",
+          "callee": "get_unchecked",
+          "call_text": "data.get_unchecked(data.len())",
+          "args": [
+            "data.len()"
+          ],
+          "span": [
+            166,
+            192
+          ],
+          "region": {
+            "kind": "block",
+            "name": null,
+            "span": [
+              153,
+              194
+            ]
+          },
+          "fn": {
+            "name": null,
+            "signature": "",
+            "guards": []
+          },
+          "evidence": {
+            "recv_type": null,
+            "arg_types": [],
+            "ret_type": null,
+            "lsp": false
+          },
+          "verdict": {
+            "v": "Y",
+            "confidence": "high",
+            "reason": "unchecked family: keep the bounds check (KB: all unchecked APIs are replaceable).",
+            "safe_alternative": "data.get(data.len())",
+            "encapsulate": false,
+            "pattern_hint": 1,
+            "kb_gold": null,
+            "rules": []
+          }
+        }
+      ]
+    },
+    {
+      "file": "/mnt/wd2023/home/dev2/Code/safeify2/research/transitions/out/zero_shot/inputs/p016.rs",
+      "unsafe_regions": 1,
+      "sinks": [
+        {
+          "file": "/mnt/wd2023/home/dev2/Code/safeify2/research/transitions/out/zero_shot/inputs/p016.rs",
+          "line": 3,
+          "col": 38,
+          "api": "get_unchecked",
+          "kind": "call",
+          "callee": "get_unchecked",
+          "call_text": "self.data.get_unchecked(new_pos)",
+          "args": [
+            "new_pos"
+          ],
+          "span": [
+            63,
+            86
+          ],
+          "region": {
+            "kind": "block",
+            "name": null,
+            "span": [
+              45,
+              88
+            ]
+          },
+          "fn": {
+            "name": "main",
+            "signature": "fn main()",
+            "guards": []
+          },
+          "evidence": {
+            "recv_type": null,
+            "arg_types": [],
+            "ret_type": null,
+            "lsp": false
+          },
+          "verdict": {
+            "v": "Y",
+            "confidence": "high",
+            "reason": "unchecked family: keep the bounds check (KB: all unchecked APIs are replaceable).",
+            "safe_alternative": "data.get(new_pos)",
+            "encapsulate": false,
+            "pattern_hint": 1,
+            "kb_gold": null,
+            "rules": []
+          }
+        }
+      ]
+    },
+    {
+      "file": "/mnt/wd2023/home/dev2/Code/safeify2/research/transitions/out/zero_shot/inputs/p017.rs",
+      "unsafe_regions": 1,
+      "sinks": []
+    },
+    {
+      "file": "/mnt/wd2023/home/dev2/Code/safeify2/research/transitions/out/zero_shot/inputs/p018.rs",
+      "unsafe_regions": 1,
+      "sinks": [
+        {
+          "file": "/mnt/wd2023/home/dev2/Code/safeify2/research/transitions/out/zero_shot/inputs/p018.rs",
+          "line": 4,
+          "col": 24,
+          "api": "set_len",
+          "kind": "call",
+          "callee": "set_len",
+          "call_text": "self.values.set_len(cap)",
+          "args": [
+            "cap"
+          ],
+          "span": [
+            129,
+            142
+          ],
+          "region": {
+            "kind": "block",
+            "name": null,
+            "span": [
+              20,
+              230
+            ]
+          },
+          "fn": {
+            "name": "main",
+            "signature": "fn main()",
+            "guards": [
+              "len_cap"
+            ]
+          },
+          "evidence": {
+            "recv_type": null,
+            "arg_types": [],
+            "ret_type": null,
+            "lsp": false
+          },
+          "verdict": {
+            "v": "M",
+            "confidence": "low",
+            "reason": "set_len exposes uninitialized slots (KB p1/p2 -> M, p3 -> N): prefer push/resize; encapsulate with an initialization invariant if kept.",
+            "safe_alternative": "v.push(..) / v.resize(..)",
+            "encapsulate": true,
+            "pattern_hint": null,
+            "kb_gold": null,
+            "rules": [
+              "set_len_1.yaml",
+              "set_len_2.yaml",
+              "set_len_3.yaml"
+            ]
+          }
+        },
+        {
+          "file": "/mnt/wd2023/home/dev2/Code/safeify2/research/transitions/out/zero_shot/inputs/p018.rs",
+          "line": 6,
+          "col": 24,
+          "api": "set_len",
+          "kind": "call",
+          "callee": "set_len",
+          "call_text": "self.values.set_len(0)",
+          "args": [
+            "0"
+          ],
+          "span": [
+            208,
+            219
+          ],
+          "region": {
+            "kind": "block",
+            "name": null,
+            "span": [
+              20,
+              230
+            ]
+          },
+          "fn": {
+            "name": "main",
+            "signature": "fn main()",
+            "guards": [
+              "len_cap"
+            ]
+          },
+          "evidence": {
+            "recv_type": null,
+            "arg_types": [],
+            "ret_type": null,
+            "lsp": false
+          },
+          "verdict": {
+            "v": "M",
+            "confidence": "low",
+            "reason": "set_len exposes uninitialized slots (KB p1/p2 -> M, p3 -> N): prefer push/resize; encapsulate with an initialization invariant if kept.",
+            "safe_alternative": "v.push(..) / v.resize(..)",
+            "encapsulate": true,
+            "pattern_hint": null,
+            "kb_gold": null,
+            "rules": [
+              "set_len_1.yaml",
+              "set_len_2.yaml",
+              "set_len_3.yaml"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "file": "/mnt/wd2023/home/dev2/Code/safeify2/research/transitions/out/zero_shot/inputs/p019.rs",
+      "unsafe_regions": 1,
+      "sinks": [
+        {
+          "file": "/mnt/wd2023/home/dev2/Code/safeify2/research/transitions/out/zero_shot/inputs/p019.rs",
+          "line": 4,
+          "col": 18,
+          "api": "ptr::write",
+          "kind": "call",
+          "callee": "ptr::write",
+          "call_text": "ptr::write(self.values.get_unchecked_mut(id), val)",
+          "args": [
+            "self.values.get_unchecked_mut(id)",
+            "val"
+          ],
+          "span": [
+            112,
+            162
+          ],
+          "region": {
+            "kind": "block",
+            "name": null,
+            "span": [
+              103,
+              164
+            ]
+          },
+          "fn": {
+            "name": null,
+            "signature": "",
+            "guards": []
+          },
+          "evidence": {
+            "recv_type": null,
+            "arg_types": [],
+            "ret_type": null,
+            "lsp": false
+          },
+          "verdict": {
+            "v": "M",
+            "confidence": "low",
+            "reason": "ptr::write: raw memory op; preconditions (provenance/validity/lifetime) must be verified. Encapsulate behind a documented unsafe fn, or find the owner in-frame (KB p1).",
+            "safe_alternative": null,
+            "encapsulate": true,
+            "pattern_hint": null,
+            "kb_gold": null,
+            "rules": [
+              "ptr_write_2.yaml"
+            ]
+          }
+        },
+        {
+          "file": "/mnt/wd2023/home/dev2/Code/safeify2/research/transitions/out/zero_shot/inputs/p019.rs",
+          "line": 4,
+          "col": 40,
+          "api": "get_unchecked_mut",
+          "kind": "call",
+          "callee": "get_unchecked_mut",
+          "call_text": "self.values.get_unchecked_mut(id)",
+          "args": [
+            "id"
+          ],
+          "span": [
+            134,
+            156
+          ],
+          "region": {
+            "kind": "block",
+            "name": null,
+            "span": [
+              103,
+              164
+            ]
+          },
+          "fn": {
+            "name": null,
+            "signature": "",
+            "guards": []
+          },
+          "evidence": {
+            "recv_type": null,
+            "arg_types": [],
+            "ret_type": null,
+            "lsp": false
+          },
+          "verdict": {
+            "v": "Y",
+            "confidence": "high",
+            "reason": "unchecked family: keep the bounds check (KB: all unchecked APIs are replaceable).",
+            "safe_alternative": "values[id]",
+            "encapsulate": false,
+            "pattern_hint": 1,
+            "kb_gold": null,
+            "rules": [
+              "get_unchecked_mut_1.yaml"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "file": "/mnt/wd2023/home/dev2/Code/safeify2/research/transitions/out/zero_shot/inputs/p020.rs",
+      "unsafe_regions": 2,
+      "sinks": [
+        {
+          "file": "/mnt/wd2023/home/dev2/Code/safeify2/research/transitions/out/zero_shot/inputs/p020.rs",
+          "line": 4,
+          "col": 22,
+          "api": "ptr::write",
+          "kind": "call",
+          "callee": "ptr::write",
+          "call_text": "ptr::write(self.values.get_unchecked_mut(id), val)",
+          "args": [
+            "self.values.get_unchecked_mut(id)",
+            "val"
+          ],
+          "span": [
+            127,
+            177
+          ],
+          "region": {
+            "kind": "block",
+            "name": null,
+            "span": [
+              118,
+              179
+            ]
+          },
+          "fn": {
+            "name": null,
+            "signature": "",
+            "guards": []
+          },
+          "evidence": {
+            "recv_type": null,
+            "arg_types": [],
+            "ret_type": null,
+            "lsp": false
+          },
+          "verdict": {
+            "v": "M",
+            "confidence": "low",
+            "reason": "ptr::write: raw memory op; preconditions (provenance/validity/lifetime) must be verified. Encapsulate behind a documented unsafe fn, or find the owner in-frame (KB p1).",
+            "safe_alternative": null,
+            "encapsulate": true,
+            "pattern_hint": null,
+            "kb_gold": null,
+            "rules": [
+              "ptr_write_2.yaml"
+            ]
+          }
+        },
+        {
+          "file": "/mnt/wd2023/home/dev2/Code/safeify2/research/transitions/out/zero_shot/inputs/p020.rs",
+          "line": 4,
+          "col": 44,
+          "api": "get_unchecked_mut",
+          "kind": "call",
+          "callee": "get_unchecked_mut",
+          "call_text": "self.values.get_unchecked_mut(id)",
+          "args": [
+            "id"
+          ],
+          "span": [
+            149,
+            171
+          ],
+          "region": {
+            "kind": "block",
+            "name": null,
+            "span": [
+              118,
+              179
+            ]
+          },
+          "fn": {
+            "name": null,
+            "signature": "",
+            "guards": []
+          },
+          "evidence": {
+            "recv_type": null,
+            "arg_types": [],
+            "ret_type": null,
+            "lsp": false
+          },
+          "verdict": {
+            "v": "Y",
+            "confidence": "high",
+            "reason": "unchecked family: keep the bounds check (KB: all unchecked APIs are replaceable).",
+            "safe_alternative": "values[id]",
+            "encapsulate": false,
+            "pattern_hint": 1,
+            "kb_gold": null,
+            "rules": [
+              "get_unchecked_mut_1.yaml"
+            ]
+          }
+        },
+        {
+          "file": "/mnt/wd2023/home/dev2/Code/safeify2/research/transitions/out/zero_shot/inputs/p020.rs",
+          "line": 5,
+          "col": 51,
+          "api": "get_unchecked_mut",
+          "kind": "call",
+          "callee": "get_unchecked_mut",
+          "call_text": "self.values.get_unchecked_mut(id)",
+          "args": [
+            "id"
+          ],
+          "span": [
+            230,
+            252
+          ],
+          "region": {
+            "kind": "block",
+            "name": null,
+            "span": [
+              210,
+              254
+            ]
+          },
+          "fn": {
+            "name": null,
+            "signature": "",
+            "guards": []
+          },
+          "evidence": {
+            "recv_type": null,
+            "arg_types": [],
+            "ret_type": null,
+            "lsp": false
+          },
+          "verdict": {
+            "v": "Y",
+            "confidence": "high",
+            "reason": "unchecked family: keep the bounds check (KB: all unchecked APIs are replaceable).",
+            "safe_alternative": "values[id]",
+            "encapsulate": false,
+            "pattern_hint": 1,
+            "kb_gold": null,
+            "rules": [
+              "get_unchecked_mut_1.yaml"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "file": "/mnt/wd2023/home/dev2/Code/safeify2/research/transitions/out/zero_shot/inputs/p021.rs",
+      "unsafe_regions": 1,
+      "sinks": [
+        {
+          "file": "/mnt/wd2023/home/dev2/Code/safeify2/research/transitions/out/zero_shot/inputs/p021.rs",
+          "line": 2,
+          "col": 27,
+          "api": "ptr::read",
+          "kind": "call",
+          "callee": "ptr::read",
+          "call_text": "ptr::read(self.values.get_unchecked(id))",
+          "args": [
+            "self.values.get_unchecked(id)"
+          ],
+          "span": [
+            38,
+            78
+          ],
+          "region": {
+            "kind": "block",
+            "name": null,
+            "span": [
+              29,
+              80
+            ]
+          },
+          "fn": {
+            "name": "main",
+            "signature": "fn main()",
+            "guards": []
+          },
+          "evidence": {
+            "recv_type": null,
+            "arg_types": [],
+            "ret_type": null,
+            "lsp": false
+          },
+          "verdict": {
+            "v": "Y",
+            "confidence": "high",
+            "reason": "owner/reference is present in this frame (KB ptr::read p1 -> Y): clone/read through the owner instead.",
+            "safe_alternative": "owner.clone()",
+            "encapsulate": false,
+            "pattern_hint": 1,
+            "kb_gold": "Y",
+            "rules": [
+              "ptr_read_1.yaml",
+              "ptr_read_2.yaml"
+            ]
+          }
+        },
+        {
+          "file": "/mnt/wd2023/home/dev2/Code/safeify2/research/transitions/out/zero_shot/inputs/p021.rs",
+          "line": 2,
+          "col": 48,
+          "api": "get_unchecked",
+          "kind": "call",
+          "callee": "get_unchecked",
+          "call_text": "self.values.get_unchecked(id)",
+          "args": [
+            "id"
+          ],
+          "span": [
+            59,
+            77
+          ],
+          "region": {
+            "kind": "block",
+            "name": null,
+            "span": [
+              29,
+              80
+            ]
+          },
+          "fn": {
+            "name": "main",
+            "signature": "fn main()",
+            "guards": []
+          },
+          "evidence": {
+            "recv_type": null,
+            "arg_types": [],
+            "ret_type": null,
+            "lsp": false
+          },
+          "verdict": {
+            "v": "Y",
+            "confidence": "high",
+            "reason": "unchecked family: keep the bounds check (KB: all unchecked APIs are replaceable).",
+            "safe_alternative": "values.get(id)",
+            "encapsulate": false,
+            "pattern_hint": 1,
+            "kb_gold": null,
+            "rules": []
+          }
+        }
+      ]
+    },
+    {
+      "file": "/mnt/wd2023/home/dev2/Code/safeify2/research/transitions/out/zero_shot/inputs/p022.rs",
+      "unsafe_regions": 2,
+      "sinks": [
+        {
+          "file": "/mnt/wd2023/home/dev2/Code/safeify2/research/transitions/out/zero_shot/inputs/p022.rs",
+          "line": 5,
+          "col": 40,
+          "api": "get_unchecked_mut",
+          "kind": "call",
+          "callee": "get_unchecked_mut",
+          "call_text": "self.values.get_unchecked_mut(id)",
+          "args": [
+            "id"
+          ],
+          "span": [
+            166,
+            188
+          ],
+          "region": {
+            "kind": "block",
+            "name": null,
+            "span": [
+              118,
+              265
+            ]
+          },
+          "fn": {
+            "name": null,
+            "signature": "",
+            "guards": []
+          },
+          "evidence": {
+            "recv_type": null,
+            "arg_types": [],
+            "ret_type": null,
+            "lsp": false
+          },
+          "verdict": {
+            "v": "Y",
+            "confidence": "high",
+            "reason": "unchecked family: keep the bounds check (KB: all unchecked APIs are replaceable).",
+            "safe_alternative": "values[id]",
+            "encapsulate": false,
+            "pattern_hint": 1,
+            "kb_gold": null,
+            "rules": [
+              "get_unchecked_mut_1.yaml"
+            ]
+          }
+        },
+        {
+          "file": "/mnt/wd2023/home/dev2/Code/safeify2/research/transitions/out/zero_shot/inputs/p022.rs",
+          "line": 6,
+          "col": 17,
+          "api": "ptr::write",
+          "kind": "call",
+          "callee": "ptr::write",
+          "call_text": "ptr::write(space, f())",
+          "args": [
+            "space",
+            "f()"
+          ],
+          "span": [
+            206,
+            228
+          ],
+          "region": {
+            "kind": "block",
+            "name": null,
+            "span": [
+              118,
+              265
+            ]
+          },
+          "fn": {
+            "name": null,
+            "signature": "",
+            "guards": []
+          },
+          "evidence": {
+            "recv_type": null,
+            "arg_types": [],
+            "ret_type": null,
+            "lsp": false
+          },
+          "verdict": {
+            "v": "M",
+            "confidence": "low",
+            "reason": "ptr::write: raw memory op; preconditions (provenance/validity/lifetime) must be verified. Encapsulate behind a documented unsafe fn, or find the owner in-frame (KB p1).",
+            "safe_alternative": null,
+            "encapsulate": true,
+            "pattern_hint": null,
+            "kb_gold": null,
+            "rules": [
+              "ptr_write_2.yaml"
+            ]
+          }
+        },
+        {
+          "file": "/mnt/wd2023/home/dev2/Code/safeify2/research/transitions/out/zero_shot/inputs/p022.rs",
+          "line": 10,
+          "col": 33,
+          "api": "get_unchecked_mut",
+          "kind": "call",
+          "callee": "get_unchecked_mut",
+          "call_text": "self.values.get_unchecked_mut(id)",
+          "args": [
+            "id"
+          ],
+          "span": [
+            315,
+            337
+          ],
+          "region": {
+            "kind": "block",
+            "name": null,
+            "span": [
+              295,
+              339
+            ]
+          },
+          "fn": {
+            "name": null,
+            "signature": "",
+            "guards": []
+          },
+          "evidence": {
+            "recv_type": null,
+            "arg_types": [],
+            "ret_type": null,
+            "lsp": false
+          },
+          "verdict": {
+            "v": "Y",
+            "confidence": "high",
+            "reason": "unchecked family: keep the bounds check (KB: all unchecked APIs are replaceable).",
+            "safe_alternative": "values[id]",
+            "encapsulate": false,
+            "pattern_hint": 1,
+            "kb_gold": null,
+            "rules": [
+              "get_unchecked_mut_1.yaml"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "file": "/mnt/wd2023/home/dev2/Code/safeify2/research/transitions/out/zero_shot/inputs/p023.rs",
+      "unsafe_regions": 2,
+      "sinks": [
+        {
+          "file": "/mnt/wd2023/home/dev2/Code/safeify2/research/transitions/out/zero_shot/inputs/p023.rs",
+          "line": 3,
+          "col": 51,
+          "api": "get_unchecked_mut",
+          "kind": "call",
+          "callee": "get_unchecked_mut",
+          "call_text": "self.values.get_unchecked_mut(first)",
+          "args": [
+            "first"
+          ],
+          "span": [
+            87,
+            112
+          ],
+          "region": {
+            "kind": "block",
+            "name": null,
+            "span": [
+              28,
+              131
+            ]
+          },
+          "fn": {
+            "name": "main",
+            "signature": "fn main()",
+            "guards": []
+          },
+          "evidence": {
+            "recv_type": null,
+            "arg_types": [],
+            "ret_type": null,
+            "lsp": false
+          },
+          "verdict": {
+            "v": "Y",
+            "confidence": "high",
+            "reason": "unchecked family: keep the bounds check (KB: all unchecked APIs are replaceable).",
+            "safe_alternative": "values[first]",
+            "encapsulate": false,
+            "pattern_hint": 1,
+            "kb_gold": null,
+            "rules": [
+              "get_unchecked_mut_1.yaml"
+            ]
+          }
+        },
+        {
+          "file": "/mnt/wd2023/home/dev2/Code/safeify2/research/transitions/out/zero_shot/inputs/p023.rs",
+          "line": 6,
+          "col": 55,
+          "api": "get_unchecked_mut",
+          "kind": "call",
+          "callee": "get_unchecked_mut",
+          "call_text": "self.values.get_unchecked_mut(id)",
+          "args": [
+            "id"
+          ],
+          "span": [
+            215,
+            237
+          ],
+          "region": {
+            "kind": "block",
+            "name": null,
+            "span": [
+              152,
+              260
+            ]
+          },
+          "fn": {
+            "name": "main",
+            "signature": "fn main()",
+            "guards": []
+          },
+          "evidence": {
+            "recv_type": null,
+            "arg_types": [],
+            "ret_type": null,
+            "lsp": false
+          },
+          "verdict": {
+            "v": "Y",
+            "confidence": "high",
+            "reason": "unchecked family: keep the bounds check (KB: all unchecked APIs are replaceable).",
+            "safe_alternative": "values[id]",
+            "encapsulate": false,
+            "pattern_hint": 1,
+            "kb_gold": null,
+            "rules": [
+              "get_unchecked_mut_1.yaml"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "file": "/mnt/wd2023/home/dev2/Code/safeify2/research/transitions/out/zero_shot/inputs/p024.rs",
+      "unsafe_regions": 1,
+      "sinks": [
+        {
+          "file": "/mnt/wd2023/home/dev2/Code/safeify2/research/transitions/out/zero_shot/inputs/p024.rs",
+          "line": 3,
+          "col": 35,
+          "api": "get_unchecked",
+          "kind": "call",
+          "callee": "get_unchecked",
+          "call_text": "values.get_unchecked(id)",
+          "args": [
+            "id"
+          ],
+          "span": [
+            67,
+            85
+          ],
+          "region": {
+            "kind": "block",
+            "name": null,
+            "span": [
+              24,
+              305
+            ]
+          },
+          "fn": {
+            "name": null,
+            "signature": "",
+            "guards": []
+          },
+          "evidence": {
+            "recv_type": null,
+            "arg_types": [],
+            "ret_type": null,
+            "lsp": false
+          },
+          "verdict": {
+            "v": "Y",
+            "confidence": "high",
+            "reason": "unchecked family: keep the bounds check (KB: all unchecked APIs are replaceable).",
+            "safe_alternative": "values.get(id)",
+            "encapsulate": false,
+            "pattern_hint": 1,
+            "kb_gold": null,
+            "rules": []
+          }
+        },
+        {
+          "file": "/mnt/wd2023/home/dev2/Code/safeify2/research/transitions/out/zero_shot/inputs/p024.rs",
+          "line": 7,
+          "col": 46,
+          "api": "get_unchecked_mut",
+          "kind": "call",
+          "callee": "get_unchecked_mut",
+          "call_text": "values.get_unchecked_mut(id)",
+          "args": [
+            "id"
+          ],
+          "span": [
+            235,
+            257
+          ],
+          "region": {
+            "kind": "block",
+            "name": null,
+            "span": [
+              24,
+              305
+            ]
+          },
+          "fn": {
+            "name": null,
+            "signature": "",
+            "guards": []
+          },
+          "evidence": {
+            "recv_type": null,
+            "arg_types": [],
+            "ret_type": null,
+            "lsp": false
+          },
+          "verdict": {
+            "v": "Y",
+            "confidence": "high",
+            "reason": "unchecked family: keep the bounds check (KB: all unchecked APIs are replaceable).",
+            "safe_alternative": "values[id]",
+            "encapsulate": false,
+            "pattern_hint": 1,
+            "kb_gold": null,
+            "rules": [
+              "get_unchecked_mut_1.yaml"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "file": "/mnt/wd2023/home/dev2/Code/safeify2/research/transitions/out/zero_shot/inputs/p025.rs",
+      "unsafe_regions": 1,
+      "sinks": [
+        {
+          "file": "/mnt/wd2023/home/dev2/Code/safeify2/research/transitions/out/zero_shot/inputs/p025.rs",
+          "line": 2,
+          "col": 38,
+          "api": "get_unchecked",
+          "kind": "call",
+          "callee": "get_unchecked",
+          "call_text": "self.values.get_unchecked(id)",
+          "args": [
+            "id"
+          ],
+          "span": [
+            49,
+            67
+          ],
+          "region": {
+            "kind": "block",
+            "name": null,
+            "span": [
+              29,
+              69
+            ]
+          },
+          "fn": {
+            "name": "main",
+            "signature": "fn main()",
+            "guards": []
+          },
+          "evidence": {
+            "recv_type": null,
+            "arg_types": [],
+            "ret_type": null,
+            "lsp": false
+          },
+          "verdict": {
+            "v": "Y",
+            "confidence": "high",
+            "reason": "unchecked family: keep the bounds check (KB: all unchecked APIs are replaceable).",
+            "safe_alternative": "values.get(id)",
+            "encapsulate": false,
+            "pattern_hint": 1,
+            "kb_gold": null,
+            "rules": []
+          }
+        }
+      ]
+    },
+    {
+      "file": "/mnt/wd2023/home/dev2/Code/safeify2/research/transitions/out/zero_shot/inputs/p026.rs",
+      "unsafe_regions": 1,
+      "sinks": [
+        {
+          "file": "/mnt/wd2023/home/dev2/Code/safeify2/research/transitions/out/zero_shot/inputs/p026.rs",
+          "line": 2,
+          "col": 38,
+          "api": "get_unchecked_mut",
+          "kind": "call",
+          "callee": "get_unchecked_mut",
+          "call_text": "self.values.get_unchecked_mut(id)",
+          "args": [
+            "id"
+          ],
+          "span": [
+            49,
+            71
+          ],
+          "region": {
+            "kind": "block",
+            "name": null,
+            "span": [
+              29,
+              73
+            ]
+          },
+          "fn": {
+            "name": "main",
+            "signature": "fn main()",
+            "guards": []
+          },
+          "evidence": {
+            "recv_type": null,
+            "arg_types": [],
+            "ret_type": null,
+            "lsp": false
+          },
+          "verdict": {
+            "v": "Y",
+            "confidence": "high",
+            "reason": "unchecked family: keep the bounds check (KB: all unchecked APIs are replaceable).",
+            "safe_alternative": "values[id]",
+            "encapsulate": false,
+            "pattern_hint": 1,
+            "kb_gold": null,
+            "rules": [
+              "get_unchecked_mut_1.yaml"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "file": "/mnt/wd2023/home/dev2/Code/safeify2/research/transitions/out/zero_shot/inputs/p027.rs",
+      "unsafe_regions": 1,
+      "sinks": [
+        {
+          "file": "/mnt/wd2023/home/dev2/Code/safeify2/research/transitions/out/zero_shot/inputs/p027.rs",
+          "line": 4,
+          "col": 14,
+          "api": "ptr::read",
+          "kind": "call",
+          "callee": "ptr::read",
+          "call_text": "ptr::read(&self.ids)",
+          "args": [
+            "&self.ids"
+          ],
+          "span": [
+            160,
+            180
+          ],
+          "region": {
+            "kind": "block",
+            "name": null,
+            "span": [
+              138,
+              216
+            ]
+          },
+          "fn": {
+            "name": null,
+            "signature": "",
+            "guards": []
+          },
+          "evidence": {
+            "recv_type": null,
+            "arg_types": [],
+            "ret_type": null,
+            "lsp": false
+          },
+          "verdict": {
+            "v": "Y",
+            "confidence": "high",
+            "reason": "owner/reference is present in this frame (KB ptr::read p1 -> Y): clone/read through the owner instead.",
+            "safe_alternative": "owner.clone()",
+            "encapsulate": false,
+            "pattern_hint": 1,
+            "kb_gold": "Y",
+            "rules": [
+              "ptr_read_1.yaml",
+              "ptr_read_2.yaml"
+            ]
+          }
+        },
+        {
+          "file": "/mnt/wd2023/home/dev2/Code/safeify2/research/transitions/out/zero_shot/inputs/p027.rs",
+          "line": 4,
+          "col": 36,
+          "api": "ptr::read",
+          "kind": "call",
+          "callee": "ptr::read",
+          "call_text": "ptr::read(&self.values)",
+          "args": [
+            "&self.values"
+          ],
+          "span": [
+            182,
+            205
+          ],
+          "region": {
+            "kind": "block",
+            "name": null,
+            "span": [
+              138,
+              216
+            ]
+          },
+          "fn": {
+            "name": null,
+            "signature": "",
+            "guards": []
+          },
+          "evidence": {
+            "recv_type": null,
+            "arg_types": [],
+            "ret_type": null,
+            "lsp": false
+          },
+          "verdict": {
+            "v": "Y",
+            "confidence": "high",
+            "reason": "owner/reference is present in this frame (KB ptr::read p1 -> Y): clone/read through the owner instead.",
+            "safe_alternative": "owner.clone()",
+            "encapsulate": false,
+            "pattern_hint": 1,
+            "kb_gold": "Y",
+            "rules": [
+              "ptr_read_1.yaml",
+              "ptr_read_2.yaml"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "file": "/mnt/wd2023/home/dev2/Code/safeify2/research/transitions/out/zero_shot/inputs/p028.rs",
+      "unsafe_regions": 0,
+      "sinks": []
+    },
+    {
+      "file": "/mnt/wd2023/home/dev2/Code/safeify2/research/transitions/out/zero_shot/inputs/p029.rs",
+      "unsafe_regions": 1,
+      "sinks": [
+        {
+          "file": "/mnt/wd2023/home/dev2/Code/safeify2/research/transitions/out/zero_shot/inputs/p029.rs",
+          "line": 5,
+          "col": 47,
+          "api": "get_unchecked",
+          "kind": "call",
+          "callee": "get_unchecked",
+          "call_text": "self.values.get_unchecked(l)",
+          "args": [
+            "l"
+          ],
+          "span": [
+            149,
+            166
+          ],
+          "region": {
+            "kind": "block",
+            "name": null,
+            "span": [
+              129,
+              201
+            ]
+          },
+          "fn": {
+            "name": "main",
+            "signature": "fn main()",
+            "guards": []
+          },
+          "evidence": {
+            "recv_type": null,
+            "arg_types": [],
+            "ret_type": null,
+            "lsp": false
+          },
+          "verdict": {
+            "v": "Y",
+            "confidence": "high",
+            "reason": "unchecked family: keep the bounds check (KB: all unchecked APIs are replaceable).",
+            "safe_alternative": "values.get(l)",
+            "encapsulate": false,
+            "pattern_hint": 1,
+            "kb_gold": null,
+            "rules": []
+          }
+        },
+        {
+          "file": "/mnt/wd2023/home/dev2/Code/safeify2/research/transitions/out/zero_shot/inputs/p029.rs",
+          "line": 5,
+          "col": 80,
+          "api": "get_unchecked",
+          "kind": "call",
+          "callee": "get_unchecked",
+          "call_text": "other.values.get_unchecked(r)",
+          "args": [
+            "r"
+          ],
+          "span": [
+            182,
+            199
+          ],
+          "region": {
+            "kind": "block",
+            "name": null,
+            "span": [
+              129,
+              201
+            ]
+          },
+          "fn": {
+            "name": "main",
+            "signature": "fn main()",
+            "guards": []
+          },
+          "evidence": {
+            "recv_type": null,
+            "arg_types": [],
+            "ret_type": null,
+            "lsp": false
+          },
+          "verdict": {
+            "v": "Y",
+            "confidence": "high",
+            "reason": "unchecked family: keep the bounds check (KB: all unchecked APIs are replaceable).",
+            "safe_alternative": "values.get(r)",
+            "encapsulate": false,
+            "pattern_hint": 1,
+            "kb_gold": null,
+            "rules": []
+          }
+        }
+      ]
+    },
+    {
+      "file": "/mnt/wd2023/home/dev2/Code/safeify2/research/transitions/out/zero_shot/inputs/p030.rs",
+      "unsafe_regions": 1,
+      "sinks": [
+        {
+          "file": "/mnt/wd2023/home/dev2/Code/safeify2/research/transitions/out/zero_shot/inputs/p030.rs",
+          "line": 3,
+          "col": 24,
+          "api": "set_len",
+          "kind": "call",
+          "callee": "set_len",
+          "call_text": "values.set_len(0)",
+          "args": [
+            "0"
+          ],
+          "span": [
+            82,
+            93
+          ],
+          "region": {
+            "kind": "block",
+            "name": null,
+            "span": [
+              67,
+              95
+            ]
+          },
+          "fn": {
+            "name": null,
+            "signature": "",
+            "guards": []
+          },
+          "evidence": {
+            "recv_type": null,
+            "arg_types": [],
+            "ret_type": null,
+            "lsp": false
+          },
+          "verdict": {
+            "v": "M",
+            "confidence": "low",
+            "reason": "set_len exposes uninitialized slots (KB p1/p2 -> M, p3 -> N): prefer push/resize; encapsulate with an initialization invariant if kept.",
+            "safe_alternative": "v.push(..) / v.resize(..)",
+            "encapsulate": true,
+            "pattern_hint": null,
+            "kb_gold": null,
+            "rules": [
+              "set_len_1.yaml",
+              "set_len_2.yaml",
+              "set_len_3.yaml"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "file": "/mnt/wd2023/home/dev2/Code/safeify2/research/transitions/out/zero_shot/inputs/p031.rs",
+      "unsafe_regions": 1,
+      "sinks": [
+        {
+          "file": "/mnt/wd2023/home/dev2/Code/safeify2/research/transitions/out/zero_shot/inputs/p031.rs",
+          "line": 2,
+          "col": 29,
+          "api": "get_unchecked",
+          "kind": "call",
+          "callee": "get_unchecked",
+          "call_text": "self.values.get_unchecked(id)",
+          "args": [
+            "id"
+          ],
+          "span": [
+            40,
+            58
+          ],
+          "region": {
+            "kind": "block",
+            "name": null,
+            "span": [
+              20,
+              60
+            ]
+          },
+          "fn": {
+            "name": "main",
+            "signature": "fn main()",
+            "guards": []
+          },
+          "evidence": {
+            "recv_type": null,
+            "arg_types": [],
+            "ret_type": null,
+            "lsp": false
+          },
+          "verdict": {
+            "v": "Y",
+            "confidence": "high",
+            "reason": "unchecked family: keep the bounds check (KB: all unchecked APIs are replaceable).",
+            "safe_alternative": "values.get(id)",
+            "encapsulate": false,
+            "pattern_hint": 1,
+            "kb_gold": null,
+            "rules": []
+          }
+        }
+      ]
+    },
+    {
+      "file": "/mnt/wd2023/home/dev2/Code/safeify2/research/transitions/out/zero_shot/inputs/p032.rs",
+      "unsafe_regions": 1,
+      "sinks": [
+        {
+          "file": "/mnt/wd2023/home/dev2/Code/safeify2/research/transitions/out/zero_shot/inputs/p032.rs",
+          "line": 2,
+          "col": 29,
+          "api": "get_unchecked_mut",
+          "kind": "call",
+          "callee": "get_unchecked_mut",
+          "call_text": "self.values.get_unchecked_mut(id)",
+          "args": [
+            "id"
+          ],
+          "span": [
+            40,
+            62
+          ],
+          "region": {
+            "kind": "block",
+            "name": null,
+            "span": [
+              20,
+              64
+            ]
+          },
+          "fn": {
+            "name": "main",
+            "signature": "fn main()",
+            "guards": []
+          },
+          "evidence": {
+            "recv_type": null,
+            "arg_types": [],
+            "ret_type": null,
+            "lsp": false
+          },
+          "verdict": {
+            "v": "Y",
+            "confidence": "high",
+            "reason": "unchecked family: keep the bounds check (KB: all unchecked APIs are replaceable).",
+            "safe_alternative": "values[id]",
+            "encapsulate": false,
+            "pattern_hint": 1,
+            "kb_gold": null,
+            "rules": [
+              "get_unchecked_mut_1.yaml"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "file": "/mnt/wd2023/home/dev2/Code/safeify2/research/transitions/out/zero_shot/inputs/p033.rs",
+      "unsafe_regions": 1,
+      "sinks": [
+        {
+          "file": "/mnt/wd2023/home/dev2/Code/safeify2/research/transitions/out/zero_shot/inputs/p033.rs",
+          "line": 2,
+          "col": 44,
+          "api": "ptr::deref",
+          "kind": "raw_deref",
+          "callee": "*self.values.offset",
+          "call_text": "*self.values.offset",
+          "args": [],
+          "span": [
+            55,
+            74
+          ],
+          "region": {
+            "kind": "block",
+            "name": null,
+            "span": [
+              45,
+              89
+            ]
+          },
+          "fn": {
+            "name": "main",
+            "signature": "fn main()",
+            "guards": []
+          },
+          "evidence": {
+            "recv_type": null,
+            "arg_types": [],
+            "ret_type": null,
+            "lsp": false
+          },
+          "verdict": {
+            "v": "M",
+            "confidence": "low",
+            "reason": "ptr::deref: raw memory op; preconditions (provenance/validity/lifetime) must be verified. Encapsulate behind a documented unsafe fn, or find the owner in-frame (KB p1).",
+            "safe_alternative": null,
+            "encapsulate": true,
+            "pattern_hint": null,
+            "kb_gold": null,
+            "rules": [
+              "ptr_deref_1.yaml",
+              "ptr_deref_2.yaml"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "file": "/mnt/wd2023/home/dev2/Code/safeify2/research/transitions/out/zero_shot/inputs/p034.rs",
+      "unsafe_regions": 1,
+      "sinks": []
+    },
+    {
+      "file": "/mnt/wd2023/home/dev2/Code/safeify2/research/transitions/out/zero_shot/inputs/p035.rs",
+      "unsafe_regions": 1,
+      "sinks": [
+        {
+          "file": "/mnt/wd2023/home/dev2/Code/safeify2/research/transitions/out/zero_shot/inputs/p035.rs",
+          "line": 2,
+          "col": 49,
+          "api": "ptr::deref",
+          "kind": "raw_deref",
+          "callee": "*self.values.offset",
+          "call_text": "*self.values.offset",
+          "args": [],
+          "span": [
+            60,
+            79
+          ],
+          "region": {
+            "kind": "block",
+            "name": null,
+            "span": [
+              50,
+              94
+            ]
+          },
+          "fn": {
+            "name": "main",
+            "signature": "fn main()",
+            "guards": []
+          },
+          "evidence": {
+            "recv_type": null,
+            "arg_types": [],
+            "ret_type": null,
+            "lsp": false
+          },
+          "verdict": {
+            "v": "M",
+            "confidence": "low",
+            "reason": "ptr::deref: raw memory op; preconditions (provenance/validity/lifetime) must be verified. Encapsulate behind a documented unsafe fn, or find the owner in-frame (KB p1).",
+            "safe_alternative": null,
+            "encapsulate": true,
+            "pattern_hint": null,
+            "kb_gold": null,
+            "rules": [
+              "ptr_deref_1.yaml",
+              "ptr_deref_2.yaml"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "file": "/mnt/wd2023/home/dev2/Code/safeify2/research/transitions/out/zero_shot/inputs/p036.rs",
+      "unsafe_regions": 1,
+      "sinks": []
+    },
+    {
+      "file": "/mnt/wd2023/home/dev2/Code/safeify2/research/transitions/out/zero_shot/inputs/p037.rs",
+      "unsafe_regions": 1,
+      "sinks": [
+        {
+          "file": "/mnt/wd2023/home/dev2/Code/safeify2/research/transitions/out/zero_shot/inputs/p037.rs",
+          "line": 2,
+          "col": 48,
+          "api": "ptr::read",
+          "kind": "call",
+          "callee": "ptr::read",
+          "call_text": "ptr::read(self.values.get_unchecked(id))",
+          "args": [
+            "self.values.get_unchecked(id)"
+          ],
+          "span": [
+            59,
+            99
+          ],
+          "region": {
+            "kind": "block",
+            "name": null,
+            "span": [
+              50,
+              101
+            ]
+          },
+          "fn": {
+            "name": "main",
+            "signature": "fn main()",
+            "guards": []
+          },
+          "evidence": {
+            "recv_type": null,
+            "arg_types": [],
+            "ret_type": null,
+            "lsp": false
+          },
+          "verdict": {
+            "v": "Y",
+            "confidence": "high",
+            "reason": "owner/reference is present in this frame (KB ptr::read p1 -> Y): clone/read through the owner instead.",
+            "safe_alternative": "owner.clone()",
+            "encapsulate": false,
+            "pattern_hint": 1,
+            "kb_gold": "Y",
+            "rules": [
+              "ptr_read_1.yaml",
+              "ptr_read_2.yaml"
+            ]
+          }
+        },
+        {
+          "file": "/mnt/wd2023/home/dev2/Code/safeify2/research/transitions/out/zero_shot/inputs/p037.rs",
+          "line": 2,
+          "col": 69,
+          "api": "get_unchecked",
+          "kind": "call",
+          "callee": "get_unchecked",
+          "call_text": "self.values.get_unchecked(id)",
+          "args": [
+            "id"
+          ],
+          "span": [
+            80,
+            98
+          ],
+          "region": {
+            "kind": "block",
+            "name": null,
+            "span": [
+              50,
+              101
+            ]
+          },
+          "fn": {
+            "name": "main",
+            "signature": "fn main()",
+            "guards": []
+          },
+          "evidence": {
+            "recv_type": null,
+            "arg_types": [],
+            "ret_type": null,
+            "lsp": false
+          },
+          "verdict": {
+            "v": "Y",
+            "confidence": "high",
+            "reason": "unchecked family: keep the bounds check (KB: all unchecked APIs are replaceable).",
+            "safe_alternative": "values.get(id)",
+            "encapsulate": false,
+            "pattern_hint": 1,
+            "kb_gold": null,
+            "rules": []
+          }
+        }
+      ]
+    },
+    {
+      "file": "/mnt/wd2023/home/dev2/Code/safeify2/research/transitions/out/zero_shot/inputs/p038.rs",
+      "unsafe_regions": 2,
+      "sinks": [
+        {
+          "file": "/mnt/wd2023/home/dev2/Code/safeify2/research/transitions/out/zero_shot/inputs/p038.rs",
+          "line": 3,
+          "col": 17,
+          "api": "set_len",
+          "kind": "call",
+          "callee": "set_len",
+          "call_text": "out.set_len(out_buf_len)",
+          "args": [
+            "out_buf_len"
+          ],
+          "span": [
+            79,
+            100
+          ],
+          "region": {
+            "kind": "block",
+            "name": null,
+            "span": [
+              67,
+              102
+            ]
+          },
+          "fn": {
+            "name": "main",
+            "signature": "fn main()",
+            "guards": [
+              "with_capacity"
+            ]
+          },
+          "evidence": {
+            "recv_type": null,
+            "arg_types": [],
+            "ret_type": null,
+            "lsp": false
+          },
+          "verdict": {
+            "v": "M",
+            "confidence": "low",
+            "reason": "set_len exposes uninitialized slots (KB p1/p2 -> M, p3 -> N): prefer push/resize; encapsulate with an initialization invariant if kept.",
+            "safe_alternative": "v.push(..) / v.resize(..)",
+            "encapsulate": true,
+            "pattern_hint": null,
+            "kb_gold": null,
+            "rules": [
+              "set_len_1.yaml",
+              "set_len_2.yaml",
+              "set_len_3.yaml"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "file": "/mnt/wd2023/home/dev2/Code/safeify2/research/transitions/out/zero_shot/inputs/p039.rs",
+      "unsafe_regions": 1,
+      "sinks": [
+        {
+          "file": "/mnt/wd2023/home/dev2/Code/safeify2/research/transitions/out/zero_shot/inputs/p039.rs",
+          "line": 3,
+          "col": 20,
+          "api": "set_len",
+          "kind": "call",
+          "callee": "set_len",
+          "call_text": "output.set_len(out_len_should)",
+          "args": [
+            "out_len_should"
+          ],
+          "span": [
+            88,
+            112
+          ],
+          "region": {
+            "kind": "block",
+            "name": null,
+            "span": [
+              73,
+              114
+            ]
+          },
+          "fn": {
+            "name": "main",
+            "signature": "fn main()",
+            "guards": [
+              "with_capacity"
+            ]
+          },
+          "evidence": {
+            "recv_type": null,
+            "arg_types": [],
+            "ret_type": null,
+            "lsp": false
+          },
+          "verdict": {
+            "v": "M",
+            "confidence": "low",
+            "reason": "set_len exposes uninitialized slots (KB p1/p2 -> M, p3 -> N): prefer push/resize; encapsulate with an initialization invariant if kept.",
+            "safe_alternative": "v.push(..) / v.resize(..)",
+            "encapsulate": true,
+            "pattern_hint": null,
+            "kb_gold": null,
+            "rules": [
+              "set_len_1.yaml",
+              "set_len_2.yaml",
+              "set_len_3.yaml"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "file": "/mnt/wd2023/home/dev2/Code/safeify2/research/transitions/out/zero_shot/inputs/p040.rs",
+      "unsafe_regions": 1,
+      "sinks": [
+        {
+          "file": "/mnt/wd2023/home/dev2/Code/safeify2/research/transitions/out/zero_shot/inputs/p040.rs",
+          "line": 3,
+          "col": 22,
+          "api": "set_len",
+          "kind": "call",
+          "callee": "set_len",
+          "call_text": "data.set_len(len)",
+          "args": [
+            "len"
+          ],
+          "span": [
+            64,
+            77
+          ],
+          "region": {
+            "kind": "block",
+            "name": null,
+            "span": [
+              51,
+              79
+            ]
+          },
+          "fn": {
+            "name": "main",
+            "signature": "fn main()",
+            "guards": []
+          },
+          "evidence": {
+            "recv_type": null,
+            "arg_types": [],
+            "ret_type": null,
+            "lsp": false
+          },
+          "verdict": {
+            "v": "M",
+            "confidence": "low",
+            "reason": "set_len exposes uninitialized slots (KB p1/p2 -> M, p3 -> N): prefer push/resize; encapsulate with an initialization invariant if kept.",
+            "safe_alternative": "v.push(..) / v.resize(..)",
+            "encapsulate": true,
+            "pattern_hint": null,
+            "kb_gold": null,
+            "rules": [
+              "set_len_1.yaml",
+              "set_len_2.yaml",
+              "set_len_3.yaml"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "file": "/mnt/wd2023/home/dev2/Code/safeify2/research/transitions/out/zero_shot/inputs/p041.rs",
+      "unsafe_regions": 1,
+      "sinks": [
+        {
+          "file": "/mnt/wd2023/home/dev2/Code/safeify2/research/transitions/out/zero_shot/inputs/p041.rs",
+          "line": 4,
+          "col": 33,
+          "api": "get_unchecked_mut",
+          "kind": "call",
+          "callee": "get_unchecked_mut",
+          "call_text": "self.buf.get_unchecked_mut(..len)",
+          "args": [
+            "..len"
+          ],
+          "span": [
+            96,
+            121
+          ],
+          "region": {
+            "kind": "block",
+            "name": null,
+            "span": [
+              20,
+              195
+            ]
+          },
+          "fn": {
+            "name": "main",
+            "signature": "fn main()",
+            "guards": []
+          },
+          "evidence": {
+            "recv_type": null,
+            "arg_types": [],
+            "ret_type": null,
+            "lsp": false
+          },
+          "verdict": {
+            "v": "Y",
+            "confidence": "high",
+            "reason": "unchecked family: keep the bounds check (KB: all unchecked APIs are replaceable).",
+            "safe_alternative": "buf[..len]",
+            "encapsulate": false,
+            "pattern_hint": 1,
+            "kb_gold": null,
+            "rules": [
+              "get_unchecked_mut_1.yaml"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "file": "/mnt/wd2023/home/dev2/Code/safeify2/research/transitions/out/zero_shot/inputs/p042.rs",
+      "unsafe_regions": 1,
+      "sinks": [
+        {
+          "file": "/mnt/wd2023/home/dev2/Code/safeify2/research/transitions/out/zero_shot/inputs/p042.rs",
+          "line": 5,
+          "col": 23,
+          "api": "set_len",
+          "kind": "call",
+          "callee": "set_len",
+          "call_text": "key_buffer.set_len(key_length)",
+          "args": [
+            "key_length"
+          ],
+          "span": [
+            177,
+            197
+          ],
+          "region": {
+            "kind": "block",
+            "name": null,
+            "span": [
+              146,
+              256
+            ]
+          },
+          "fn": {
+            "name": "main",
+            "signature": "fn main()",
+            "guards": [
+              "with_capacity"
+            ]
+          },
+          "evidence": {
+            "recv_type": null,
+            "arg_types": [],
+            "ret_type": null,
+            "lsp": false
+          },
+          "verdict": {
+            "v": "M",
+            "confidence": "low",
+            "reason": "set_len exposes uninitialized slots (KB p1/p2 -> M, p3 -> N): prefer push/resize; encapsulate with an initialization invariant if kept.",
+            "safe_alternative": "v.push(..) / v.resize(..)",
+            "encapsulate": true,
+            "pattern_hint": null,
+            "kb_gold": null,
+            "rules": [
+              "set_len_1.yaml",
+              "set_len_2.yaml",
+              "set_len_3.yaml"
+            ]
+          }
+        },
+        {
+          "file": "/mnt/wd2023/home/dev2/Code/safeify2/research/transitions/out/zero_shot/inputs/p042.rs",
+          "line": 6,
+          "col": 25,
+          "api": "set_len",
+          "kind": "call",
+          "callee": "set_len",
+          "call_text": "value_buffer.set_len(value_length)",
+          "args": [
+            "value_length"
+          ],
+          "span": [
+            223,
+            245
+          ],
+          "region": {
+            "kind": "block",
+            "name": null,
+            "span": [
+              146,
+              256
+            ]
+          },
+          "fn": {
+            "name": "main",
+            "signature": "fn main()",
+            "guards": [
+              "with_capacity"
+            ]
+          },
+          "evidence": {
+            "recv_type": null,
+            "arg_types": [],
+            "ret_type": null,
+            "lsp": false
+          },
+          "verdict": {
+            "v": "M",
+            "confidence": "low",
+            "reason": "set_len exposes uninitialized slots (KB p1/p2 -> M, p3 -> N): prefer push/resize; encapsulate with an initialization invariant if kept.",
+            "safe_alternative": "v.push(..) / v.resize(..)",
+            "encapsulate": true,
+            "pattern_hint": null,
+            "kb_gold": null,
+            "rules": [
+              "set_len_1.yaml",
+              "set_len_2.yaml",
+              "set_len_3.yaml"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "file": "/mnt/wd2023/home/dev2/Code/safeify2/research/transitions/out/zero_shot/inputs/p043.rs",
+      "unsafe_regions": 1,
+      "sinks": [
+        {
+          "file": "/mnt/wd2023/home/dev2/Code/safeify2/research/transitions/out/zero_shot/inputs/p043.rs",
+          "line": 3,
+          "col": 32,
+          "api": "set_len",
+          "kind": "call",
+          "callee": "set_len",
+          "call_text": "buffer.set_len(count)",
+          "args": [
+            "count"
+          ],
+          "span": [
+            103,
+            118
+          ],
+          "region": {
+            "kind": "block",
+            "name": null,
+            "span": [
+              88,
+              120
+            ]
+          },
+          "fn": {
+            "name": "main",
+            "signature": "fn main()",
+            "guards": [
+              "with_capacity"
+            ]
+          },
+          "evidence": {
+            "recv_type": null,
+            "arg_types": [],
+            "ret_type": null,
+            "lsp": false
+          },
+          "verdict": {
+            "v": "M",
+            "confidence": "low",
+            "reason": "set_len exposes uninitialized slots (KB p1/p2 -> M, p3 -> N): prefer push/resize; encapsulate with an initialization invariant if kept.",
+            "safe_alternative": "v.push(..) / v.resize(..)",
+            "encapsulate": true,
+            "pattern_hint": null,
+            "kb_gold": null,
+            "rules": [
+              "set_len_1.yaml",
+              "set_len_2.yaml",
+              "set_len_3.yaml"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "file": "/mnt/wd2023/home/dev2/Code/safeify2/research/transitions/out/zero_shot/inputs/p044.rs",
+      "unsafe_regions": 1,
+      "sinks": []
+    },
+    {
+      "file": "/mnt/wd2023/home/dev2/Code/safeify2/research/transitions/out/zero_shot/inputs/p045.rs",
+      "unsafe_regions": 1,
+      "sinks": []
+    },
+    {
+      "file": "/mnt/wd2023/home/dev2/Code/safeify2/research/transitions/out/zero_shot/inputs/p046.rs",
+      "unsafe_regions": 0,
+      "sinks": []
+    },
+    {
+      "file": "/mnt/wd2023/home/dev2/Code/safeify2/research/transitions/out/zero_shot/inputs/p047.rs",
+      "unsafe_regions": 1,
+      "sinks": [
+        {
+          "file": "/mnt/wd2023/home/dev2/Code/safeify2/research/transitions/out/zero_shot/inputs/p047.rs",
+          "line": 4,
+          "col": 16,
+          "api": "set_len",
+          "kind": "call",
+          "callee": "set_len",
+          "call_text": "buf.set_len(BUF_SIZE)",
+          "args": [
+            "BUF_SIZE"
+          ],
+          "span": [
+            96,
+            114
+          ],
+          "region": {
+            "kind": "block",
+            "name": null,
+            "span": [
+              72,
+              125
+            ]
+          },
+          "fn": {
+            "name": "main",
+            "signature": "fn main()",
+            "guards": [
+              "with_capacity"
+            ]
+          },
+          "evidence": {
+            "recv_type": null,
+            "arg_types": [],
+            "ret_type": null,
+            "lsp": false
+          },
+          "verdict": {
+            "v": "M",
+            "confidence": "low",
+            "reason": "set_len exposes uninitialized slots (KB p1/p2 -> M, p3 -> N): prefer push/resize; encapsulate with an initialization invariant if kept.",
+            "safe_alternative": "v.push(..) / v.resize(..)",
+            "encapsulate": true,
+            "pattern_hint": null,
+            "kb_gold": null,
+            "rules": [
+              "set_len_1.yaml",
+              "set_len_2.yaml",
+              "set_len_3.yaml"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "file": "/mnt/wd2023/home/dev2/Code/safeify2/research/transitions/out/zero_shot/inputs/p048.rs",
+      "unsafe_regions": 2,
+      "sinks": [
+        {
+          "file": "/mnt/wd2023/home/dev2/Code/safeify2/research/transitions/out/zero_shot/inputs/p048.rs",
+          "line": 10,
+          "col": 13,
+          "api": "ptr::write",
+          "kind": "call",
+          "callee": "ptr::write",
+          "call_text": "ptr::write(ptr, value.clone())",
+          "args": [
+            "ptr",
+            "value.clone()"
+          ],
+          "span": [
+            253,
+            283
+          ],
+          "region": {
+            "kind": "block",
+            "name": null,
+            "span": [
+              93,
+              584
+            ]
+          },
+          "fn": {
+            "name": null,
+            "signature": "",
+            "guards": []
+          },
+          "evidence": {
+            "recv_type": null,
+            "arg_types": [],
+            "ret_type": null,
+            "lsp": false
+          },
+          "verdict": {
+            "v": "M",
+            "confidence": "low",
+            "reason": "ptr::write: raw memory op; preconditions (provenance/validity/lifetime) must be verified. Encapsulate behind a documented unsafe fn, or find the owner in-frame (KB p1).",
+            "safe_alternative": null,
+            "encapsulate": true,
+            "pattern_hint": null,
+            "kb_gold": null,
+            "rules": [
+              "ptr_write_2.yaml"
+            ]
+          }
+        },
+        {
+          "file": "/mnt/wd2023/home/dev2/Code/safeify2/research/transitions/out/zero_shot/inputs/p048.rs",
+          "line": 13,
+          "col": 16,
+          "api": "set_len",
+          "kind": "call",
+          "callee": "set_len",
+          "call_text": "vec.set_len(len + i)",
+          "args": [
+            "len + i"
+          ],
+          "span": [
+            406,
+            423
+          ],
+          "region": {
+            "kind": "block",
+            "name": null,
+            "span": [
+              93,
+              584
+            ]
+          },
+          "fn": {
+            "name": null,
+            "signature": "",
+            "guards": []
+          },
+          "evidence": {
+            "recv_type": null,
+            "arg_types": [],
+            "ret_type": null,
+            "lsp": false
+          },
+          "verdict": {
+            "v": "M",
+            "confidence": "low",
+            "reason": "set_len exposes uninitialized slots (KB p1/p2 -> M, p3 -> N): prefer push/resize; encapsulate with an initialization invariant if kept.",
+            "safe_alternative": "v.push(..) / v.resize(..)",
+            "encapsulate": true,
+            "pattern_hint": null,
+            "kb_gold": null,
+            "rules": [
+              "set_len_1.yaml",
+              "set_len_2.yaml",
+              "set_len_3.yaml"
+            ]
+          }
+        },
+        {
+          "file": "/mnt/wd2023/home/dev2/Code/safeify2/research/transitions/out/zero_shot/inputs/p048.rs",
+          "line": 17,
+          "col": 9,
+          "api": "ptr::write",
+          "kind": "call",
+          "callee": "ptr::write",
+          "call_text": "ptr::write(ptr, value)",
+          "args": [
+            "ptr",
+            "value"
+          ],
+          "span": [
+            521,
+            543
+          ],
+          "region": {
+            "kind": "block",
+            "name": null,
+            "span": [
+              93,
+              584
+            ]
+          },
+          "fn": {
+            "name": null,
+            "signature": "",
+            "guards": []
+          },
+          "evidence": {
+            "recv_type": null,
+            "arg_types": [],
+            "ret_type": null,
+            "lsp": false
+          },
+          "verdict": {
+            "v": "M",
+            "confidence": "low",
+            "reason": "ptr::write: raw memory op; preconditions (provenance/validity/lifetime) must be verified. Encapsulate behind a documented unsafe fn, or find the owner in-frame (KB p1).",
+            "safe_alternative": null,
+            "encapsulate": true,
+            "pattern_hint": null,
+            "kb_gold": null,
+            "rules": [
+              "ptr_write_2.yaml"
+            ]
+          }
+        },
+        {
+          "file": "/mnt/wd2023/home/dev2/Code/safeify2/research/transitions/out/zero_shot/inputs/p048.rs",
+          "line": 18,
+          "col": 12,
+          "api": "set_len",
+          "kind": "call",
+          "callee": "set_len",
+          "call_text": "vec.set_len(len + delta)",
+          "args": [
+            "len + delta"
+          ],
+          "span": [
+            556,
+            577
+          ],
+          "region": {
+            "kind": "block",
+            "name": null,
+            "span": [
+              93,
+              584
+            ]
+          },
+          "fn": {
+            "name": null,
+            "signature": "",
+            "guards": []
+          },
+          "evidence": {
+            "recv_type": null,
+            "arg_types": [],
+            "ret_type": null,
+            "lsp": false
+          },
+          "verdict": {
+            "v": "M",
+            "confidence": "low",
+            "reason": "set_len exposes uninitialized slots (KB p1/p2 -> M, p3 -> N): prefer push/resize; encapsulate with an initialization invariant if kept.",
+            "safe_alternative": "v.push(..) / v.resize(..)",
+            "encapsulate": true,
+            "pattern_hint": null,
+            "kb_gold": null,
+            "rules": [
+              "set_len_1.yaml",
+              "set_len_2.yaml",
+              "set_len_3.yaml"
+            ]
+          }
+        },
+        {
+          "file": "/mnt/wd2023/home/dev2/Code/safeify2/research/transitions/out/zero_shot/inputs/p048.rs",
+          "line": 25,
+          "col": 12,
+          "api": "set_len",
+          "kind": "call",
+          "callee": "set_len",
+          "call_text": "vec.set_len(size)",
+          "args": [
+            "size"
+          ],
+          "span": [
+            709,
+            723
+          ],
+          "region": {
+            "kind": "block",
+            "name": null,
+            "span": [
+              592,
+              805
+            ]
+          },
+          "fn": {
+            "name": null,
+            "signature": "",
+            "guards": []
+          },
+          "evidence": {
+            "recv_type": null,
+            "arg_types": [],
+            "ret_type": null,
+            "lsp": false
+          },
+          "verdict": {
+            "v": "M",
+            "confidence": "low",
+            "reason": "set_len exposes uninitialized slots (KB p1/p2 -> M, p3 -> N): prefer push/resize; encapsulate with an initialization invariant if kept.",
+            "safe_alternative": "v.push(..) / v.resize(..)",
+            "encapsulate": true,
+            "pattern_hint": null,
+            "kb_gold": null,
+            "rules": [
+              "set_len_1.yaml",
+              "set_len_2.yaml",
+              "set_len_3.yaml"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "file": "/mnt/wd2023/home/dev2/Code/safeify2/research/transitions/out/zero_shot/inputs/p049.rs",
+      "unsafe_regions": 1,
+      "sinks": []
+    },
+    {
+      "file": "/mnt/wd2023/home/dev2/Code/safeify2/research/transitions/out/zero_shot/inputs/p050.rs",
+      "unsafe_regions": 1,
+      "sinks": []
+    },
+    {
+      "file": "/mnt/wd2023/home/dev2/Code/safeify2/research/transitions/out/zero_shot/inputs/p051.rs",
+      "unsafe_regions": 1,
+      "sinks": []
+    },
+    {
+      "file": "/mnt/wd2023/home/dev2/Code/safeify2/research/transitions/out/zero_shot/inputs/p052.rs",
+      "unsafe_regions": 1,
+      "sinks": [
+        {
+          "file": "/mnt/wd2023/home/dev2/Code/safeify2/research/transitions/out/zero_shot/inputs/p052.rs",
+          "line": 8,
+          "col": 30,
+          "api": "Vec::from_raw_parts",
+          "kind": "call",
+          "callee": "Vec::from_raw_parts",
+          "call_text": "Vec::from_raw_parts(p, len, len)",
+          "args": [
+            "p",
+            "len",
+            "len"
+          ],
+          "span": [
+            283,
+            315
+          ],
+          "region": {
+            "kind": "block",
+            "name": null,
+            "span": [
+              133,
+              357
+            ]
+          },
+          "fn": {
+            "name": "main",
+            "signature": "fn main()",
+            "guards": []
+          },
+          "evidence": {
+            "recv_type": null,
+            "arg_types": [],
+            "ret_type": null,
+            "lsp": false
+          },
+          "verdict": {
+            "v": "M",
+            "confidence": "low",
+            "reason": "from_raw* without type evidence: ownership source unknown; classify before claiming Y/N.",
+            "safe_alternative": null,
+            "encapsulate": true,
+            "pattern_hint": null,
+            "kb_gold": null,
+            "rules": [
+              "Vec__from_raw_parts_1.yaml",
+              "Vec__from_raw_parts_4.yaml",
+              "Vec__from_raw_parts_6.yaml"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "file": "/mnt/wd2023/home/dev2/Code/safeify2/research/transitions/out/zero_shot/inputs/p053.rs",
+      "unsafe_regions": 1,
+      "sinks": []
+    },
+    {
+      "file": "/mnt/wd2023/home/dev2/Code/safeify2/research/transitions/out/zero_shot/inputs/p054.rs",
+      "unsafe_regions": 1,
+      "sinks": []
+    },
+    {
+      "file": "/mnt/wd2023/home/dev2/Code/safeify2/research/transitions/out/zero_shot/inputs/p055.rs",
+      "unsafe_regions": 3,
+      "sinks": []
+    },
+    {
+      "file": "/mnt/wd2023/home/dev2/Code/safeify2/research/transitions/out/zero_shot/inputs/p056.rs",
+      "unsafe_regions": 0,
+      "sinks": []
+    },
+    {
+      "file": "/mnt/wd2023/home/dev2/Code/safeify2/research/transitions/out/zero_shot/inputs/p057.rs",
+      "unsafe_regions": 1,
+      "sinks": []
+    },
+    {
+      "file": "/mnt/wd2023/home/dev2/Code/safeify2/research/transitions/out/zero_shot/inputs/p058.rs",
+      "unsafe_regions": 2,
+      "sinks": []
+    },
+    {
+      "file": "/mnt/wd2023/home/dev2/Code/safeify2/research/transitions/out/zero_shot/inputs/p059.rs",
+      "unsafe_regions": 1,
+      "sinks": [
+        {
+          "file": "/mnt/wd2023/home/dev2/Code/safeify2/research/transitions/out/zero_shot/inputs/p059.rs",
+          "line": 10,
+          "col": 34,
+          "api": "CStr::from_ptr",
+          "kind": "call",
+          "callee": "CStr::from_ptr",
+          "call_text": "CStr::from_ptr(ptr)",
+          "args": [
+            "ptr"
+          ],
+          "span": [
+            554,
+            573
+          ],
+          "region": {
+            "kind": "block",
+            "name": null,
+            "span": [
+              43,
+              818
+            ]
+          },
+          "fn": {
+            "name": null,
+            "signature": "",
+            "guards": []
+          },
+          "evidence": {
+            "recv_type": null,
+            "arg_types": [],
+            "ret_type": null,
+            "lsp": false
+          },
+          "verdict": {
+            "v": "M",
+            "confidence": "low",
+            "reason": "CStr::from_ptr without evidence: classify pattern.",
+            "safe_alternative": null,
+            "encapsulate": true,
+            "pattern_hint": null,
+            "kb_gold": null,
+            "rules": [
+              "CStr__from_ptr_1.yaml",
+              "CStr__from_ptr_4.yaml"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "file": "/mnt/wd2023/home/dev2/Code/safeify2/research/transitions/out/zero_shot/inputs/p060.rs",
+      "unsafe_regions": 2,
+      "sinks": [
+        {
+          "file": "/mnt/wd2023/home/dev2/Code/safeify2/research/transitions/out/zero_shot/inputs/p060.rs",
+          "line": 10,
+          "col": 26,
+          "api": "CStr::from_ptr",
+          "kind": "call",
+          "callee": "CStr::from_ptr",
+          "call_text": "CStr::from_ptr(ptr)",
+          "args": [
+            "ptr"
+          ],
+          "span": [
+            272,
+            291
+          ],
+          "region": {
+            "kind": "block",
+            "name": null,
+            "span": [
+              263,
+              293
+            ]
+          },
+          "fn": {
+            "name": "get_result_field",
+            "signature": "fn get_result_field<'a>(res: *mut PGresult, field: ResultField) -> Option<&'a str>",
+            "guards": [
+              "null_check"
+            ]
+          },
+          "evidence": {
+            "recv_type": null,
+            "arg_types": [],
+            "ret_type": null,
+            "lsp": false
+          },
+          "verdict": {
+            "v": "M",
+            "confidence": "low",
+            "reason": "CStr::from_ptr without evidence: classify pattern.",
+            "safe_alternative": null,
+            "encapsulate": true,
+            "pattern_hint": null,
+            "kb_gold": null,
+            "rules": [
+              "CStr__from_ptr_1.yaml",
+              "CStr__from_ptr_4.yaml"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "file": "/mnt/wd2023/home/dev2/Code/safeify2/research/transitions/out/zero_shot/inputs/p061.rs",
+      "unsafe_regions": 1,
+      "sinks": []
+    },
+    {
+      "file": "/mnt/wd2023/home/dev2/Code/safeify2/research/transitions/out/zero_shot/inputs/p062.rs",
+      "unsafe_regions": 1,
+      "sinks": [
+        {
+          "file": "/mnt/wd2023/home/dev2/Code/safeify2/research/transitions/out/zero_shot/inputs/p062.rs",
+          "line": 5,
+          "col": 32,
+          "api": "ptr::deref",
+          "kind": "raw_deref",
+          "callee": "*str_ptr",
+          "call_text": "*str_ptr",
+          "args": [],
+          "span": [
+            248,
+            256
+          ],
+          "region": {
+            "kind": "block",
+            "name": null,
+            "span": [
+              238,
+              258
+            ]
+          },
+          "fn": {
+            "name": null,
+            "signature": "",
+            "guards": []
+          },
+          "evidence": {
+            "recv_type": null,
+            "arg_types": [],
+            "ret_type": null,
+            "lsp": false
+          },
+          "verdict": {
+            "v": "M",
+            "confidence": "low",
+            "reason": "ptr::deref: raw memory op; preconditions (provenance/validity/lifetime) must be verified. Encapsulate behind a documented unsafe fn, or find the owner in-frame (KB p1).",
+            "safe_alternative": null,
+            "encapsulate": true,
+            "pattern_hint": null,
+            "kb_gold": null,
+            "rules": [
+              "ptr_deref_1.yaml",
+              "ptr_deref_2.yaml"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "file": "/mnt/wd2023/home/dev2/Code/safeify2/research/transitions/out/zero_shot/inputs/p063.rs",
+      "unsafe_regions": 1,
+      "sinks": [
+        {
+          "file": "/mnt/wd2023/home/dev2/Code/safeify2/research/transitions/out/zero_shot/inputs/p063.rs",
+          "line": 5,
+          "col": 31,
+          "api": "ptr::deref",
+          "kind": "raw_deref",
+          "callee": "*slice_ptr",
+          "call_text": "*slice_ptr",
+          "args": [],
+          "span": [
+            251,
+            261
+          ],
+          "region": {
+            "kind": "block",
+            "name": null,
+            "span": [
+              241,
+              263
+            ]
+          },
+          "fn": {
+            "name": null,
+            "signature": "",
+            "guards": []
+          },
+          "evidence": {
+            "recv_type": null,
+            "arg_types": [],
+            "ret_type": null,
+            "lsp": false
+          },
+          "verdict": {
+            "v": "M",
+            "confidence": "low",
+            "reason": "ptr::deref: raw memory op; preconditions (provenance/validity/lifetime) must be verified. Encapsulate behind a documented unsafe fn, or find the owner in-frame (KB p1).",
+            "safe_alternative": null,
+            "encapsulate": true,
+            "pattern_hint": null,
+            "kb_gold": null,
+            "rules": [
+              "ptr_deref_1.yaml",
+              "ptr_deref_2.yaml"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "file": "/mnt/wd2023/home/dev2/Code/safeify2/research/transitions/out/zero_shot/inputs/p064.rs",
+      "unsafe_regions": 2,
+      "sinks": []
+    },
+    {
+      "file": "/mnt/wd2023/home/dev2/Code/safeify2/research/transitions/out/zero_shot/inputs/p065.rs",
+      "unsafe_regions": 2,
+      "sinks": []
+    },
+    {
+      "file": "/mnt/wd2023/home/dev2/Code/safeify2/research/transitions/out/zero_shot/inputs/p066.rs",
+      "unsafe_regions": 2,
+      "sinks": []
+    },
+    {
+      "file": "/mnt/wd2023/home/dev2/Code/safeify2/research/transitions/out/zero_shot/inputs/p067.rs",
+      "unsafe_regions": 2,
+      "sinks": []
+    },
+    {
+      "file": "/mnt/wd2023/home/dev2/Code/safeify2/research/transitions/out/zero_shot/inputs/p068.rs",
+      "unsafe_regions": 1,
+      "sinks": []
+    },
+    {
+      "file": "/mnt/wd2023/home/dev2/Code/safeify2/research/transitions/out/zero_shot/inputs/p069.rs",
+      "unsafe_regions": 1,
+      "sinks": [
+        {
+          "file": "/mnt/wd2023/home/dev2/Code/safeify2/research/transitions/out/zero_shot/inputs/p069.rs",
+          "line": 2,
+          "col": 44,
+          "api": "ptr::deref",
+          "kind": "raw_deref",
+          "callee": "*ptr",
+          "call_text": "*ptr",
+          "args": [],
+          "span": [
+            55,
+            59
+          ],
+          "region": {
+            "kind": "block",
+            "name": null,
+            "span": [
+              45,
+              70
+            ]
+          },
+          "fn": {
+            "name": "main",
+            "signature": "fn main()",
+            "guards": []
+          },
+          "evidence": {
+            "recv_type": null,
+            "arg_types": [],
+            "ret_type": null,
+            "lsp": false
+          },
+          "verdict": {
+            "v": "M",
+            "confidence": "low",
+            "reason": "ptr::deref: raw memory op; preconditions (provenance/validity/lifetime) must be verified. Encapsulate behind a documented unsafe fn, or find the owner in-frame (KB p1).",
+            "safe_alternative": null,
+            "encapsulate": true,
+            "pattern_hint": null,
+            "kb_gold": null,
+            "rules": [
+              "ptr_deref_1.yaml",
+              "ptr_deref_2.yaml"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "file": "/mnt/wd2023/home/dev2/Code/safeify2/research/transitions/out/zero_shot/inputs/p070.rs",
+      "unsafe_regions": 1,
+      "sinks": [
+        {
+          "file": "/mnt/wd2023/home/dev2/Code/safeify2/research/transitions/out/zero_shot/inputs/p070.rs",
+          "line": 3,
+          "col": 51,
+          "api": "ptr::deref",
+          "kind": "raw_deref",
+          "callee": "*ptr",
+          "call_text": "*ptr",
+          "args": [],
+          "span": [
+            115,
+            119
+          ],
+          "region": {
+            "kind": "block",
+            "name": null,
+            "span": [
+              106,
+              128
+            ]
+          },
+          "fn": {
+            "name": "main",
+            "signature": "fn main()",
+            "guards": []
+          },
+          "evidence": {
+            "recv_type": null,
+            "arg_types": [],
+            "ret_type": null,
+            "lsp": false
+          },
+          "verdict": {
+            "v": "M",
+            "confidence": "low",
+            "reason": "ptr::deref: raw memory op; preconditions (provenance/validity/lifetime) must be verified. Encapsulate behind a documented unsafe fn, or find the owner in-frame (KB p1).",
+            "safe_alternative": null,
+            "encapsulate": true,
+            "pattern_hint": null,
+            "kb_gold": null,
+            "rules": [
+              "ptr_deref_1.yaml",
+              "ptr_deref_2.yaml"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "file": "/mnt/wd2023/home/dev2/Code/safeify2/research/transitions/out/zero_shot/inputs/p071.rs",
+      "unsafe_regions": 1,
+      "sinks": []
+    },
+    {
+      "file": "/mnt/wd2023/home/dev2/Code/safeify2/research/transitions/out/zero_shot/inputs/p072.rs",
+      "unsafe_regions": 1,
+      "sinks": [
+        {
+          "file": "/mnt/wd2023/home/dev2/Code/safeify2/research/transitions/out/zero_shot/inputs/p072.rs",
+          "line": 4,
+          "col": 37,
+          "api": "assume_init",
+          "kind": "call",
+          "callee": "assume_init",
+          "call_text": "digits.assume_init()",
+          "args": [],
+          "span": [
+            190,
+            204
+          ],
+          "region": {
+            "kind": "block",
+            "name": null,
+            "span": [
+              175,
+              206
+            ]
+          },
+          "fn": {
+            "name": "main",
+            "signature": "fn main()",
+            "guards": []
+          },
+          "evidence": {
+            "recv_type": null,
+            "arg_types": [],
+            "ret_type": null,
+            "lsp": false
+          },
+          "verdict": {
+            "v": "M",
+            "confidence": "low",
+            "reason": "assume_init: raw memory op; preconditions (provenance/validity/lifetime) must be verified. Encapsulate behind a documented unsafe fn, or find the owner in-frame (KB p1).",
+            "safe_alternative": null,
+            "encapsulate": true,
+            "pattern_hint": null,
+            "kb_gold": null,
+            "rules": [
+              "assume_init_1.yaml",
+              "assume_init_4.yaml"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "file": "/mnt/wd2023/home/dev2/Code/safeify2/research/transitions/out/zero_shot/inputs/p073.rs",
+      "unsafe_regions": 1,
+      "sinks": [
+        {
+          "file": "/mnt/wd2023/home/dev2/Code/safeify2/research/transitions/out/zero_shot/inputs/p073.rs",
+          "line": 4,
+          "col": 37,
+          "api": "assume_init",
+          "kind": "call",
+          "callee": "assume_init",
+          "call_text": "buffer.assume_init()",
+          "args": [],
+          "span": [
+            192,
+            206
+          ],
+          "region": {
+            "kind": "block",
+            "name": null,
+            "span": [
+              177,
+              208
+            ]
+          },
+          "fn": {
+            "name": "main",
+            "signature": "fn main()",
+            "guards": []
+          },
+          "evidence": {
+            "recv_type": null,
+            "arg_types": [],
+            "ret_type": null,
+            "lsp": false
+          },
+          "verdict": {
+            "v": "M",
+            "confidence": "low",
+            "reason": "assume_init: raw memory op; preconditions (provenance/validity/lifetime) must be verified. Encapsulate behind a documented unsafe fn, or find the owner in-frame (KB p1).",
+            "safe_alternative": null,
+            "encapsulate": true,
+            "pattern_hint": null,
+            "kb_gold": null,
+            "rules": [
+              "assume_init_1.yaml",
+              "assume_init_4.yaml"
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "summary": {
+    "files": 83,
+    "verdicts": {
+      "Y": 29,
+      "M": 37,
+      "N": 0
+    }
+  }
+}

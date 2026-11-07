@@ -1,0 +1,41 @@
+{
+  "dataset_version": "v0.1-exploratory",
+  "frozen": false,
+  "gates": {
+    "positive_families_ge_100": true,
+    "negative_rows_ge_300": false,
+    "test_rows_ge_50": true,
+    "queue_coverage_ge_80pct": false,
+    "manual_llm_tracks_reconciled": true
+  },
+  "counts": {
+    "rows": 190,
+    "positives": 109,
+    "negatives": 81,
+    "by_label": {
+      "Y": 109,
+      "N": 38,
+      "M": 43
+    },
+    "by_split": {
+      "valid": 36,
+      "train": 97,
+      "test": 57
+    },
+    "by_split_label": {
+      "valid:Y": 20,
+      "train:Y": 64,
+      "test:Y": 25,
+      "valid:N": 9,
+      "train:N": 15,
+      "train:M": 18,
+      "test:M": 18,
+      "valid:M": 7,
+      "test:N": 14
+    },
+    "repos": 97,
+    "queue_labeled": 206,
+    "queue_total": 458
+  },
+  "verdict": "not frozen; exploratory only"
+}

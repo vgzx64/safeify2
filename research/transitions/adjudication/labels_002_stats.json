@@ -1,0 +1,17 @@
+{
+  "inputs": 30,
+  "labels": 30,
+  "replaceability": {
+    "M": 10,
+    "U": 2,
+    "Y": 15,
+    "N": 3
+  },
+  "action": {
+    "guard": 9,
+    "unknown": 2,
+    "replace": 16,
+    "keep": 3
+  },
+  "vetoed": 2
+}

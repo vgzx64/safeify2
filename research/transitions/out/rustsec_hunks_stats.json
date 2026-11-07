@@ -1,0 +1,12 @@
+{
+  "advisories": 147,
+  "rows": 189,
+  "kinds": {
+    "unsafe_added": 89,
+    "advisories": 147,
+    "safe_candidate": 39,
+    "unsafe_retained": 61
+  },
+  "failures": [],
+  "failure_count": 0
+}

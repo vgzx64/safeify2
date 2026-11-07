@@ -1,0 +1,129 @@
+{
+  "safety_sections": 897,
+  "examples": 469,
+  "files": 241,
+  "top_files": [
+    [
+      "mod.rs",
+      144
+    ],
+    [
+      "memchr.rs",
+      127
+    ],
+    [
+      "raw.rs",
+      51
+    ],
+    [
+      "packedpair.rs",
+      18
+    ],
+    [
+      "alloc.rs",
+      17
+    ],
+    [
+      "vector.rs",
+      16
+    ],
+    [
+      "sync.rs",
+      16
+    ],
+    [
+      "node.rs",
+      16
+    ],
+    [
+      "searcher.rs",
+      15
+    ],
+    [
+      "rc.rs",
+      14
+    ],
+    [
+      "map.rs",
+      13
+    ],
+    [
+      "arm.rs",
+      12
+    ],
+    [
+      "uint_macros.rs",
+      12
+    ],
+    [
+      "mut_ptr.rs",
+      12
+    ],
+    [
+      "navigate.rs",
+      10
+    ]
+  ],
+  "top_signatures": [
+    [
+      "pub unsafe fn find_raw(",
+      16
+    ],
+    [
+      "pub unsafe fn rfind_raw(",
+      16
+    ],
+    [
+      "unsafe fn find_raw_impl(",
+      9
+    ],
+    [
+      "unsafe fn rfind_raw_impl(",
+      9
+    ],
+    [
+      "pub unsafe fn count_raw(&self, start: *const u8, end: *const u8) -> usize {",
+      5
+    ],
+    [
+      "pub(crate) unsafe fn count_raw(",
+      4
+    ],
+    [
+      "pub unsafe fn new_unchecked(needle: u8) -> One {",
+      4
+    ],
+    [
+      "pub unsafe fn new_unchecked(needle1: u8, needle2: u8) -> Two {",
+      4
+    ],
+    [
+      "pub unsafe fn new_unchecked(",
+      4
+    ],
+    [
+      "unsafe fn with_pair_impl(needle: &[u8], pair: Pair) -> Finder {",
+      4
+    ],
+    [
+      "pub unsafe fn from_raw(ptr: *const T) -> Self {",
+      4
+    ],
+    [
+      "pub unsafe fn from_raw_in(ptr: *const T, alloc: A) -> Self {",
+      4
+    ],
+    [
+      "pub unsafe fn init(self: Pin<&mut Self>) {",
+      4
+    ],
+    [
+      "pub(crate) unsafe fn memchr_raw(",
+      3
+    ],
+    [
+      "pub(crate) unsafe fn memrchr_raw(",
+      3
+    ]
+  ]
+}

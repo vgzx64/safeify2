@@ -1,0 +1,16 @@
+{
+  "rows": 20,
+  "replaceability": {
+    "U": 3,
+    "N": 6,
+    "M": 8,
+    "Y": 3
+  },
+  "action": {
+    "unknown": 3,
+    "keep": 6,
+    "encapsulate": 8,
+    "replace": 3
+  },
+  "vetoed": 3
+}

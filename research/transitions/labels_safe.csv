@@ -1,0 +1,97 @@
+id,label,mechanism,notes
+cvefixes-diff:584:ea7e6f2a2c:lexical-write-float/src/compact.rs:64-72,safe_replacement,zero_init,assume_init replaced by zeroed array; clear
+cvefixes-diff:584:ea7e6f2a2c:lexical-write-float/src/radix.rs:67-76,safe_replacement,zero_init,same pattern in radix.rs
+cvefixes-diff:160:aabf5562f8:src/greedy.rs:197-222,safe_replacement,resize_slice,from_raw_parts_mut/set_len replaced by resize + slice
+cvefixes-diff:842:dd59b3066e:src/fcgi.rs:180-191,safe_replacement,resize,set_len replaced by resize with zero fill
+cvefixes-diff:17:c41b5d8dd4:actix-rt/src/arbiter.rs:181-187,safe_replacement,pin_api,Pin::new_unchecked replaced by Pin::from
+cvefixes-diff:23:a67e38b4a0:actix-service/src/apply_cfg.rs:102-111,safe_replacement,borrow_refcell,UnsafeCell helper replaced by RefCell borrow
+cvefixes-diff:24:0dca1a705a:actix-utils/src/mpsc.rs:46-52,safe_replacement,borrow_refcell,UnsafeCell helper replaced by RefCell borrow
+cvefixes-diff:20:fe13789345:actix-http/src/body.rs:396-402,safe_replacement,pin_api,Pin::new_unchecked replaced by safe projection
+cvefixes-diff:40:4790c47518:crates/sol-type-parser/src/ident.rs:64-75,safe_replacement,checked_parser,get_unchecked replaced by next_slice
+cvefixes-diff:531:fab6922b95:src/lib.rs:66-72,safe_replacement,remove_unnecessary_unsafe,unsafe wrapper removed around safe call
+cvefixes-diff:531:fab6922b95:src/lib.rs:99-110,safe_replacement,truncate,set_len/shrink replaced by truncate/shrink_to
+cvefixes-diff:531:fab6922b95:src/lib.rs:150-156,safe_replacement,option_take,ptr::read/get_unchecked replaced by Option::take
+cvefixes-diff:531:fab6922b95:src/lib.rs:213-226,safe_replacement,checked_index,get_unchecked/drop_in_place replaced by checked indexing + Option
+cvefixes-diff:531:fab6922b95:src/lib.rs:235-241,safe_replacement,checked_index,get_unchecked replaced by checked indexing
+cvefixes-diff:531:fab6922b95:src/lib.rs:245-251,safe_replacement,checked_index,get_unchecked_mut replaced by checked indexing
+cvefixes-diff:531:fab6922b95:src/lib.rs:406-415,safe_replacement,checked_index,partial-eq unchecked reads replaced by checked indexing
+cvefixes-diff:531:fab6922b95:src/lib.rs:425-439,safe_replacement,layout_change,set_len(0) + capacity replaced by map(Some) + len
+cvefixes-diff:531:fab6922b95:src/lib.rs:485-491,safe_replacement,checked_index,get_unchecked replaced by checked indexing
+cvefixes-diff:531:fab6922b95:src/lib.rs:493-499,safe_replacement,checked_index,get_unchecked_mut replaced by checked indexing
+cvefixes-diff:531:fab6922b95:src/lib.rs:536-542,safe_replacement,checked_index,raw offset deref replaced by checked indexing
+cvefixes-diff:531:fab6922b95:src/lib.rs:574-580,safe_replacement,checked_index,raw offset deref replaced by iterator + checked indexing
+cvefixes-diff:531:fab6922b95:src/lib.rs:602-608,safe_replacement,checked_index,raw offset deref replaced by checked indexing
+cvefixes-diff:531:fab6922b95:src/lib.rs:640-646,safe_replacement,checked_index,raw offset deref replaced by iterator + checked indexing
+cvefixes-diff:531:fab6922b95:src/lib.rs:668-678,safe_replacement,checked_index,ptr::read/get_unchecked replaced by iterator + Option
+cvefixes-diff:715:599313b:src/read.rs:17-28,safe_replacement,resize_slice,get_unchecked_mut read buffer replaced by resize + slice
+cvefixes:648:b633bf265e:compress::compress:51-51,safe_replacement,zero_init,set_len replaced by vec![0; n]
+cvefixes:648:b633bf265e:compress::compress:61-61,safe_replacement,zero_init,mem::uninitialized replaced by vec!
+cvefixes-diff:648:b633bf265e:src/decompress.rs:26-33,safe_replacement,zero_init,set_len replaced by vec![0; n]
+cvefixes:648:b633bf265e:decompress::decompress:30-30,duplicate,zero_init,same fix as row 27; analyzer duplicate
+cvefixes-diff:654:6299af0:src/lib.rs:134-141,safe_replacement,resize,set_len replaced by resize
+cvefixes-diff:891:8026286:src/tape.rs:100-107,safe_replacement,zero_init,set_len replaced by vec![0; n]
+cvefixes-diff:1386:3535acbf3b:crates/runtime/src/instance/allocator/pooling/unix.rs:45-73,unclear,unclear,"hunk mixes a return and mprotect; new call may be a refactor, not a replacement"
+cvefixes-diff:1386:3535acbf3b:crates/runtime/src/memory.rs:413-433,safe_replacement,safe_helper,raw pointer make_accessible replaced by set_heap_limit
+cvefixes-diff:1412:192f2fcdad:crates/wasmtime/src/runtime/func.rs:1495-1521,safe_replacement,remove_unnecessary_unsafe,unsafe block around running_default removed
+cvefixes-diff:1412:192f2fcdad:crates/wasmtime/src/runtime/vm/interpreter_disabled.rs:52-66,false_positive,false_positive,truncated signature diff; not a safe replacement
+cvefixes-diff:1412:192f2fcdad:crates/wasmtime/src/runtime/vm/traphandlers.rs:431-442,signature_change,signature,"unsafe fn -> fn is a safety-contract change, not a block replacement"
+cvefixes-diff:670:0a1da873dd:src/expander/transactional.rs:58-78,false_positive,false_positive,unsafe appears in a block comment; actual unsafe impl retained
+cvefixes-diff:193:0e6006de46:src/de.rs:70-76,safe_replacement,resize,set_len replaced by resize
+cvefixes-diff:529:3c607a003e:src/rust/iced-x86/src/decoder.rs:728-743,safe_replacement,pointer_arith,get_unchecked pointer end replaced by as_ptr arithmetic
+cvefixes-diff:529:3c607a003e:src/rust/iced-x86/src/decoder.rs:1208-1214,unclear,unclear,"get_unchecked replaced by raw add; deref remains, context needed"
+cvefixes-diff:963:3f00e1fa01:risc0/zkos/v1compat/src/main.rs:72-80,safe_replacement,safe_signature,unsafe call/signature replaced by safe helper and typed pointer
+cvefixes-diff:411:bb661f29e0:src/lib.rs:91-97,safe_replacement,checked_utf8,from_utf8_unchecked replaced by from_utf8
+cvefixes-diff:1111:e64afc8c47:lib.rs:403-413,safe_replacement,maybeuninit,mem::uninitialized replaced by MaybeUninit::uninit + layout assert
+cvefixes-diff:1113:5757ac500d:lib.rs:844-859,unclear,unclear,hunk mixes a loop rewrite with ptr::copy; pair not clean
+cvefixes-diff:1240:cdff034e6d:crates/xdv/src/lib.rs:221-230,safe_replacement,zero_init,set_len replaced by vec![0; n]
+cvefixes:1240:cdff034e6d:::process:225-227,duplicate,zero_init,same fix as row 44; analyzer duplicate
+cvefixes-pattern:1111:e64afc8c47:lib.rs:651-658:uninit,conditional,maybe_uninit,"initialization safer but ptr::copy_nonoverlapping remains unsafe; conditional/guard, not a full safe replacement"
+cvefixes-pattern:1111:e64afc8c47:lib.rs:1041-1048:uninit,conditional,maybe_uninit,"initialization safer but ptr::copy_nonoverlapping remains unsafe; conditional/guard, not a full safe replacement"
+cvefixes-diff:151:ae9b8dd23c:borsh/src/de/mod.rs:383-397,safe_replacement,owned_vec,from_raw_parts round-trip replaced by owned Vec
+cvefixes-pattern:307:e0fd465b9b:crossbeam-epoch/src/deferred.rs:36-46:uninit,conditional,maybe_uninit,uninitialized replaced by MaybeUninit; ptr::write remains unsafe
+cvefixes-diff:307:f48c1c763a:crossbeam-epoch/src/sync/queue.rs:126-132,conditional,unsafe_read,"ptr::read replaced by pointer .read(); still unsafe, not a safe replacement"
+cvefixes-diff:372:e4a29e145c:diesel/src/pg/connection/result.rs:97-115,safe_replacement,safe_helper,raw libpq string parsing delegated to safe rows_affected helper
+cvefixes-diff:372:e4a29e145c:diesel/src/pg/connection/result.rs:130-146,safe_replacement,safe_helper,raw pointer slice replaced by get_bytes helper
+cvefixes-diff:372:e4a29e145c:diesel/src/pg/connection/result.rs:171-189,safe_replacement,safe_helper,PQfname/CStr raw handling replaced by column_name helper
+cvefixes-diff:372:e4a29e145c:diesel/src/sqlite/connection/functions.rs:129-154,false_positive,unrelated_hunk,"new snippet is a function signature, not the drop_in_place replacement"
+cvefixes-diff:1264:4b174ce2c9:tokio/src/sync/broadcast.rs:1486-1492,safe_replacement,cell_api,raw pointer clone replaced by safe slot clone
+cvefixes-diff:1264:4b174ce2c9:tokio/src/sync/broadcast.rs:1494-1501,safe_replacement,cell_api,raw pointer write replaced by safe slot assignment
+cvefixes-diff:17:c41b5d8dd4:actix-codec/src/framed.rs:239-283,safe_replacement,pin_api,Pin projection replaces unchecked pin use
+cvefixes-diff:17:c41b5d8dd4:actix-codec/src/framed.rs:288-313,safe_replacement,pin_api,Pin projection replaces unchecked pin use
+cvefixes-diff:24:0dca1a705a:actix-utils/src/condition.rs:54-65,safe_replacement,borrow_refcell,Cell -> RefCell borrow
+cvefixes-diff:171:a535678377:byte_struct/src/lib.rs:408-424,safe_replacement,layout_change,uninitialized writes replaced by iterator/collect
+cvefixes-diff:171:a535678377:byte_struct/src/lib.rs:429-445,safe_replacement,layout_change,uninitialized writes replaced by iterator/collect
+cvefixes-diff:478:c8219563bc:src/covdir.rs:59-69,safe_replacement,checked_index,get_unchecked_mut replaced by get_mut
+cvefixes-diff:529:3c607a003e:src/rust/iced-x86/src/decoder.rs:961-970,safe_replacement,pointer_arith,get_unchecked replaced by as_ptr arithmetic
+cvefixes-diff:531:fab6922b95:src/lib.rs:117-126,safe_replacement,checked_index,ptr::write/get_unchecked replaced by resize/index
+cvefixes-diff:531:fab6922b95:src/lib.rs:134-147,safe_replacement,checked_index,ptr::write/get_unchecked replaced by resize/index
+cvefixes-diff:531:fab6922b95:src/lib.rs:170-186,safe_replacement,checked_index,raw writes replaced by checked indexing
+cvefixes-diff:531:fab6922b95:src/lib.rs:192-204,safe_replacement,checked_index,get_unchecked_mut replaced by checked indexing
+cvefixes-diff:531:fab6922b95:src/lib.rs:291-311,safe_replacement,checked_index,raw pointer iterator replaced by iter_mut
+cvefixes-diff:531:fab6922b95:src/lib.rs:316-335,safe_replacement,remove_unnecessary_unsafe,unsafe drop_values replaced by safe clear/indexing
+cvefixes-diff:608:ffeff7c65d:src/gzip.rs:1118-1150,unclear,unclear,large hunk; old uninitialized replacement and new snippet are not cleanly aligned
+cvefixes-diff:648:b633bf265e:src/compress.rs:47-64,safe_replacement,zero_init,set_len/uninitialized replaced by Vec zero fill
+cvefixes-diff:670:0a1da873dd:src/expander/immediate.rs:14-36,false_positive,false_positive,unsafe appears in a comment; not a block replacement
+cvefixes-diff:1113:9998ba0694:src/lib.rs:1036-1077,safe_replacement,checked_index,ptr::copy raw insert replaced by loop
+cvefixes-diff:1241:2820cf12f2:src/misc.rs:108-151,safe_replacement,resize,raw pointer writes replaced by resize
+cvefixes-diff:1412:192f2fcdad:crates/wasmtime/src/runtime/vm/traphandlers.rs:446-489,unclear,unclear,large refactor hunk; old and new closure handling not cleanly paired
+cvefixes-diff:1412:192f2fcdad:crates/wasmtime/src/runtime/vm/traphandlers.rs:916-936,false_positive,false_positive,hunk sides are different functions/refactors
+cvefixes-diff:1414:b5e31a5c33:crates/jit-debug/src/perf_jitdump.rs:271-286,safe_replacement,safe_slice,from_raw_parts replaced by code slice
+cvefixes-diff:91:93953910a0:src/ascii_char.rs:483-513,unclear,unclear,hunk context mixes adjacent methods; not a clean pair
+cvefixes-diff:307:f48c1c763a:crossbeam-epoch/src/sync/queue.rs:49-59,safe_replacement,maybeuninit,mem::uninitialized replaced by MaybeUninit
+cvefixes-diff:372:e4a29e145c:diesel/src/mysql/types/date_and_time/mod.rs:115-127,safe_replacement,safe_helper,raw struct slice replaced by serialize helper
+cvefixes-diff:372:e4a29e145c:diesel/src/pg/connection/result.rs:27-41,safe_replacement,safe_helper,raw PQ result accessors replaced by safe methods
+cvefixes-diff:372:e4a29e145c:diesel/src/pg/connection/result.rs:152-165,safe_replacement,safe_helper,raw PQ getisnull/ftype replaced by safe methods
+cvefixes-diff:372:e4a29e145c:diesel/src/pg/connection/result.rs:205-270,safe_replacement,safe_helper,raw error field handling replaced by safe helper
+cvefixes-diff:372:e4a29e145c:diesel/src/sqlite/connection/raw.rs:481-534,safe_replacement,safe_helper,raw aggregator pointer handling replaced by safe accessors
+cvefixes-diff:372:e4a29e145c:diesel/src/type_impls/primitives.rs:130-143,safe_replacement,safe_helper,*const str FromSql replaced by safe ref impl
+cvefixes-diff:372:e4a29e145c:diesel/src/type_impls/primitives.rs:169-182,safe_replacement,safe_helper,*const [u8] FromSql replaced by safe ref impl
+cvefixes-diff:417:cdc8204a11:tests/monster_test/my_game/example/color_generated.rs:44-59,safe_replacement,safe_enum,from_bits_unchecked replaced by from_bits_truncate
+cvefixes-diff:417:cdc8204a11:tests/monster_test/my_game/example/long_enum_generated.rs:40-55,safe_replacement,safe_enum,from_bits_unchecked replaced by from_bits_truncate
+cvefixes-diff:417:cdc8204a11:tests/monster_test_serialize/my_game/example/color_generated.rs:55-70,safe_replacement,safe_enum,from_bits_unchecked replaced by from_bits_truncate
+cvefixes-diff:417:cdc8204a11:tests/monster_test_serialize/my_game/example/long_enum_generated.rs:51-66,safe_replacement,safe_enum,from_bits_unchecked replaced by from_bits_truncate
+cvefixes-diff:885:dde31d26fd:pnet_macros/src/decorator.rs:657-670,safe_replacement,copy_from_slice,copy_nonoverlapping replaced by copy_from_slice
+cvefixes-diff:73:dfeb84bfce:src/access.rs:205-243,false_positive,false_positive,hunk sides are different code; not a replacement
+cvefixes-diff:73:34b809fbd0:src/access.rs:216-254,false_positive,false_positive,hunk sides are different code; not a replacement
+cvefixes-pattern:1111:e64afc8c47:lib.rs:447-456:uninit,conditional,maybe_uninit,MaybeUninit replaces uninitialized but ptr::copy_nonoverlapping remains unsafe
+cvefixes-pattern:93:2c98b6f384:ash/src/util.rs:113-127:set_len,conditional,maybe_uninit,set_len replaced by zero-filled Vec but from_raw_parts_mut remains unsafe

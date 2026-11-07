@@ -1,0 +1,160 @@
+id,auto_category,label,repo,cve,path,fn,old_snippet,safe_snippet,notes
+cvefixes-diff:1391:0977952dcd:crates/runtime/src/instance.rs:147-154,signature,signature,bytecodealliance_wasmtime,1391,crates/runtime/src/instance.rs,new,"    unsafe fn vmctx_plus_offset<T>(&self, offset: u32) -> *mut T {
+        (self.vmctx_ptr().cast::<u8>())","    unsafe fn vmctx_plus_offset<T>(&self, offset: u32) -> *const T {
+        (std::ptr::addr_of!(self.vmctx).cast::<u8>())
+            .add(usize::try_from(offset).unwrap())
+            .cast()
+    }
+
+    unsafe fn vmctx_plus_offset_mut<T>(&mut self, offset: u32) -> *mut T {
+        (std::ptr::addr_of_mut!(self.vmctx).cast::<u8>())",
+cvefixes-diff:1366:30172fca2a:src/fam.rs:135-141,signature,signature,rust-vmm_vmm-sys-util,1366,src/fam.rs,len,"    fn set_len(&mut self, len: usize);","    ///
+    /// # Safety
+    ///
+    /// The caller needs to ensure that `len` here reflects the correct number of entries of the
+    /// flexible array part of the struct.
+    unsafe fn set_len(&mut self, len: usize);",
+cvefixes-diff:1412:192f2fcdad:crates/wasmtime/src/runtime/vm/interpreter.rs:319-325,signature,signature,bytecodealliance_wasmtime,1412,crates/wasmtime/src/runtime/vm/interpreter.rs,call,"    unsafe fn call_indirect_host(&mut self, id: u8) -> &mut VmState {","    unsafe fn call_indirect_host(&mut self, id: u8) {",
+cvefixes-diff:1366:30172fca2a:src/fam.rs:570-576,signature,signature,rust-vmm_vmm-sys-util,1366,src/fam.rs,len,"            fn set_len(&mut self, len: usize) {","            unsafe fn set_len(&mut self, len: usize) {",
+cvefixes-diff:1317:92f40b4a2c:src/pin_slab.rs:40-47,signature,signature,udoprog_unicycle,1317,src/pin_slab.rs,,"unsafe impl<T> Send for PinSlab<T> {}
+unsafe impl<T> Sync for PinSlab<T> {}","unsafe impl<T> Send for PinSlab<T> where T: Send {}
+unsafe impl<T> Sync for PinSlab<T> where T: Sync {}",
+cvefixes-diff:245:1e462c32e7:src/lib.rs:181-187,signature,signature,longshorej_conqueue,245,src/lib.rs,drop,unsafe impl<T> Send for QueueReceiver<T> {},unsafe impl<T: Send> Send for QueueReceiver<T> {},
+cvefixes-diff:545:2928a87:src/lib.rs:146-153,signature,signature,droundy_internment,545,src/lib.rs,clone,"unsafe impl<T> Send for Intern<T> {}
+unsafe impl<T> Sync for Intern<T> {}","unsafe impl<T: Send> Send for Intern<T> {}
+unsafe impl<T: Sync> Sync for Intern<T> {}",
+cvefixes-diff:1256:a986a9335d:src/lib.rs:112-118,signature,signature,kvark_ticketed_lock,1256,src/lib.rs,deref_mut,unsafe impl<T> Send for WriteTicket<T> {},unsafe impl<T: Send> Send for WriteTicket<T> {},
+cvefixes:620:7fd282aef7:introspect::get_stat_info_cb_proxy:2188-2188,guard_or_init,guard,jnqnfe_pulse-binding-rust,620,pulse-binding/src/context/introspect.rs,introspect::get_stat_info_cb_proxy,    callback(unsafe { i.as_ref().unwrap() });,"    let _ = std::panic::catch_unwind(|| {
+        assert!(!i.is_null());
+        // Note, destroys closure callback after use - restoring outer box means it gets dropped
+        let mut callback = ::callbacks::get_su_callback::<dyn FnMut(&StatInfo)>(userdata);
+        (callback)(unsafe { i.as_ref().unwrap() });
+    });",catch_unwind + null assert around callback; unsafe retained
+cvefixes-diff:996:45fd77ee43:src/unlock_notify.rs:43-54,guard_or_init,different_unsafe,rusqlite_rusqlite,996,src/unlock_notify.rs,wait,"    let args = from_raw_parts(ap_arg, n_arg as usize);
+    for arg in args {
+        let _ = catch_unwind(|| {
+            let un: &mut UnlockNotification = &mut *(*arg as *mut UnlockNotification);
+            un.fired()","    let args = from_raw_parts(ap_arg as *const &UnlockNotification, n_arg as usize);
+    for un in args {
+        let _ = catch_unwind(std::panic::AssertUnwindSafe(|| un.fired()));",from_raw_parts type/cast change; still unsafe
+cvefixes-diff:620:7fd282aef7:pulse-binding/src/stream.rs:1694-1706,guard_or_init,guard,jnqnfe_pulse-binding-rust,620,pulse-binding/src/stream.rs,event_cb_proxy,"    assert!(!name.is_null());
+    let n = {
+        let tmp = unsafe { CStr::from_ptr(name) };
+        tmp.to_string_lossy().into_owned()
+    };
+    let pl = Proplist::from_raw_weak(proplist);
+","    let _ = std::panic::catch_unwind(|| {
+        assert!(!name.is_null());
+        let n = {
+            let tmp = unsafe { CStr::from_ptr(name) };
+            tmp.to_string_lossy().into_owned()
+        };
+        let pl = Proplist::from_raw_weak(proplist);
+
+        let callback = EventCb::get_callback(userdata);
+        (callback)(n, pl);
+    });",catch_unwind + null assert; unsafe retained
+cvefixes-diff:891:8026286:src/tape.rs:56-62,guard_or_init,guard,bodoni_postscript,891,src/tape.rs,read,        let mut buffer: [u8; $size] = ::std::mem::uninitialized();,        let mut buffer: [u8; $size] = ::std::mem::zeroed();,uninitialized -> zeroed; still unsafe
+cvefixes:1095:9a2e7891f0:inline_array::new:172-172,guard_or_init,guard,bodil_sized-chunks,1095,src/inline_array/mod.rs,inline_array::new,        unsafe { *self_.len_mut() = 0 },"        assert!(Self::HOST_SIZE > Self::HEADER_SIZE);
+            _header_align: [],
+            _data_align: [],
+        // Sanity check our assumptions about what is guaranteed by the compiler. If we are right,
+        // these should completely optimize out of the resulting binary.
+        assert_eq!(
+            &self_ as *const _ as usize,
+            self_.data.as_ptr() as usize,
+            ""Padding at the start of struct"",
+        );
+        assert_eq!(mem::size_of::<Self>(), mem::size_of::<T>());
+        assert_eq!(
+            self_.data.as_ptr() as usize % mem::align_of::<usize>(),
+            0,
+            ""Unaligned header""
+        );
+        assert_eq!(
+            self_.data.as_ptr() as usize % mem::align_of::<A>(),
+            0,
+            ""Unaligned elements""
+        );
+        assert!(
+            mem::align_of::<A>() % mem::align_of::<usize>() == 0
+                || mem::align_of::<usize>() % mem::align_of::<A>() == 0
+        );
+        assert!(Self::ELEMENT_SKIP == 0 || Self::HEADER_SKIP == 0);
+        unsafe { ptr::write(self_.len_mut(), 0usize) };",layout assert added; set_len unsafe retained
+cvefixes:24:0dca1a705a:condition::poll:76-76,same_api_refactor,hard_negative,actix_actix-net,24,actix-utils/src/condition.rs,condition::poll,        let inner = unsafe { this.inner.get_mut().data.get_unchecked_mut(this.token) };,"        let mut inner = this.inner.borrow_mut();
+        let inner = unsafe { inner.data.get_unchecked_mut(this.token) };","Cell -> RefCell, get_unchecked_mut retained; genuine hard negative"
+cvefixes-diff:1273:e6e16d5a97:src/toodee.rs:1073-1079,same_api_refactor,guard,antonmarsden_toodee,1273,src/toodee.rs,drop,"                    ptr::copy(src, dest, orig_cols - col);","                    ptr::copy(src, dest, orig_cols - col - 1);","ptr::copy length corrected by one; unsafe retained, guard-like"
+cvefixes:24:0dca1a705a:oneshot::is_canceled:202-202,same_api_refactor,hard_negative,actix_actix-net,24,actix-utils/src/oneshot.rs,oneshot::is_canceled,        !unsafe { self.inner.get_ref().get_unchecked(self.token) },        !unsafe { self.inner.borrow().get_unchecked(self.token) },"UnsafeCell -> RefCell, get_unchecked retained; genuine hard negative"
+cvefixes-diff:304:c2fde19caf:src/utils/object_pool.rs:94-101,same_api_refactor,refactor,shawnscode_crayon,304,src/utils/object_pool.rs,retain,"                let mut w = ::std::mem::uninitialized();
+                ::std::mem::swap(&mut v, &mut w);","                #[allow(clippy::invalid_ref)]
+                std::mem::swap(&mut v, &mut std::mem::uninitialized());",uninitialized + swap refactor; unsafe retained
+cvefixes-diff:304:c2fde19caf:src/res/url.rs:144-154,same_api_refactor,refactor,shawnscode_crayon,304,src/res/url.rs,queries,"                    } else {
+                        if end > lhs {
+                            let k = self.url.get_unchecked(lhs..end);
+                            queries.insert(k.into(), None);
+                        }","                    } else if end > lhs {
+                        let k = self.url.get_unchecked(lhs..end);
+                        queries.insert(k.into(), None);",get_unchecked retained; control-flow change
+cvefixes:40:4790c47518:utils::box_try_new_uninit:81-81,same_api_refactor,refactor,alloy-rs_core,40,crates/primitives/src/utils/mod.rs,utils::box_try_new_uninit,    Ok(unsafe { Box::from_raw(ptr) }),"    let mut vec = ManuallyDrop::new(vec);
+
+    Ok(unsafe { Box::from_raw(vec.as_mut_ptr()) })",Box::from_raw pointer changed; unsafe retained
+cvefixes:1146:2a4d538:stack::push_cloned:154-160,same_api_refactor,refactor,thepowersgang_stack_dst-rs,1146,src/stack.rs,stack::push_cloned,"        self.push_inner(&v).map(|d| unsafe {
+            let mut ptr = d.as_mut_ptr() as *mut T;
+            for val in v {
+                ptr::write(ptr, val.clone());
+                ptr = ptr.offset(1);
+            }
+        })","        let (meta,d) = self.push_inner(&v)?;
+		// Prepare the slot with zeros (as if it's an empty slice)
+		// The length is updated as each item is written
+		// - This ensures that there's no drop issues during write
+		meta[0] = 0;
+		for v in d.iter_mut() {
+			*v = 0;
+		}
+
+		unsafe {
+			let mut ptr = d.as_mut_ptr() as *mut T;
+			for val in v {
+				ptr::write(ptr, val.clone());
+				meta[0] += 1;
+				ptr = ptr.offset(1);
+			}
+		}
+
+		Ok( () )",ptr::write refactor; unsafe retained
+cvefixes:1373:0e6f0d2a83:buffer::get_vec:193-193,same_api_refactor,refactor,wasmi-labs_wasmi,1373,crates/core/src/memory/buffer.rs,buffer::get_vec,"        Some(unsafe { Vec::from_raw_parts(self.ptr, self.len, self.capacity) })","        // - The returned `Vec` is returned as [`ManuallyDrop`] to prevent its buffer from being free
+        //   upon going out of scope.
+        let vec = unsafe { Vec::from_raw_parts(self.ptr, self.len, self.capacity) };
+        Some(ManuallyDrop::new(vec))",Vec::from_raw_parts wrapped in ManuallyDrop; unsafe retained
+cvefixes-diff:1031:df3c3a192c:src/backend/libc/fs/dir.rs:154-160,other,refactor,bytecodealliance_rustix,1031,src/backend/libc/fs/dir.rs,chdir,        unsafe { c::closedir(self.0.as_ptr()) };,        unsafe { c::closedir(self.libc_dir.as_ptr()) };,self.0 -> libc_dir field rename; unsafe retained
+cvefixes:963:3f00e1fa01:syscall::sys_read_words:631-631,other,refactor,risc0_risc0,963,risc0/zkvm/platform/src/syscall.rs,syscall::sys_read_words,"    unsafe { sys_read_internal(fd, recv_ptr, nwords, nwords * WORD_SIZE).0 }","    let nbytes = nwords * WORD_SIZE;
+    let Return(nbytes_read, final_word) = unsafe {
+        syscall_2_nr(
+            Syscall::Read.into(),
+            nr::SYS_READ,
+            recv_ptr,
+            nbytes,
+            fd,
+            nbytes as u32,
+        )
+    };
+    nbytes_read as usize",syscall wrapper refactor; unsafe retained
+cvefixes:1093:5e0524c1db:::with_capacity:44-46,other,refactor,nathansizemore_simple-slab,1093,src/lib.rs,::with_capacity,"        let maybe_ptr = unsafe {
+            libc::malloc((mem::size_of::<T>() * capacity)) as *mut T
+        };","        let maybe_ptr =
+            unsafe { libc::malloc(mem::size_of::<T>() * capacity) as *mut T };",formatting only; unsafe retained
+cvefixes-diff:965:b48a86e8b5:rkyv/src/impls/alloc/collections/vec_deque.rs:56-62,other,guard,rkyv_rkyv,965,rkyv/src/impls/alloc/collections/vec_deque.rs,deserialize,            unsafe { alloc(layout) },"            let ptr = unsafe { alloc(layout) };
+            if ptr.is_null() {
+                handle_alloc_error(layout);
+            }
+            ptr",alloc null check added; unsafe alloc retained
+cvefixes-diff:649:ad382d0379:src/lib.rs:698-704,other,different_unsafe,not-fl3_macroquad,649,src/lib.rs,from_config,                unsafe { CONTEXT = Some(Context::new(ctx)) };,                unsafe { CONTEXT = RacyCell::new(Some(Context::new(ctx))) };,RacyCell wrapper; unsafe retained
+cvefixes-diff:1146:2a4d53809e:src/stack.rs:143-149,other,refactor,thepowersgang_stack_dst-rs,1146,src/stack.rs,pop,        self.push_inner(v).map(|d| unsafe {,"        self.push_inner(v).map(|(_,d)| unsafe {",tuple binding refactor; unsafe retained
+cvefixes-diff:965:b48a86e8b5:rkyv/src/impls/alloc/vec.rs:42-48,other,guard,rkyv_rkyv,965,rkyv/src/impls/alloc/vec.rs,deserialize,            unsafe { alloc(layout) },"            let ptr = unsafe { alloc(layout) };
+            if ptr.is_null() {
+                handle_alloc_error(layout);
+            }
+            ptr",alloc null check added; unsafe alloc retained
+cvefixes:963:3f00e1fa01:syscall::sys_exit:985-985,other,refactor,risc0_risc0,963,risc0/zkvm/platform/src/syscall.rs,syscall::sys_exit,"    let Return(a0, _) = unsafe { syscall_0(nr::SYS_EXIT, null_mut(), 0) };","    let Return(a0, _) = unsafe { syscall_0_nr(Syscall::Exit.into(), nr::SYS_EXIT, null_mut(), 0) };",syscall API refactor; unsafe retained

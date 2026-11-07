@@ -1,0 +1,13 @@
+{
+  "queue": 458,
+  "queue_kinds": {
+    "safe_candidate": 92,
+    "unsafe_retained": 366
+  },
+  "pilot": 30,
+  "pilot_kinds": {
+    "safe_candidate": 20,
+    "unsafe_retained": 10
+  },
+  "pilot_repos": 15
+}

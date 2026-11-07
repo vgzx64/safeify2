@@ -1,0 +1,861 @@
+id,method,observed,repo,cve,package,severity,sfp_categories,commit,parent_commit,path,fn,api,span_start,span_end,old_snippet,safe_snippet,auto_category,label,notes
+cvefixes-diff:584:ea7e6f2a2c:lexical-write-float/src/compact.rs:64-72,diff,safe,Alexhuszagh_rust-lexical,584,lexical,Low,,ea7e6f2a2c38886f9f9fe92e593079443f398736,b0333dfd0731ce6c5538d0d738dd0fc9df90d3c9,lexical-write-float/src/compact.rs,write_float,assume_init,64,72,"    let digits: mem::MaybeUninit<[u8; 32]> = mem::MaybeUninit::uninit();
+    // SAFETY: safe, since we never read bytes that weren't written.
+    let mut digits = unsafe { digits.assume_init() };",    let mut digits: [u8; 32] = [0u8; 32];,,safe_replacement,assume_init replaced by zeroed array; clear
+cvefixes-diff:584:ea7e6f2a2c:lexical-write-float/src/radix.rs:67-76,diff,safe,Alexhuszagh_rust-lexical,584,lexical,Low,,ea7e6f2a2c38886f9f9fe92e593079443f398736,b0333dfd0731ce6c5538d0d738dd0fc9df90d3c9,lexical-write-float/src/radix.rs,write_float,assume_init,67,76,"    let buffer: mem::MaybeUninit<[u8; SIZE]> = mem::MaybeUninit::uninit();
+    // SAFETY: safe, since we never read bytes that weren't written.
+    let mut buffer = unsafe { buffer.assume_init() };
+    //let buffer = buffer.as_mut_ptr();",    let mut buffer = [0u8; SIZE];,,safe_replacement,same pattern in radix.rs
+cvefixes-diff:160:aabf5562f8:src/greedy.rs:197-222,diff,safe,Enet4_bra-rs,160,bra,Critical,Exception Management;Memory Access,aabf5562f8c6374ab30f615b28e0cff9b5c79e5f,ff2b2995f43c24193aa71a3801bf7af287e2ca98,src/greedy.rs,fill_buf,set_len,197,222,"        let buf = unsafe {
+            // safe because it's within the buffer's limits
+            // and we won't be reading uninitialized memory
+            std::slice::from_raw_parts_mut(
+                self.buf.as_mut_ptr().add(b),
+                self.buf.capacity() - b)
+        };
+        match self.inner.read(buf) {
+            Ok(o) => {
+                unsafe {
+                    // reset the size to include the written portion,
+                    // safe because the extra data is initialized
+                    self.buf.set_len(b + o);
+                }
+                Ok(&self.buf[self.consumed..])
+            }
+            Err(e) => Err(e),","        self.buf.resize(self.buf.capacity(), 0);
+        let buf = &mut self.buf[b..];
+        let o = self.inner.read(buf)?;
+        // truncate to exclude non-written portion
+        self.buf.truncate(b + o);
+        Ok(&self.buf[self.consumed..])",,safe_replacement,from_raw_parts_mut/set_len replaced by resize + slice
+cvefixes-diff:842:dd59b3066e:src/fcgi.rs:180-191,diff,safe,SolraBizna_outer_cgi,842,outer_cgi,Critical,Memory Access,dd59b3066e616a08e756f72de8dc3ab11b7036c4,a981e7e7d888c4ca4ca36f8a78732f75cc6f8224,src/fcgi.rs,next,set_len,180,191,"        let mut key_buffer = Vec::with_capacity(key_length);
+        let mut value_buffer = Vec::with_capacity(value_length);
+        unsafe {
+            key_buffer.set_len(key_length);
+            value_buffer.set_len(value_length);
+        }","        let mut key_buffer = Vec::new();
+        let mut value_buffer = Vec::new();
+        key_buffer.resize(key_length, 0);
+        value_buffer.resize(value_length, 0);",,safe_replacement,set_len replaced by resize with zero fill
+cvefixes-diff:1241:2820cf12f2:src/misc.rs:108-151,diff,safe,Yoric_telemetry.rs,1241,telemetry,Critical,Exception Management;Memory Management,2820cf12f2e08645fd6d1f15b4a90a54d6082a81,5c810a8345be7d763ab1c4a716683188e36aceb4,src/misc.rs,get_bucket,ptr::write,108,151,"        return;
+    }
+    let delta = min_len - len;
+    vec.reserve(delta);
+    unsafe {
+        let mut ptr = vec.as_mut_ptr().offset(len as isize);
+        // Write all elements except the last one
+        for i in 1..delta {
+            ptr::write(ptr, value.clone());
+            ptr = ptr.offset(1);
+            // Increment the length in every step in case clone() panics
+            vec.set_len(len + i);
+        }
+
+        // We can write the last element directly without cloning needlessly
+        ptr::write(ptr, value);
+        vec.set_len(len + delta);
+    }
+}
+
+    unsafe {
+        // Resize. In future versions of Rust, we should
+        // be able to use `vec.resize`.
+        vec.set_len(size);
+        for i in 0 .. size {
+            vec[i] = value.clone();
+        }
+    }","    vec.resize(size, value);",,safe_replacement,raw pointer writes replaced by resize
+cvefixes-diff:17:c41b5d8dd4:actix-codec/src/framed.rs:239-283,diff,safe,actix_actix-net,17,actix-codec,Critical,Memory Management;Resource Management,c41b5d8dd4235ccca84d0b687996615c0c64d956,693d5132a944b260b68071b938b6b2e532a7982c,actix-codec/src/framed.rs,next_item,Pin::new_unchecked,239,283,"                self.flags.remove(Flags::READABLE);
+            debug_assert!(!self.flags.contains(Flags::EOF));
+            let remaining = self.read_buf.capacity() - self.read_buf.len();
+                self.read_buf.reserve(HW - remaining)
+            let cnt = match unsafe {
+                Pin::new_unchecked(&mut self.io).poll_read_buf(cx, &mut self.read_buf)
+            } {
+                self.flags.insert(Flags::EOF);
+            self.flags.insert(Flags::READABLE);
+    pub fn flush(&mut self, cx: &mut Context<'_>) -> Poll<Result<(), U::Error>>
+        while !self.write_buf.is_empty() {
+            log::trace!(""writing; remaining={}"", self.write_buf.len());
+            let n = ready!(unsafe {
+                Pin::new_unchecked(&mut self.io).poll_write(cx, &self.write_buf)
+            })?;","                this.flags.remove(Flags::READABLE);
+            debug_assert!(!this.flags.contains(Flags::EOF));
+            let remaining = this.read_buf.capacity() - this.read_buf.len();
+                this.read_buf.reserve(HW - remaining)
+            let cnt = match this.io.poll_read_buf(cx, &mut this.read_buf) {
+                this.flags.insert(Flags::EOF);
+            this.flags.insert(Flags::READABLE);
+    pub fn flush(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Result<(), U::Error>>
+        let mut this = self.as_mut().project();
+        while !this.write_buf.is_empty() {
+            log::trace!(""writing; remaining={}"", this.write_buf.len());
+            let n = ready!(
+                this.io.as_mut().poll_write(cx, this.write_buf)
+            )?;",,safe_replacement,Pin projection replaces unchecked pin use
+cvefixes-diff:17:c41b5d8dd4:actix-codec/src/framed.rs:288-313,diff,safe,actix_actix-net,17,actix-codec,Critical,Memory Management;Resource Management,c41b5d8dd4235ccca84d0b687996615c0c64d956,693d5132a944b260b68071b938b6b2e532a7982c,actix-codec/src/framed.rs,flush,Pin::new_unchecked,288,313,"            self.write_buf.advance(n);
+        ready!(unsafe { Pin::new_unchecked(&mut self.io).poll_flush(cx) })?;
+    pub fn close(&mut self, cx: &mut Context<'_>) -> Poll<Result<(), U::Error>>
+        unsafe {
+            ready!(Pin::new_unchecked(&mut self.io).poll_flush(cx))?;
+            ready!(Pin::new_unchecked(&mut self.io).poll_shutdown(cx))?;
+        }","            this.write_buf.advance(n);
+        ready!(this.io.poll_flush(cx))?;
+    pub fn close(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Result<(), U::Error>>
+        let mut this = self.as_mut().project();
+        ready!(this.io.as_mut().poll_flush(cx))?;
+        ready!(this.io.as_mut().poll_shutdown(cx))?;",,safe_replacement,Pin projection replaces unchecked pin use
+cvefixes-diff:17:c41b5d8dd4:actix-rt/src/arbiter.rs:181-187,diff,safe,actix_actix-net,17,actix-codec,Critical,Memory Management;Resource Management,c41b5d8dd4235ccca84d0b687996615c0c64d956,693d5132a944b260b68071b938b6b2e532a7982c,actix-rt/src/arbiter.rs,spawn,Pin::new_unchecked,181,187,                        .push(unsafe { Pin::new_unchecked(Box::alloc().init(future)) }),                        .push(Pin::from(Box::alloc().init(future))),,safe_replacement,Pin::new_unchecked replaced by Pin::from
+cvefixes-diff:23:a67e38b4a0:actix-service/src/apply_cfg.rs:102-111,diff,safe,actix_actix-net,23,actix-service,Medium,Memory Management;Resource Management,a67e38b4a07c92a3c81fa833f9eb1e91e74e39b7,334c98575a787fa7e57de47e313095590185911e,actix-service/src/apply_cfg.rs,clone,,102,111,"        unsafe {
+            let srv = self.srv.get_mut_unsafe();
+            (srv.1)(cfg, &mut srv.0)
+        }","        let (t, f) = &mut *self.srv.borrow_mut();
+        f(cfg, t)",,safe_replacement,UnsafeCell helper replaced by RefCell borrow
+cvefixes-diff:24:0dca1a705a:actix-utils/src/condition.rs:54-65,diff,safe,actix_actix-net,24,actix-utils,Critical,Memory Management;Resource Management,0dca1a705ad1ff4885b3491ecb809a808e1de66c,5d6d309e66b79d837ede20a26d654274bfb68d8f,actix-utils/src/condition.rs,drop,,54,65,"    inner: Cell<Inner>,
+        let token = unsafe { self.inner.get_mut_unsafe() }.data.insert(None);","    inner: Rc<RefCell<Inner>>,
+        let token = self.inner.borrow_mut().data.insert(None);",,safe_replacement,Cell -> RefCell borrow
+cvefixes-diff:24:0dca1a705a:actix-utils/src/mpsc.rs:46-52,diff,safe,actix_actix-net,24,actix-utils,Critical,Memory Management;Resource Management,0dca1a705ad1ff4885b3491ecb809a808e1de66c,5d6d309e66b79d837ede20a26d654274bfb68d8f,actix-utils/src/mpsc.rs,channel,,46,52,        let shared = unsafe { self.shared.get_mut_unsafe() };,        let mut shared = self.shared.borrow_mut();,,safe_replacement,UnsafeCell helper replaced by RefCell borrow
+cvefixes-diff:20:fe13789345:actix-http/src/body.rs:396-402,diff,safe,actix_actix-web,20,actix-http,High,Memory Management;Resource Management,fe13789345f6307e8ac1e1545770f82a14b6588b,3033f187d2214fdb40c815d982fbf6f8a31bcd3f,actix-http/src/body.rs,size,Pin::new_unchecked,396,402,        let mut stream = unsafe { Pin::new_unchecked(self) }.project().stream;,        let mut stream = self.stream.as_mut();,,safe_replacement,Pin::new_unchecked replaced by safe projection
+cvefixes-diff:40:4790c47518:crates/sol-type-parser/src/ident.rs:64-75,diff,safe,alloy-rs_core,40,alloy-json-abi,Medium,Resource Management,4790c47518024bd391bbd6815b00f501bad76a15,6540523385ea10c9adce31beae7106cfa7da770f,crates/sol-type-parser/src/ident.rs,identifier,ptr::deref,64,75,"    // SAFETY: Only ASCII characters are valid in identifiers
+    unsafe {
+        let ident = input.get_unchecked(..len);
+        *input = input.get_unchecked(len..);
+        Ok(ident)
+    }",    Ok(input.next_slice(len)),,safe_replacement,get_unchecked replaced by next_slice
+cvefixes-diff:531:fab6922b95:src/lib.rs:66-72,diff,safe,andrewhickman_id-map,531,id-map,Medium,Exception Management;Memory Management,fab6922b955b5a2986dfff2ccb341628faec30ed,a2fa8d4a554dea2f9ea2ec6c3d06793576f8e7c0,src/lib.rs,with_capacity,,66,72,        unsafe { self.drop_values() },        self.drop_values();,,safe_replacement,unsafe wrapper removed around safe call
+cvefixes-diff:531:fab6922b95:src/lib.rs:99-110,diff,safe,andrewhickman_id-map,531,id-map,Medium,Exception Management;Memory Management,fab6922b955b5a2986dfff2ccb341628faec30ed,a2fa8d4a554dea2f9ea2ec6c3d06793576f8e7c0,src/lib.rs,reserve,set_len,99,110,"        unsafe {
+            let cap = cmp::min(self.values.capacity(), self.ids.capacity());
+            self.values.set_len(cap);
+            self.values.shrink_to_fit();
+            self.values.set_len(0);
+        }","        self.values.truncate(self.ids.capacity());
+        self.values.shrink_to(self.ids.capacity());",,safe_replacement,set_len/shrink replaced by truncate/shrink_to
+cvefixes-diff:531:fab6922b95:src/lib.rs:117-126,diff,safe,andrewhickman_id-map,531,id-map,Medium,Exception Management;Memory Management,fab6922b955b5a2986dfff2ccb341628faec30ed,a2fa8d4a554dea2f9ea2ec6c3d06793576f8e7c0,src/lib.rs,as_set,ptr::write,117,126,"        if id == self.values.capacity() {
+            self.values.reserve(id + 1);
+        unsafe { ptr::write(self.values.get_unchecked_mut(id), val) }","        if id == self.values.len() {
+            self.values.resize_with(id + 1, Default::default);
+        self.values[id] = Some(val);",,safe_replacement,ptr::write/get_unchecked replaced by resize/index
+cvefixes-diff:531:fab6922b95:src/lib.rs:134-147,diff,safe,andrewhickman_id-map,531,id-map,Medium,Exception Management;Memory Management,fab6922b955b5a2986dfff2ccb341628faec30ed,a2fa8d4a554dea2f9ea2ec6c3d06793576f8e7c0,src/lib.rs,insert_at,ptr::write,134,147,"            if self.values.capacity() < id + 1 {
+                self.values.reserve(id + 1);
+            unsafe { ptr::write(self.values.get_unchecked_mut(id), val) }
+            Some(mem::replace(unsafe { self.values.get_unchecked_mut(id) }, val))","            if self.values.len() < id + 1 {
+                self.values.resize_with(id + 1, Default::default);
+            self.values[id] = Some(val);
+            Some(mem::replace(&mut self.values[id].as_mut().unwrap(), val))",,safe_replacement,ptr::write/get_unchecked replaced by resize/index
+cvefixes-diff:531:fab6922b95:src/lib.rs:150-156,diff,safe,andrewhickman_id-map,531,id-map,Medium,Exception Management;Memory Management,fab6922b955b5a2986dfff2ccb341628faec30ed,a2fa8d4a554dea2f9ea2ec6c3d06793576f8e7c0,src/lib.rs,remove,ptr::read,150,156,            Some(unsafe { ptr::read(self.values.get_unchecked(id)) }),            self.values[id].take(),,safe_replacement,ptr::read/get_unchecked replaced by Option::take
+cvefixes-diff:531:fab6922b95:src/lib.rs:170-186,diff,safe,andrewhickman_id-map,531,id-map,Medium,Exception Management;Memory Management,fab6922b955b5a2986dfff2ccb341628faec30ed,a2fa8d4a554dea2f9ea2ec6c3d06793576f8e7c0,src/lib.rs,get_or_insert_with,ptr::write,170,186,"            if self.values.capacity() < id + 1 {
+                self.values.reserve(id + 1);
+            unsafe {
+                let space = self.values.get_unchecked_mut(id);
+                ptr::write(space, f());
+                space
+            }
+        } else {
+            unsafe { self.values.get_unchecked_mut(id) }","            if self.values.len() < id + 1 {
+                self.values.resize_with(id + 1, Default::default);
+            self.values[id] = Some(f());
+
+        self.values[id].as_mut().unwrap()",,safe_replacement,raw writes replaced by checked indexing
+cvefixes-diff:531:fab6922b95:src/lib.rs:192-204,diff,safe,andrewhickman_id-map,531,id-map,Medium,Exception Management;Memory Management,fab6922b955b5a2986dfff2ccb341628faec30ed,a2fa8d4a554dea2f9ea2ec6c3d06793576f8e7c0,src/lib.rs,remove_set,get_unchecked_mut,192,204,"                unsafe {
+                    ptr::drop_in_place(self.values.get_unchecked_mut(first))
+                }
+                    unsafe {
+                        ptr::drop_in_place(self.values.get_unchecked_mut(id))
+                    }","                self.values[first] = None;
+                    self.values[id] = None;",,safe_replacement,get_unchecked_mut replaced by checked indexing
+cvefixes-diff:531:fab6922b95:src/lib.rs:213-226,diff,safe,andrewhickman_id-map,531,id-map,Medium,Exception Management;Memory Management,fab6922b955b5a2986dfff2ccb341628faec30ed,a2fa8d4a554dea2f9ea2ec6c3d06793576f8e7c0,src/lib.rs,retain,ptr::deref,213,226,"            unsafe {
+                if pred(id, values.get_unchecked(id)) {
+                    true
+                } else {
+                    *space = cmp::min(*space, id);
+                    ptr::drop_in_place(values.get_unchecked_mut(id));
+                    false
+                }","            if pred(id, values[id].as_ref().unwrap()) {
+                true
+            } else {
+                *space = cmp::min(*space, id);
+                values[id] = None;
+                false",,safe_replacement,get_unchecked/drop_in_place replaced by checked indexing + Option
+cvefixes-diff:531:fab6922b95:src/lib.rs:235-241,diff,safe,andrewhickman_id-map,531,id-map,Medium,Exception Management;Memory Management,fab6922b955b5a2986dfff2ccb341628faec30ed,a2fa8d4a554dea2f9ea2ec6c3d06793576f8e7c0,src/lib.rs,contains,get_unchecked,235,241,            Some(unsafe { self.values.get_unchecked(id) }),            Some(self.values[id].as_ref().unwrap()),,safe_replacement,get_unchecked replaced by checked indexing
+cvefixes-diff:531:fab6922b95:src/lib.rs:245-251,diff,safe,andrewhickman_id-map,531,id-map,Medium,Exception Management;Memory Management,fab6922b955b5a2986dfff2ccb341628faec30ed,a2fa8d4a554dea2f9ea2ec6c3d06793576f8e7c0,src/lib.rs,get,get_unchecked_mut,245,251,            Some(unsafe { self.values.get_unchecked_mut(id) }),            Some(self.values[id].as_mut().unwrap()),,safe_replacement,get_unchecked_mut replaced by checked indexing
+cvefixes-diff:531:fab6922b95:src/lib.rs:291-311,diff,safe,andrewhickman_id-map,531,id-map,Medium,Exception Management;Memory Management,fab6922b955b5a2986dfff2ccb341628faec30ed,a2fa8d4a554dea2f9ea2ec6c3d06793576f8e7c0,src/lib.rs,iter_mut,ptr::read,291,311,"            values: self.values.as_mut_ptr(),
+        // we cannot move out of self because of the drop impl.
+        let (ids, values) = unsafe {
+            (ptr::read(&self.ids), ptr::read(&self.values))
+        };
+        mem::forget(self);
+            ids: ids.into_iter(),
+            values: values,","            prev: None,
+            values: self.values.iter_mut(),
+            ids: self.ids.into_iter(),
+            prev: None,
+            values: self.values.into_iter(),",,safe_replacement,raw pointer iterator replaced by iter_mut
+cvefixes-diff:531:fab6922b95:src/lib.rs:316-335,diff,safe,andrewhickman_id-map,531,id-map,Medium,Exception Management;Memory Management,fab6922b955b5a2986dfff2ccb341628faec30ed,a2fa8d4a554dea2f9ea2ec6c3d06793576f8e7c0,src/lib.rs,assert_invariant,get_unchecked_mut,316,335,"        // values.capacity() should an upper bound on ids.
+            assert!(id < self.values.capacity())
+    /// Clear the values vec. Unsafe since ids is not updated.
+    unsafe fn drop_values(&mut self) {
+            ptr::drop_in_place(self.values.get_unchecked_mut(id))
+    /// Find the next empty space after has been filled.","        // values.len() should be an upper bound on ids.
+            assert!(id < self.values.len())
+    /// Clear the values vec.
+    fn drop_values(&mut self) {
+            self.values[id] = None;
+    /// Find the next empty space after one has been filled.",,safe_replacement,unsafe drop_values replaced by safe clear/indexing
+cvefixes-diff:531:fab6922b95:src/lib.rs:406-415,diff,safe,andrewhickman_id-map,531,id-map,Medium,Exception Management;Memory Management,fab6922b955b5a2986dfff2ccb341628faec30ed,a2fa8d4a554dea2f9ea2ec6c3d06793576f8e7c0,src/lib.rs,default,get_unchecked,406,415,"        self.ids == other.ids && self.ids
+            .iter()
+            .zip(&other.ids)
+            .all(|(l, r)| unsafe { self.values.get_unchecked(l) == other.values.get_unchecked(r) })","        self.ids == other.ids
+            && self
+                .ids
+                .iter()
+                .zip(&other.ids)
+                .all(|(l, r)| self.values[l].as_ref().unwrap() == other.values[r].as_ref().unwrap())",,safe_replacement,partial-eq unchecked reads replaced by checked indexing
+cvefixes-diff:531:fab6922b95:src/lib.rs:425-439,diff,safe,andrewhickman_id-map,531,id-map,Medium,Exception Management;Memory Management,fab6922b955b5a2986dfff2ccb341628faec30ed,a2fa8d4a554dea2f9ea2ec6c3d06793576f8e7c0,src/lib.rs,extend,set_len,425,439,"        let mut values = Vec::from_iter(iter);
+        unsafe { values.set_len(0) }
+        let space = values.capacity();
+        let ids = IdSet::new_filled(values.capacity());
+        IdMap {
+            values,","        let values = Vec::from_iter(iter.into_iter().map(Some));
+        let space = values.len();
+        let ids = IdSet::new_filled(values.len());
+        IdMap { values, space, ids }",,safe_replacement,set_len(0) + capacity replaced by map(Some) + len
+cvefixes-diff:531:fab6922b95:src/lib.rs:485-491,diff,safe,andrewhickman_id-map,531,id-map,Medium,Exception Management;Memory Management,fab6922b955b5a2986dfff2ccb341628faec30ed,a2fa8d4a554dea2f9ea2ec6c3d06793576f8e7c0,src/lib.rs,into_iter,get_unchecked,485,491,        unsafe { self.values.get_unchecked(id) },        self.values[id].as_ref().unwrap(),,safe_replacement,get_unchecked replaced by checked indexing
+cvefixes-diff:531:fab6922b95:src/lib.rs:493-499,diff,safe,andrewhickman_id-map,531,id-map,Medium,Exception Management;Memory Management,fab6922b955b5a2986dfff2ccb341628faec30ed,a2fa8d4a554dea2f9ea2ec6c3d06793576f8e7c0,src/lib.rs,index,get_unchecked_mut,493,499,        unsafe { self.values.get_unchecked_mut(id) },        self.values[id].as_mut().unwrap(),,safe_replacement,get_unchecked_mut replaced by checked indexing
+cvefixes-diff:531:fab6922b95:src/lib.rs:536-542,diff,safe,andrewhickman_id-map,531,id-map,Medium,Exception Management;Memory Management,fab6922b955b5a2986dfff2ccb341628faec30ed,a2fa8d4a554dea2f9ea2ec6c3d06793576f8e7c0,src/lib.rs,len,ptr::deref,536,542,        self.ids.next().map(|id| unsafe { &*self.values.offset(id as isize) }),        self.ids.next().map(|id| self.values[id].as_ref().unwrap()),,safe_replacement,raw offset deref replaced by checked indexing
+cvefixes-diff:531:fab6922b95:src/lib.rs:574-580,diff,safe,andrewhickman_id-map,531,id-map,Medium,Exception Management;Memory Management,fab6922b955b5a2986dfff2ccb341628faec30ed,a2fa8d4a554dea2f9ea2ec6c3d06793576f8e7c0,src/lib.rs,clone,ptr::deref,574,580,        self.ids.next().map(|id| unsafe { &mut *self.values.offset(id as isize) }),"        let id = self.ids.next()?;
+        let n = match self.prev {
+            Some(prev) => id - prev - 1,
+            None => 0,
+        };
+        self.prev = Some(id);
+
+        Some(self.values.nth(n).unwrap().as_mut().unwrap())",,safe_replacement,raw offset deref replaced by iterator + checked indexing
+cvefixes-diff:531:fab6922b95:src/lib.rs:602-608,diff,safe,andrewhickman_id-map,531,id-map,Medium,Exception Management;Memory Management,fab6922b955b5a2986dfff2ccb341628faec30ed,a2fa8d4a554dea2f9ea2ec6c3d06793576f8e7c0,src/lib.rs,len,ptr::deref,602,608,"        self.ids.next().map(|id| (id, unsafe { &*self.values.offset(id as isize) }))","        self.ids
+            .next()
+            .map(|id| (id, self.values[id].as_ref().unwrap()))",,safe_replacement,raw offset deref replaced by checked indexing
+cvefixes-diff:531:fab6922b95:src/lib.rs:640-646,diff,safe,andrewhickman_id-map,531,id-map,Medium,Exception Management;Memory Management,fab6922b955b5a2986dfff2ccb341628faec30ed,a2fa8d4a554dea2f9ea2ec6c3d06793576f8e7c0,src/lib.rs,clone,ptr::deref,640,646,"        self.ids.next().map(|id| (id, unsafe { &mut *self.values.offset(id as isize) }))","        let id = self.ids.next()?;
+        let n = match self.prev {
+            Some(prev) => id - prev - 1,
+            None => 0,
+        };
+        self.prev = Some(id);
+
+        Some((
+            id,
+            self.values.nth(n).unwrap().as_mut().expect(""id not in map""),
+        ))",,safe_replacement,raw offset deref replaced by iterator + checked indexing
+cvefixes-diff:531:fab6922b95:src/lib.rs:668-678,diff,safe,andrewhickman_id-map,531,id-map,Medium,Exception Management;Memory Management,fab6922b955b5a2986dfff2ccb341628faec30ed,a2fa8d4a554dea2f9ea2ec6c3d06793576f8e7c0,src/lib.rs,len,ptr::read,668,678,"        self.ids.next().map(|id| (id, unsafe { ptr::read(self.values.get_unchecked(id)) }))
+}","        let id = self.ids.next()?;
+        let n = match self.prev {
+            Some(prev) => id - prev - 1,
+            None => 0,
+        };
+        self.prev = Some(id);
+
+        Some((id, self.values.nth(n).unwrap().expect(""id not in map"")))
+}",,safe_replacement,ptr::read/get_unchecked replaced by iterator + Option
+cvefixes-diff:715:599313b:src/read.rs:17-28,diff,safe,andrewhickman_ms3d,715,ms3d,High,Exception Management;Memory Access,599313b,d583d52f0143f833ee31f6adfe0d7ba06a2b5d6b,src/read.rs,new,get_unchecked_mut,17,28,"        unsafe {
+            self.buf.reserve(len);
+            let slice = self.buf.get_unchecked_mut(..len);
+            self.rdr.read_exact(slice)?;
+            Ok(slice)
+        }","        self.buf.resize(len, 0);
+        self.rdr.read_exact(self.buf.as_mut_slice())?;
+        Ok(self.buf.as_slice())",,safe_replacement,get_unchecked_mut read buffer replaced by resize + slice
+cvefixes-diff:648:b633bf265e:src/compress.rs:47-64,diff,safe,badboy_lzf-rs,648,lzf,Medium,,b633bf265e41c60dfce3be7eac4e4dd5e18d06cf,cc47327e5acf3c755afdf6e7d0a41cc661854445,src/compress.rs,compress,ptr::deref,47,64,"    let mut out = Vec::with_capacity(out_buf_len);
+    unsafe { out.set_len(out_buf_len) };
+    /* This goes against all of Rust's statically verifiable guarantees,
+     * but for the below use-case accessing uninitialized memory is ok,
+     * as we have other checks to make sure the read memory is not used.
+     *
+     * The otherwise happening memset slows down the code by a factor of 20-30
+     */
+    let mut htab: [usize; 1 << HLOG] = unsafe { mem::uninitialized() };","    let mut out = vec![0; out_buf_len];
+    let mut htab = vec![0; 1 << HLOG];",,safe_replacement,set_len/uninitialized replaced by Vec zero fill
+cvefixes:648:b633bf265e:compress::compress:51-51,analyzer,safe,badboy_lzf-rs,648,lzf,Medium,,b633bf265e41c60dfce3be7eac4e4dd5e18d06cf,cc47327e5acf3c755afdf6e7d0a41cc661854445,src/compress.rs,compress::compress,set_len,51,51,    unsafe { out.set_len(out_buf_len) };,"    let mut out = vec![0; out_buf_len];
+    let mut htab = vec![0; 1 << HLOG];",,safe_replacement,set_len replaced by vec![0; n]
+cvefixes:648:b633bf265e:compress::compress:61-61,analyzer,safe,badboy_lzf-rs,648,lzf,Medium,,b633bf265e41c60dfce3be7eac4e4dd5e18d06cf,cc47327e5acf3c755afdf6e7d0a41cc661854445,src/compress.rs,compress::compress,uninitialized,61,61,    let mut htab: [usize; 1 << HLOG] = unsafe { mem::uninitialized() };,"    let mut out = vec![0; out_buf_len];
+    let mut htab = vec![0; 1 << HLOG];",,safe_replacement,mem::uninitialized replaced by vec!
+cvefixes-diff:648:b633bf265e:src/decompress.rs:26-33,diff,safe,badboy_lzf-rs,648,lzf,Medium,,b633bf265e41c60dfce3be7eac4e4dd5e18d06cf,cc47327e5acf3c755afdf6e7d0a41cc661854445,src/decompress.rs,decompress,set_len,26,33,"    let mut output = Vec::with_capacity(out_len_should);
+    unsafe { output.set_len(out_len_should) };",    let mut output = vec![0; out_len_should];,,safe_replacement,set_len replaced by vec![0; n]
+cvefixes:648:b633bf265e:decompress::decompress:30-30,analyzer,safe,badboy_lzf-rs,648,lzf,Medium,,b633bf265e41c60dfce3be7eac4e4dd5e18d06cf,cc47327e5acf3c755afdf6e7d0a41cc661854445,src/decompress.rs,decompress::decompress,set_len,30,30,    unsafe { output.set_len(out_len_should) };,    let mut output = vec![0; out_len_should];,,duplicate,same fix as row 27; analyzer duplicate
+cvefixes-diff:654:6299af0:src/lib.rs:134-141,diff,safe,blackbeam_rust-marc,654,marc,High,Exception Management;Memory Access,6299af0,e626775a6998e1f97c8c1a242362602924e1693f,src/lib.rs,read,set_len,134,141,"        data.reserve(len - 5);
+        unsafe { data.set_len(len) };","        data.resize(len, 0);",,safe_replacement,set_len replaced by resize
+cvefixes-diff:891:8026286:src/tape.rs:100-107,diff,safe,bodoni_postscript,891,postscript,High,Exception Management;Memory Access,8026286,e0e1a4e03b7be5a6ece3e310f61e6beca12cfe33,src/tape.rs,read,set_len,100,107,"                let mut buffer = Vec::with_capacity(count);
+                unsafe { buffer.set_len(count) };",                let mut buffer = vec![0; count];,,safe_replacement,set_len replaced by vec![0; n]
+cvefixes-diff:1414:b5e31a5c33:crates/jit-debug/src/perf_jitdump.rs:271-286,diff,safe,bytecodealliance_wasmtime,1414,wasmtime-jit-debug,Medium,Memory Access,b5e31a5c33725ab8a7dfbe8505c56b5cf282ffed,83c80480659cf776b775e9ebc033653fce9b59bb,crates/jit-debug/src/perf_jitdump.rs,dump_code_load_record,from_raw_parts,271,286,"            virtual_address: addr as u64,
+            address: addr as u64,
+            size: len as u64,
+        unsafe {
+            let code_buffer: &[u8] = std::slice::from_raw_parts(addr, len);
+            self.write_code_load_record(method_name, clr, code_buffer)
+        }","            virtual_address: code.as_ptr() as u64,
+            address: code.as_ptr() as u64,
+            size: code.len() as u64,
+        self.write_code_load_record(method_name, clr, code)",,safe_replacement,from_raw_parts replaced by code slice
+cvefixes-diff:1386:3535acbf3b:crates/runtime/src/instance/allocator/pooling/unix.rs:45-73,diff,safe,bytecodealliance_wasmtime,1386,wasmtime,High,Information Leak;Memory Access,3535acbf3be032ef1ba0b469b8ab92538a8a18a6,47fa1ad6a854f793bc98f23d5f30bb0d400892e6,crates/runtime/src/instance/allocator/pooling/unix.rs,decommit,,45,73,"        return Ok(());
+    }
+
+    // Just change the protection level to READ|WRITE
+    unsafe {
+        mprotect(addr.cast(), len, MprotectFlags::READ | MprotectFlags::WRITE)
+            .context(""failed to make linear memory pages read/write"")
+    }
+}","    decommit(addr, len)",,unclear,"hunk mixes a return and mprotect; new call may be a refactor, not a replacement"
+cvefixes-diff:1386:3535acbf3b:crates/runtime/src/memory.rs:413-433,diff,safe,bytecodealliance_wasmtime,1386,wasmtime,High,Information Leak;Memory Access,3535acbf3be032ef1ba0b469b8ab92538a8a18a6,47fa1ad6a854f793bc98f23d5f30bb0d400892e6,crates/runtime/src/memory.rs,grow_to,,413,433,"
+            // Operating system can fail to make memory accessible.
+            let old_byte_size = self.byte_size();
+            make_accessible(
+                unsafe { self.base.as_mut_ptr().add(old_byte_size) },
+                new_byte_size - old_byte_size,
+            )?;
+        }",        self.memory_image.set_heap_limit(new_byte_size)?;,,safe_replacement,raw pointer make_accessible replaced by set_heap_limit
+cvefixes-diff:1412:192f2fcdad:crates/wasmtime/src/runtime/func.rs:1495-1521,diff,safe,bytecodealliance_wasmtime,1412,wasmtime,Low,Exception Management,192f2fcdadfec9d0cf6b58548a85a7307450cbf5,24d5d24e72f56f395745b911d386baf359b85977,crates/wasmtime/src/runtime/func.rs,invoke_wasm_and_catch_traps,,1495,1521,"    unsafe {
+        // The `enter_wasm` call below will reset the store context's
+        // `stack_chain` to a new `InitialStack`, pointing to the
+        // stack-allocated `initial_stack_csi`.
+        let mut initial_stack_csi = VMCommonStackInformation::running_default();","    // The `enter_wasm` call below will reset the store context's
+    // `stack_chain` to a new `InitialStack`, pointing to the
+    // stack-allocated `initial_stack_csi`.
+    let mut initial_stack_csi = VMCommonStackInformation::running_default();
+    // Stores some state of the runtime just before entering Wasm. Will be
+    // restored upon exiting Wasm. Note that the `CallThreadState` that is
+    // created by the `catch_traps` call below will store a pointer to this
+    // stack-allocated `previous_runtime_state`.
+    let mut previous_runtime_state = EntryStoreContext::enter_wasm(store, &mut initial_stack_csi);
+
+    if let Err(trap) = store.0.call_hook(CallHook::CallingWasm) {
+        // `previous_runtime_state` implicitly dropped here
+        return Err(trap);
+    }
+    let result = crate::runtime::vm::catch_traps(store, &mut previous_runtime_state, closure);
+    core::mem::drop(previous_runtime_state);
+    store.0.call_hook(CallHook::ReturningFromWasm)?;
+    result",,safe_replacement,unsafe block around running_default removed
+cvefixes-diff:1412:192f2fcdad:crates/wasmtime/src/runtime/vm/interpreter_disabled.rs:52-66,diff,safe,bytecodealliance_wasmtime,1412,wasmtime,Low,Exception Management,192f2fcdadfec9d0cf6b58548a85a7307450cbf5,24d5d24e72f56f395745b911d386baf359b85977,crates/wasmtime/src/runtime/vm/interpreter_disabled.rs,call,ptr::deref,52,66,"    pub(crate) unsafe fn longjmp(self, jmp_buf: *const u8) {
+        // just consider this function used
+        traphandlers::set_jmp_buf(jmp_buf);
+        match self.empty {}
+    }","        &mut self,",,false_positive,truncated signature diff; not a safe replacement
+cvefixes-diff:1412:192f2fcdad:crates/wasmtime/src/runtime/vm/traphandlers.rs:431-442,diff,safe,bytecodealliance_wasmtime,1412,wasmtime,Low,Exception Management,192f2fcdadfec9d0cf6b58548a85a7307450cbf5,24d5d24e72f56f395745b911d386baf359b85977,crates/wasmtime/src/runtime/vm/traphandlers.rs,from,,431,442,"/// # Unsafety
+///
+/// This function is unsafe because during the execution of `closure` it may be
+/// longjmp'd over and none of its destructors on the stack may be run.
+pub unsafe fn catch_traps<T, F>(","pub fn catch_traps<T, F>(",,signature_change,"unsafe fn -> fn is a safety-contract change, not a block replacement"
+cvefixes-diff:1412:192f2fcdad:crates/wasmtime/src/runtime/vm/traphandlers.rs:446-489,diff,safe,bytecodealliance_wasmtime,1412,wasmtime,Low,Exception Management,192f2fcdadfec9d0cf6b58548a85a7307450cbf5,24d5d24e72f56f395745b911d386baf359b85977,crates/wasmtime/src/runtime/vm/traphandlers.rs,catch_traps,ptr::deref,446,489,"        // Note that here we pass a function pointer to C to catch longjmp
+        // within, here it's `call_closure`, and that passes `None` for the
+        // interpreter since this branch is only ever taken if the interpreter
+        // isn't present.
+        ExecutorRef::Native => unsafe {
+            traphandlers::wasmtime_setjmp(
+                cx.jmp_buf.as_ptr(),
+                {
+                    extern ""C"" fn call_closure<F>(
+                        payload: *mut u8,
+                        caller: NonNull<VMContext>,
+                    ) -> bool
+                    where
+                        F: FnMut(NonNull<VMContext>, Option<InterpreterRef<'_>>) -> bool,
+                    {
+                        unsafe { (*(payload as *mut F))(caller, None) }
+                    }
+
+                    call_closure::<F>
+                },","    let result = CallThreadState::new(store.0, old_state).with(|_cx| match store.0.executor() {
+        ExecutorRef::Interpreter(r) => closure(caller, Some(r)),
+        ExecutorRef::Native => closure(caller, None),",,unclear,large refactor hunk; old and new closure handling not cleanly paired
+cvefixes-diff:1412:192f2fcdad:crates/wasmtime/src/runtime/vm/traphandlers.rs:916-936,diff,safe,bytecodealliance_wasmtime,1412,wasmtime,Low,Exception Management,192f2fcdadfec9d0cf6b58548a85a7307450cbf5,24d5d24e72f56f395745b911d386baf359b85977,crates/wasmtime/src/runtime/vm/traphandlers.rs,unwind,,916,936,"    unsafe fn longjmp(&self, executor: ExecutorRef<'_>) {
+        let jmp_buf = self.jmp_buf.get();
+        debug_assert!(!jmp_buf.is_null());
+        debug_assert!(jmp_buf != CallThreadState::JMP_BUF_INTERPRETER_SENTINEL);
+","    pub(crate) fn entry_trap_handler(&self) -> Handler {
+            let vm_store_context = self.vm_store_context.as_ref();
+            let fp = *vm_store_context.last_wasm_entry_fp.get();
+            let sp = *vm_store_context.last_wasm_entry_sp.get();
+            let pc = *vm_store_context.last_wasm_entry_trap_handler.get();
+            Handler { pc, sp, fp }",,false_positive,hunk sides are different functions/refactors
+cvefixes-diff:307:f48c1c763a:crossbeam-epoch/src/sync/queue.rs:49-59,diff,safe,crossbeam-rs_crossbeam,307,crossbeam,Medium,,f48c1c763a73467e2fde6158c0abc2faa162ae81,e0fd465b9b7de8b60b0b588e264aca1fa92fbd18,crossbeam-epoch/src/sync/queue.rs,new,uninitialized,49,59,"        // TODO(taiki-e): when the minimum supported Rust version is bumped to 1.36+,
+        // replace this with `mem::MaybeUninit`.
+        #[allow(deprecated)]
+            data: unsafe { mem::uninitialized() },","            data: MaybeUninit::uninit(),",,safe_replacement,mem::uninitialized replaced by MaybeUninit
+cvefixes-diff:372:e4a29e145c:diesel/src/mysql/types/date_and_time/mod.rs:115-127,diff,safe,diesel-rs_diesel,372,diesel,Medium,Other,e4a29e145c61aa3981f8e9dda861c2eecead6944,df1f3ee56d8c8ae17dfab081de36a17668bfb31c,diesel/src/mysql/types/date_and_time/mod.rs,new,ptr::deref,115,127,"            #[allow(unsafe_code)] // pointer cast
+                let bytes = unsafe {
+                    let bytes_ptr = self as *const MysqlTime as *const u8;
+                    slice::from_raw_parts(bytes_ptr, mem::size_of::<MysqlTime>())
+                };
+                out.write_all(bytes)?;","                let buffer = self.serialize();
+
+                out.write_all(&buffer)?;",,safe_replacement,raw struct slice replaced by serialize helper
+cvefixes-diff:372:e4a29e145c:diesel/src/pg/connection/result.rs:27-41,diff,safe,diesel-rs_diesel,372,diesel,Medium,Other,e4a29e145c61aa3981f8e9dda861c2eecead6944,df1f3ee56d8c8ae17dfab081de36a17668bfb31c,diesel/src/pg/connection/result.rs,,,27,41,"        let result_status = unsafe { PQresultStatus(internal_result.as_ptr()) };
+        match result_status {
+                let column_count = unsafe { PQnfields(internal_result.as_ptr()) };
+                let row_count = unsafe { PQntuples(internal_result.as_ptr()) };","        match internal_result.result_status() {
+                let column_count = internal_result.column_count();
+                let row_count = internal_result.row_count();",,safe_replacement,raw PQ result accessors replaced by safe methods
+cvefixes-diff:372:e4a29e145c:diesel/src/pg/connection/result.rs:97-115,diff,safe,diesel-rs_diesel,372,diesel,Medium,Other,e4a29e145c61aa3981f8e9dda861c2eecead6944,df1f3ee56d8c8ae17dfab081de36a17668bfb31c,diesel/src/pg/connection/result.rs,new,CStr::from_ptr,97,115,"    pub(super) fn rows_affected(&self) -> usize {
+        unsafe {
+            let count_char_ptr = PQcmdTuples(self.internal_result.as_ptr());
+            let count_bytes = CStr::from_ptr(count_char_ptr).to_bytes();
+            // Using from_utf8_unchecked is ok here because, we've set the
+            // client encoding to utf8
+            let count_str = str::from_utf8_unchecked(count_bytes);
+            match count_str {","    pub(super) fn rows_affected(&self) -> QueryResult<usize> {
+        let rows = self.internal_result.rows_affected();
+        let count_str = rows
+            .to_str()
+            .map_err(|e| Error::DeserializationError(Box::new(e)))?;
+        match count_str {
+            """" => Ok(0),
+            _ => count_str
+                .parse()
+                .map_err(|e| Error::DeserializationError(Box::new(e))),",,safe_replacement,raw libpq string parsing delegated to safe rows_affected helper
+cvefixes-diff:372:e4a29e145c:diesel/src/pg/connection/result.rs:130-146,diff,safe,diesel-rs_diesel,372,diesel,Medium,Other,e4a29e145c61aa3981f8e9dda861c2eecead6944,df1f3ee56d8c8ae17dfab081de36a17668bfb31c,diesel/src/pg/connection/result.rs,get,ptr::deref,130,146,"            unsafe {
+                let value_ptr =
+                    PQgetvalue(self.internal_result.as_ptr(), row_idx, col_idx) as *const u8;
+                let num_bytes = PQgetlength(self.internal_result.as_ptr(), row_idx, col_idx);
+                Some(slice::from_raw_parts(
+                    value_ptr,
+                    num_bytes
+                        .try_into()
+                        .expect(""Diesel expects at least a 32 bit operating system""),","            Some(self.internal_result.get_bytes(row_idx, col_idx))",,safe_replacement,raw pointer slice replaced by get_bytes helper
+cvefixes-diff:372:e4a29e145c:diesel/src/pg/connection/result.rs:152-165,diff,safe,diesel-rs_diesel,372,diesel,Medium,Other,e4a29e145c61aa3981f8e9dda861c2eecead6944,df1f3ee56d8c8ae17dfab081de36a17668bfb31c,diesel/src/pg/connection/result.rs,is_null,,152,165,"        unsafe { 0 != PQgetisnull(self.internal_result.as_ptr(), row_idx, col_idx) }
+        let type_oid = unsafe { PQftype(self.internal_result.as_ptr(), col_idx) };","        self.internal_result.is_null(row_idx, col_idx) != 0
+        let type_oid = self.internal_result.column_type(col_idx);",,safe_replacement,raw PQ getisnull/ftype replaced by safe methods
+cvefixes-diff:372:e4a29e145c:diesel/src/pg/connection/result.rs:171-189,diff,safe,diesel-rs_diesel,372,diesel,Medium,Other,e4a29e145c61aa3981f8e9dda861c2eecead6944,df1f3ee56d8c8ae17dfab081de36a17668bfb31c,diesel/src/pg/connection/result.rs,column_name,ptr::deref,171,189,"                    .map(|idx| unsafe {
+                        // https://www.postgresql.org/docs/13/libpq-exec.html#LIBPQ-PQFNAME
+                        // states that the returned ptr is valid till the underlying result is freed
+                        // That means we can couple the lifetime to self
+                        let ptr = PQfname(self.internal_result.as_ptr(), idx as libc::c_int);
+                        if ptr.is_null() {
+                            None
+                        } else {
+                            Some(CStr::from_ptr(ptr).to_str().expect(
+                                ""Expect postgres field names to be UTF-8, because we \
+                     requested UTF-8 encoding on connection setup"",
+                            ) as *const str)
+                        }","                    .map(|idx| {
+                        self.internal_result
+                            .column_name(idx as libc::c_int)
+                            .map(|name| {
+                                name.to_str().expect(
+                                    ""Expect postgres field names to be UTF-8, because we \
+-                     requested UTF-8 encoding on connection setup"",
+                                ) as *const str
+                            })",,safe_replacement,PQfname/CStr raw handling replaced by column_name helper
+cvefixes-diff:372:e4a29e145c:diesel/src/pg/connection/result.rs:205-270,diff,safe,diesel-rs_diesel,372,diesel,Medium,Other,e4a29e145c61aa3981f8e9dda861c2eecead6944,df1f3ee56d8c8ae17dfab081de36a17668bfb31c,diesel/src/pg/connection/result.rs,column_count,ptr::deref,205,270,"    StatementPosition = 'P' as i32,
+}
+
+fn get_result_field<'a>(res: *mut PGresult, field: ResultField) -> Option<&'a str> {
+    let ptr = unsafe { PQresultErrorField(res, field as libc::c_int) };
+    if ptr.is_null() {
+        return None;
+    }
+
+    let c_str = unsafe { CStr::from_ptr(ptr) };
+    c_str.to_str().ok()
+}
+","struct PgErrorInformation {
+    result: RawResult,
+}
+        self.result
+            .get_result_field(ResultField::MessagePrimary)
+            .unwrap_or_else(|| self.result.error_message())
+        self.result.get_result_field(ResultField::MessageDetail)
+        self.result.get_result_field(ResultField::MessageHint)
+        self.result.get_result_field(ResultField::TableName)
+        self.result.get_result_field(ResultField::ColumnName)
+        self.result.get_result_field(ResultField::ConstraintName)
+        let str_pos = self
+            .result
+            .get_result_field(ResultField::StatementPosition)?;",,safe_replacement,raw error field handling replaced by safe helper
+cvefixes-diff:372:e4a29e145c:diesel/src/sqlite/connection/functions.rs:129-154,diff,safe,diesel-rs_diesel,372,diesel,Medium,Other,e4a29e145c61aa3981f8e9dda861c2eecead6944,df1f3ee56d8c8ae17dfab081de36a17668bfb31c,diesel/src/sqlite/connection/functions.rs,process_sql_function_result,ptr::deref,129,154,"            && Rc::strong_count(column_names) == 1
+        {
+            // According the https://doc.rust-lang.org/std/mem/struct.ManuallyDrop.html#method.drop
+            // it's fine to just drop the values here
+            unsafe { core::ptr::drop_in_place(column_names as *mut _) }
+        }
+    }","    args: &'a [Option<OwnedSqliteValue>],",,false_positive,"new snippet is a function signature, not the drop_in_place replacement"
+cvefixes-diff:372:e4a29e145c:diesel/src/sqlite/connection/raw.rs:481-534,diff,safe,diesel-rs_diesel,372,diesel,Medium,Other,e4a29e145c61aa3981f8e9dda861c2eecead6944,df1f3ee56d8c8ae17dfab081de36a17668bfb31c,diesel/src/sqlite/connection/raw.rs,run_aggregator_step,ptr::deref,481,534,"        ""We've written the aggregator to the aggregate context, but it could not be retrieved."";
+    let n_bytes: i32 = core::mem::size_of::<OptionalAggregator<A>>()
+        .try_into()
+        .expect(""Aggregate context should be larger than 2^32"");
+    let aggregate_context = unsafe {
+        // This block of unsafe code makes the following assumptions:
+        //
+        // * sqlite3_aggregate_context allocates sizeof::<OptionalAggregator<A>>
+        //   bytes of zeroed memory as documented here:","        ""We've written the aggregator to the user data, but it could not be retrieved."";
+        // SAFETY:
+        // * We set the corresponding data in `register_aggregate_function` above
+        // * It has the correct type
+        let aggregate_context = ffi::sqlite3_user_data(ctx) as *mut Option<A>;
+        // SAFETY:
+        // * The layout is correct as we allocated the value on the rust side
+        // * The alignment is correct as we allocated the value on the rust side
+        match aggregate_context.as_mut() {
+            Some(Some(agg)) => agg,
+            Some(r) => {
+                *r = Some(A::default());
+                r.as_mut().expect(""Initialised literally above"")
+            None => return Err(SqliteCallbackError::Abort(NULL_CTX_ERR)),
+",,safe_replacement,raw aggregator pointer handling replaced by safe accessors
+cvefixes-diff:372:e4a29e145c:diesel/src/type_impls/primitives.rs:130-143,diff,safe,diesel-rs_diesel,372,diesel,Medium,Other,e4a29e145c61aa3981f8e9dda861c2eecead6944,df1f3ee56d8c8ae17dfab081de36a17668bfb31c,diesel/src/type_impls/primitives.rs,,ptr::deref,130,143,"    *const str: FromSql<ST, DB>,
+    #[allow(unsafe_code)] // ptr dereferencing
+        let str_ptr = <*const str as FromSql<ST, DB>>::from_sql(bytes)?;
+        // We know that the pointer impl will never return null
+        let string = unsafe { &*str_ptr };
+        Ok(string.to_owned())","    for<'a> &'a str: FromSqlRef<'a, ST, DB>,
+        <&str as FromSqlRef<'_, ST, DB>>::from_sql(bytes).map(|v| v.to_owned())",,safe_replacement,*const str FromSql replaced by safe ref impl
+cvefixes-diff:372:e4a29e145c:diesel/src/type_impls/primitives.rs:169-182,diff,safe,diesel-rs_diesel,372,diesel,Medium,Other,e4a29e145c61aa3981f8e9dda861c2eecead6944,df1f3ee56d8c8ae17dfab081de36a17668bfb31c,diesel/src/type_impls/primitives.rs,to_sql,ptr::deref,169,182,"    *const [u8]: FromSql<ST, DB>,
+    #[allow(unsafe_code)] // ptr dereferencing
+        let slice_ptr = <*const [u8] as FromSql<ST, DB>>::from_sql(bytes)?;
+        // We know that the pointer impl will never return null
+        let bytes = unsafe { &*slice_ptr };
+        Ok(bytes.to_owned())","    for<'a> &'a [u8]: FromSqlRef<'a, ST, DB>,
+        <&[u8] as FromSqlRef<'_, ST, DB>>::from_sql(bytes).map(|v| v.to_owned())",,safe_replacement,*const [u8] FromSql replaced by safe ref impl
+cvefixes-diff:670:0a1da873dd:src/expander/immediate.rs:14-36,diff,safe,edarc_max7301,670,max7301,Medium,Memory Management;Synchronization,0a1da873ddb29bca926bad8301f8d7ab8aa97c52,fb11c86f9bc2c45c0bc3fd14b5780c9c47f6320e,src/expander/immediate.rs,,,14,36,"// Unsafety: This is only needed because the presence of PhantomData<EI> causes the struct to no
+// longer be Sync, because EI is often not Sync since it owns a global resource (e.g. SPI device).
+// However, the EI is actually owned by the Expander which is in the mutex which normally
+// re-instates Sync-ness. PhantomData is there to shut up the unused type parameter error.
+unsafe impl<M, EI> Sync for ImmediateIO<M, EI>
+where
+    M: IOMutex<Expander<EI>>,
+    EI: ExpanderInterface,
+{","    EI: ExpanderInterface + Send;
+    EI: ExpanderInterface + Send,",,false_positive,unsafe appears in a comment; not a block replacement
+cvefixes-diff:670:0a1da873dd:src/expander/transactional.rs:58-78,diff,safe,edarc_max7301,670,max7301,Medium,Memory Management;Synchronization,0a1da873ddb29bca926bad8301f8d7ab8aa97c52,fb11c86f9bc2c45c0bc3fd14b5780c9c47f6320e,src/expander/transactional.rs,,,58,78,"// NOTE(unsafe): This is only needed because the presence of PhantomData<EI> causes the struct to
+// no longer be Sync, because EI is often not Sync since it owns a global resource (e.g. SPI
+// device).  However, the EI is actually owned by the Expander which is in the mutex which normally
+// re-instates Sync-ness. PhantomData is there to shut up the unused type parameter error.
+unsafe impl<M, EI> Sync for TransactionalIO<M, EI>
+where
+    M: IOMutex<Expander<EI>>,
+    EI: ExpanderInterface,
+{","    EI: ExpanderInterface + Send,",,false_positive,unsafe appears in a block comment; actual unsafe impl retained
+cvefixes-diff:417:cdc8204a11:tests/monster_test/my_game/example/color_generated.rs:44-59,diff,safe,google_flatbuffers,417,flatbuffers,Critical,,cdc8204a111293a362280855e37ce4cd32c1280b,4534bf31b45d19ba5df58955a5425ccdc1bb2601,tests/monster_test/my_game/example/color_generated.rs,push,,44,59,"  fn to_little_endian(self) -> Self {
+    let b = u8::to_le(self.bits());
+    unsafe { Self::from_bits_unchecked(b) }
+  fn from_little_endian(self) -> Self {
+    let b = u8::from_le(self.bits());
+    unsafe { Self::from_bits_unchecked(b) }","  type Scalar = u8;
+  fn to_little_endian(self) -> u8 {
+    self.bits().to_le()
+  fn from_little_endian(v: u8) -> Self {
+    let b = u8::from_le(v);
+    Self::from_bits_truncate(b)",,safe_replacement,from_bits_unchecked replaced by from_bits_truncate
+cvefixes-diff:417:cdc8204a11:tests/monster_test/my_game/example/long_enum_generated.rs:40-55,diff,safe,google_flatbuffers,417,flatbuffers,Critical,,cdc8204a111293a362280855e37ce4cd32c1280b,4534bf31b45d19ba5df58955a5425ccdc1bb2601,tests/monster_test/my_game/example/long_enum_generated.rs,push,,40,55,"  fn to_little_endian(self) -> Self {
+    let b = u64::to_le(self.bits());
+    unsafe { Self::from_bits_unchecked(b) }
+  fn from_little_endian(self) -> Self {
+    let b = u64::from_le(self.bits());
+    unsafe { Self::from_bits_unchecked(b) }","  type Scalar = u64;
+  fn to_little_endian(self) -> u64 {
+    self.bits().to_le()
+  fn from_little_endian(v: u64) -> Self {
+    let b = u64::from_le(v);
+    Self::from_bits_truncate(b)",,safe_replacement,from_bits_unchecked replaced by from_bits_truncate
+cvefixes-diff:417:cdc8204a11:tests/monster_test_serialize/my_game/example/color_generated.rs:55-70,diff,safe,google_flatbuffers,417,flatbuffers,Critical,,cdc8204a111293a362280855e37ce4cd32c1280b,4534bf31b45d19ba5df58955a5425ccdc1bb2601,tests/monster_test_serialize/my_game/example/color_generated.rs,push,,55,70,"  fn to_little_endian(self) -> Self {
+    let b = u8::to_le(self.bits());
+    unsafe { Self::from_bits_unchecked(b) }
+  fn from_little_endian(self) -> Self {
+    let b = u8::from_le(self.bits());
+    unsafe { Self::from_bits_unchecked(b) }","  type Scalar = u8;
+  fn to_little_endian(self) -> u8 {
+    self.bits().to_le()
+  fn from_little_endian(v: u8) -> Self {
+    let b = u8::from_le(v);
+    Self::from_bits_truncate(b)",,safe_replacement,from_bits_unchecked replaced by from_bits_truncate
+cvefixes-diff:417:cdc8204a11:tests/monster_test_serialize/my_game/example/long_enum_generated.rs:51-66,diff,safe,google_flatbuffers,417,flatbuffers,Critical,,cdc8204a111293a362280855e37ce4cd32c1280b,4534bf31b45d19ba5df58955a5425ccdc1bb2601,tests/monster_test_serialize/my_game/example/long_enum_generated.rs,push,,51,66,"  fn to_little_endian(self) -> Self {
+    let b = u64::to_le(self.bits());
+    unsafe { Self::from_bits_unchecked(b) }
+  fn from_little_endian(self) -> Self {
+    let b = u64::from_le(self.bits());
+    unsafe { Self::from_bits_unchecked(b) }","  type Scalar = u64;
+  fn to_little_endian(self) -> u64 {
+    self.bits().to_le()
+  fn from_little_endian(v: u64) -> Self {
+    let b = u64::from_le(v);
+    Self::from_bits_truncate(b)",,safe_replacement,from_bits_unchecked replaced by from_bits_truncate
+cvefixes-diff:193:0e6006de46:src/de.rs:70-76,diff,safe,hrektts_cdr-rs,193,cdr,Critical,Exception Management;Memory Access,0e6006de464caa331643f86cd2d9ba3b32b09833,880a281afe6f49109a90e2a8bb943c02a360bf49,src/de.rs,read_vec,set_len,70,76,        unsafe { buf.set_len(len as usize) },"        buf.resize(len as usize, 0);",,safe_replacement,set_len replaced by resize
+cvefixes-diff:529:3c607a003e:src/rust/iced-x86/src/decoder.rs:728-743,diff,safe,icedland_iced,529,iced-x86,Critical,Memory Access,3c607a003e03b773108401d109167d1840487dce,8209aa94f9b62c5be606292038fb86eee232fb85,src/rust/iced-x86/src/decoder.rs,get_handlers,ptr::deref,728,743,"		// SAFETY: creating a reference 1 byte past the last valid byte is safe as long as we don't dereference it
+		let data_ptr_end: *const u8 = unsafe { data.get_unchecked(data.len()) };
+		if data_ptr_end < data.as_ptr() || {
+			// Verify that max_data_ptr can never overflow and that data_ptr.add(N) can't overflow
+			if let Some(index) = data.len().checked_add(IcedConstants::MAX_INSTRUCTION_LENGTH + 4) {
+				data.as_ptr().wrapping_add(index) < data.as_ptr()","		let data_ptr_end = data.as_ptr() as usize + data.len();
+		if data_ptr_end < data.as_ptr() as usize || {
+			// Verify that max_data_ptr can never overflow and that data_ptr.add(N) can't overflow.
+			// Both of them can equal data_ptr_end (1 byte past the last valid byte).
+			// When reading a u8/u16/u32..., we calculate data_ptr.add({1,2,4,...MAX_READ_SIZE}) so it must not overflow.
+			// In decode(), we calculate data_ptr.add(MAX_INSTRUCTION_LENGTH) so it must not overflow.
+			data_ptr_end.wrapping_add(cmp::max(IcedConstants::MAX_INSTRUCTION_LENGTH, Decoder::MAX_READ_SIZE)) < data.as_ptr() as usize",,safe_replacement,get_unchecked pointer end replaced by as_ptr arithmetic
+cvefixes-diff:529:3c607a003e:src/rust/iced-x86/src/decoder.rs:961-970,diff,safe,icedland_iced,529,iced-x86,Critical,Memory Access,3c607a003e03b773108401d109167d1840487dce,8209aa94f9b62c5be606292038fb86eee232fb85,src/rust/iced-x86/src/decoder.rs,try_set_position,get_unchecked,961,970,"			// SAFETY:
+			self.data_ptr = unsafe { self.data.get_unchecked(new_pos) };",			self.data_ptr = self.data.as_ptr() as usize + new_pos;,,safe_replacement,get_unchecked replaced by as_ptr arithmetic
+cvefixes-diff:529:3c607a003e:src/rust/iced-x86/src/decoder.rs:1208-1214,diff,safe,icedland_iced,529,iced-x86,Critical,Memory Access,3c607a003e03b773108401d109167d1840487dce,8209aa94f9b62c5be606292038fb86eee232fb85,src/rust/iced-x86/src/decoder.rs,decode_out_ptr,ptr::deref,1208,1214,			if (((*self.prefixes.get_unchecked(b / 32)) >> (b & 31)) & 1) == 0 {,			if (((*self.prefixes.add(b / 32)) >> (b & 31)) & 1) == 0 {,,unclear,"get_unchecked replaced by raw add; deref remains, context needed"
+cvefixes-diff:885:dde31d26fd:pnet_macros/src/decorator.rs:657-670,diff,safe,libpnet_libpnet,885,pnet,Medium,Exception Management;Memory Management,dde31d26fd7b8ea23fbcb2928583a7882748e653,dcca97dcb662d02cf3d1b0ea61e878fa20972fa3,pnet_macros/src/decorator.rs,get_,ptr::copy_nonoverlapping,657,670,"            // Efficient copy_nonoverlapping (memcpy)
+                                    // &mut and & can never overlap
+                                    unsafe {{
+                                        copy_nonoverlapping(vals[..].as_ptr(),
+                                                            _self.packet[current_offset..].as_mut_ptr(),
+                                                            vals.len())
+                                    }}","            // Efficient copy_from_slice (memcpy)
+                                    _self.packet[current_offset..current_offset + vals.len()]
+                                        .copy_from_slice(vals);",,safe_replacement,copy_nonoverlapping replaced by copy_from_slice
+cvefixes-diff:478:c8219563bc:src/covdir.rs:59-69,diff,safe,mozilla_grcov,478,grcov,Medium,Memory Access;Memory Management,c8219563bc91615dd4a27884a5c63f09db8d03bb,9d7b882be80f666b22da956697a26579dd884b34,src/covdir.rs,get_coverage,ptr::deref,59,69,"            let line_count = *line_count;
+            unsafe {
+                *lines.get_unchecked_mut((*line_num - 1) as usize) = line_count as i64;
+            covered += (line_count > 0) as usize;","            if let Some(line) = lines.get_mut((*line_num - 1) as usize) {
+                *line = *line_count as i64;
+                covered += (*line_count > 0) as usize;",,safe_replacement,get_unchecked_mut replaced by get_mut
+cvefixes-diff:151:ae9b8dd23c:borsh/src/de/mod.rs:383-397,diff,safe,near_borsh-rs,151,borsh,Medium,Memory Management,ae9b8dd23c669d59fb34a37067e14a1b5024281c,79097e3c71ae469a101b4828457792bcf8be7f5f,borsh/src/de/mod.rs,deserialize_reader,Vec::from_raw_parts,383,397,"            let mut result = vec![T::deserialize_reader(reader)?];
+
+            let p = result.as_mut_ptr();
+            unsafe {
+                forget(result);
+                let len = len.try_into().map_err(|_| ErrorKind::InvalidInput)?;
+                let result = Vec::from_raw_parts(p, len, len);
+                Ok(result)
+            }","            let result = vec![T::deserialize_reader(reader)?];
+            Ok(result)",,safe_replacement,from_raw_parts round-trip replaced by owned Vec
+cvefixes-diff:963:3f00e1fa01:risc0/zkos/v1compat/src/main.rs:72-80,diff,safe,risc0_risc0,963,risc0-zkvm-platform,Critical,Tainted Input,3f00e1fa0159599c1601e788021f2169d1f0a4dc,040353b1986d6fd30f29d5e9adda58dac4a8265b,risc0/zkos/v1compat/src/main.rs,main,,72,80,"    fn assert_user_ptr(ptr: usize) {
+        if ptr >= USER_END_ADDR {
+            unsafe { illegal_instruction() };","    fn assert_user_ptr<T>(ptr: *const T) {
+        if ptr as usize >= USER_END_ADDR {
+            illegal_instruction();
+        }
+    }
+
+    fn assert_user_raw_slice(ptr: *const u8, nbytes: u32) {
+        if nbytes > 0 && (ptr as usize).saturating_add(nbytes as usize) > USER_END_ADDR {
+            illegal_instruction()",,safe_replacement,unsafe call/signature replaced by safe helper and typed pointer
+cvefixes-diff:411:bb661f29e0:src/lib.rs:91-97,diff,safe,rust-lang_ferris-says,411,ferris-says,Low,,bb661f29e0d88968c495a4ea4dc63ff0e2c2c11a,0e1ecba516012cc167e920f1aba206b64ef1cb02,src/lib.rs,say,,91,97,"    let wrapped = fill(unsafe { str::from_utf8_unchecked(input) }, max_width);","    let wrapped = fill(
+        str::from_utf8(input).map_err(|_| std::io::ErrorKind::InvalidData)?,
+        max_width,
+    );",,safe_replacement,from_utf8_unchecked replaced by from_utf8
+cvefixes-diff:1111:e64afc8c47:lib.rs:403-413,diff,safe,servo_rust-smallvec,1111,smallvec,Medium,Exception Management;Risky Values,e64afc8c473d43e375ab42bd33db2d0d4ac4e41b,87f156b7adc96100571baf602d5bc61bd4431626,lib.rs,from_heap,uninitialized,403,413,"        unsafe {
+            SmallVec {
+                capacity: 0,
+                data: SmallVecData::from_inline(mem::uninitialized()),
+            }","        // Try to detect invalid custom implementations of `Array`. Hopefuly,
+        // this check should be optimized away entirely for valid ones.
+        assert!(
+            mem::size_of::<A>() == A::size() * mem::size_of::<A::Item>()
+                && mem::align_of::<A>() >= mem::align_of::<A::Item>()
+        );
+        SmallVec {
+            capacity: 0,
+            data: SmallVecData::from_inline(MaybeUninit::uninit()),",,safe_replacement,mem::uninitialized replaced by MaybeUninit::uninit + layout assert
+cvefixes-diff:1113:5757ac500d:lib.rs:844-859,diff,safe,servo_rust-smallvec,1113,smallvec,Critical,Memory Access;Memory Management,5757ac500d4e544485d796b542e4e589749c291b,78522049b3ce129d02eea4e802747ba1090a5586,lib.rs,insert_many,ptr::copy,844,859,"                    // Iterator provided more elements than the hint.  Move trailing items again.
+                    self.reserve(1);
+                    ptr = self.as_mut_ptr().offset(index as isize);
+                    cur = ptr.offset(num_added as isize);
+                    ptr::copy(cur, cur.offset(1), old_len - index);
+                }","            while num_added < lower_size_bound {
+                let element = match iter.next() {
+                    Some(x) => x,
+                    None => break,
+                };
+                let cur = ptr.offset(num_added as isize);",,unclear,hunk mixes a loop rewrite with ptr::copy; pair not clean
+cvefixes-diff:1113:9998ba0694:src/lib.rs:1036-1077,diff,safe,servo_rust-smallvec,1113,smallvec,Critical,Memory Access;Memory Management,9998ba0694a6b51aa6604748b00b6a98f0a0039e,0b2b4e53a5cf86740b2515907dd53252b3b59401,src/lib.rs,insert_many,ptr::copy,1036,1077,"                    self.reserve(1);
+                    let start = self.as_mut_ptr();
+                    ptr = start.add(index);
+                    cur = ptr.add(num_added);
+                    ptr::copy(cur, cur.add(1), old_len - index);
+
+                    guard.start = start;
+                    guard.len += 1;
+                    guard.skip.end += 1;","            while num_added < lower_size_bound {
+                let element = match iter.next() {
+                    Some(x) => x,
+                    None => break,
+                };
+                let cur = ptr.add(num_added);
+                // Iterator provided fewer elements than the hint. Move the tail backward.
+            // There are no more duplicate or uninitialized slots, so the guard is not needed.
+            mem::forget(guard);
+        }
+
+        // Insert any remaining elements one-by-one.
+        for element in iter {
+            self.insert(index + num_added, element);
+            num_added += 1;
+            skip: Range<usize>, // Space we copied-out-of, but haven't written-to yet.",,safe_replacement,ptr::copy raw insert replaced by loop
+cvefixes-diff:608:ffeff7c65d:src/gzip.rs:1118-1150,diff,safe,sile_libflate,608,libflate,Critical,Resource Management,ffeff7c65deac5a6f886db2a59bcae4e420e4706,a2971a4d985d9c4beca9000c28aa4a23f9f9a3c2,src/gzip.rs,read,uninitialized,1118,1150,"            let mut reader = mem::replace(&mut self.decoder, Err(unsafe { mem::uninitialized() }))
+                .ok()
+                .take()
+                .expect(""Never fails"")
+                .into_inner();","        // take_mut closure must have the type it borrows as return type,
+        // so we put the function return result to this variable instead.
+        // If function logic is correct, these initial values will never be returned.
+        let mut result: io::Result<usize> = Err(
+            io::Error::new(io::ErrorKind::Other, ""If you see this error, please report a bug in libflate"")
+        );
+            take_mut::take(self, |mut owned_self| {
+                let mut reader = owned_self.decoder.ok().take().expect(""Never fails"").into_inner();
+                match Header::read_from(&mut reader) {
+                    Err(e) => {
+                        if e.kind() == io::ErrorKind::UnexpectedEof {
+                            result = Ok(0);
+                        } else {
+                            result = Err(e);
+                        }
+                        owned_self.decoder = Err(reader);
+                        owned_self
+                    }
+                    Ok(header) => {
+                        owned_self.header = header.clone();
+                        owned_self.decoder = Ok(Decoder::with_header(reader, header));
+                        result = owned_self.read(buf);
+                        owned_self
+            })
+            result = Ok(read_size);
+        result",,unclear,large hunk; old uninitialized replacement and new snippet are not cleanly aligned
+cvefixes-diff:1240:cdff034e6d:crates/xdv/src/lib.rs:221-230,diff,safe,tectonic-typesetting_tectonic,1240,tectonic_xdv,Critical,Exception Management;Memory Access,cdff034e6d93cdfdafd13d8c6956e22fa5a57b79,c86ad4140a7b59c4f5a1db2f0adbb966285e75cd,crates/xdv/src/lib.rs,process,set_len,221,230,"        let mut buf = Vec::with_capacity(BUF_SIZE);
+        unsafe {
+            buf.set_len(BUF_SIZE);
+        }","        // Note that it is unsound to pass uninitialized data to a read() call,
+        // even though it *should* never cause problems ...
+        let mut buf = vec![0; BUF_SIZE];",,safe_replacement,set_len replaced by vec![0; n]
+cvefixes:1240:cdff034e6d:::process:225-227,analyzer,safe,tectonic-typesetting_tectonic,1240,tectonic_xdv,Critical,Exception Management;Memory Access,cdff034e6d93cdfdafd13d8c6956e22fa5a57b79,c86ad4140a7b59c4f5a1db2f0adbb966285e75cd,crates/xdv/src/lib.rs,::process,set_len,225,227,"        unsafe {
+            buf.set_len(BUF_SIZE);
+        }","        // Note that it is unsound to pass uninitialized data to a read() call,
+        // even though it *should* never cause problems ...
+        let mut buf = vec![0; BUF_SIZE];",,duplicate,same fix as row 44; analyzer duplicate
+cvefixes-diff:1264:4b174ce2c9:tokio/src/sync/broadcast.rs:1486-1492,diff,safe,tokio-rs_tokio,1264,tokio,Low,Memory Management;Resource Management,4b174ce2c95fe1d1a217917db93fcc935e17e0da,9681ce2b95ae7271c041f69b9fc48912259a7ea8,tokio/src/sync/broadcast.rs,clone_value,ptr::deref,1486,1492,        self.slot.val.with(|ptr| unsafe { (*ptr).clone() }),        self.slot.val.clone(),,safe_replacement,raw pointer clone replaced by safe slot clone
+cvefixes-diff:1264:4b174ce2c9:tokio/src/sync/broadcast.rs:1494-1501,diff,safe,tokio-rs_tokio,1264,tokio,Low,Memory Management;Resource Management,4b174ce2c95fe1d1a217917db93fcc935e17e0da,9681ce2b95ae7271c041f69b9fc48912259a7ea8,tokio/src/sync/broadcast.rs,drop,ptr::deref,1494,1501,"            // Safety: Last receiver, drop the value
+            self.slot.val.with_mut(|ptr| unsafe { *ptr = None });",            self.slot.val = None;,,safe_replacement,raw pointer write replaced by safe slot assignment
+cvefixes-diff:91:93953910a0:src/ascii_char.rs:483-513,diff,safe,tomprogrammer_rust-ascii,91,ascii,Medium,Memory Access;Memory Management,93953910a0e86e44f0b856a8157e99028d265d74,a82fa95e442201383ef1b4a89ff3bdd17e0a2c57,src/ascii_char.rs,make_ascii_lowercase,ptr::deref,483,513,"    /// Maps letters `a`...`z` to `A`...`Z` and returns everything else unchanged.
+    pub fn to_ascii_uppercase(&self) -> Self {
+        unsafe {
+            match *self as u8 {
+                b'a'..=b'z' => AsciiChar::from_unchecked(self.as_byte() - (b'a' - b'A')),
+                _ => *self,
+            }
+        }
+    /// Maps letters `A`...`Z` to `a`...`z` and returns everything else unchanged.
+    pub fn to_ascii_lowercase(&self) -> Self {
+        unsafe {
+            match *self as u8 {
+                b'A'..=b'Z' => AsciiChar::from_unchecked(self.as_byte() + (b'a' - b'A')),
+                _ => *self,
+            }","    /// Maps letters a-z to A-Z and returns any other character unchanged.
+    ///
+    /// # Examples
+    /// ```
+    /// # use ascii::AsciiChar;
+    /// assert_eq!(AsciiChar::new('u').to_ascii_uppercase().as_char(), 'U');
+    /// assert_eq!(AsciiChar::new('U').to_ascii_uppercase().as_char(), 'U');
+    /// assert_eq!(AsciiChar::new('2').to_ascii_uppercase().as_char(), '2');
+    /// assert_eq!(AsciiChar::new('=').to_ascii_uppercase().as_char(), '=');
+    /// assert_eq!(AsciiChar::new('[').to_ascii_uppercase().as_char(), '[');
+    /// ```
+    pub const fn to_ascii_uppercase(&self) -> Self {
+        [*self, AsciiChar::new((*self as u8 & 0b101_1111) as char)][self.is_lowercase() as usize]
+    /// Maps letters A-Z to a-z and returns any other character unchanged.
+    ///
+    /// # Examples
+    /// ```
+    /// # use ascii::AsciiChar;
+    /// assert_eq!(AsciiChar::new('U').to_ascii_lowercase().as_char(), 'u');
+    /// assert_eq!(AsciiChar::new('u').to_ascii_lowercase().as_char(), 'u');
+    /// assert_eq!(AsciiChar::new('2').to_ascii_lowercase().as_char(), '2');
+    /// assert_eq!(AsciiChar::new('^').to_ascii_lowercase().as_char(), '^');
+    /// assert_eq!(AsciiChar::new('\x7f').to_ascii_lowercase().as_char(), '\x7f');
+    /// ```
+    pub const fn to_ascii_lowercase(&self) -> Self {
+        [*self, AsciiChar::new(self.to_not_upper() as char)][self.is_uppercase() as usize]
+    #[inline]
+    pub const fn eq_ignore_ascii_case(&self, other: &Self) -> bool {
+        (self.as_byte() == other.as_byte()) |
+            (self.is_alphabetic() & (self.to_not_upper() == other.to_not_upper()))",,unclear,hunk context mixes adjacent methods; not a clean pair
+cvefixes-diff:73:dfeb84bfce:src/access.rs:205-243,diff,safe,vorner_arc-swap,73,arc-swap,High,Memory Management,dfeb84bfce2be11327749c152b3c8f4ea4304e12,b5ec44cd5d9b4b4a491cf85c1cbb2b1d5cdae061,src/access.rs,load,ptr::deref,205,243,"
+// Why these are safe:
+// * The *const T is actually used just as a &const T with 'self lifetime (which can't be done in
+//   Rust). So if the reference is Send/Sync, so is the raw pointer.
+unsafe impl<G, T> Send for MapGuard<G, T>
+where
+    G: Send,
+    for<'a> &'a T: Send,
+{
+unsafe impl<G, T> Sync for MapGuard<G, T>
+    G: Sync,
+    for<'a> &'a T: Sync,
+}
+
+impl<G, T> Deref for MapGuard<G, T> {
+    type Target = T;
+    fn deref(&self) -> &T {
+        // Why this is safe:
+        // * The pointer is originally converted from a reference. It's not null, it's aligned,
+        //   it's the right type, etc.
+        // * The pointee couldn't have gone away ‒ the guard keeps the original reference alive, so
+        //   must the new one still be alive too. Moving the guard is fine, we assume the RefCnt is
+        //   Pin (because it's Arc or Rc or something like that ‒ when that one moves, the data it
+        //   points to stay at the same place).
+        unsafe { &*self.value }","pub struct MapGuard<G, F, T, R> {
+    guard: G,
+    projection: F,
+    _t: PhantomData<fn(&T) -> &R>,
+impl<G, F, T, R> Deref for MapGuard<G, F, T, R>
+    G: Deref<Target = T>,
+    F: Fn(&T) -> &R,
+    type Target = R;
+    fn deref(&self) -> &R {
+        (self.projection)(&self.guard)",,false_positive,hunk sides are different code; not a replacement
+cvefixes-diff:73:34b809fbd0:src/access.rs:216-254,diff,safe,vorner_arc-swap,73,arc-swap,High,Memory Management,34b809fbd0db89206ddb91afc4ee8b7fc7de3b3b,77b5be77687cd9431f45b09fff92312717a92cf8,src/access.rs,load,ptr::deref,216,254,"
+// Why these are safe:
+// * The *const T is actually used just as a &const T with 'self lifetime (which can't be done in
+//   Rust). So if the reference is Send/Sync, so is the raw pointer.
+unsafe impl<G, T> Send for MapGuard<G, T>
+where
+    G: Send,
+    for<'a> &'a T: Send,
+{
+unsafe impl<G, T> Sync for MapGuard<G, T>
+    G: Sync,
+    for<'a> &'a T: Sync,
+}
+
+impl<G, T> Deref for MapGuard<G, T> {
+    type Target = T;
+    fn deref(&self) -> &T {
+        // Why this is safe:
+        // * The pointer is originally converted from a reference. It's not null, it's aligned,
+        //   it's the right type, etc.
+        // * The pointee couldn't have gone away ‒ the guard keeps the original reference alive, so
+        //   must the new one still be alive too. Moving the guard is fine, we assume the RefCnt is
+        //   Pin (because it's Arc or Rc or something like that ‒ when that one moves, the data it
+        //   points to stay at the same place).
+        unsafe { &*self.value }","pub struct MapGuard<G, F, T, R> {
+    guard: G,
+    projection: F,
+    _t: PhantomData<fn(&T) -> &R>,
+impl<G, F, T, R> Deref for MapGuard<G, F, T, R>
+    G: Deref<Target = T>,
+    F: Fn(&T) -> &R,
+    type Target = R;
+    fn deref(&self) -> &R {
+        (self.projection)(&self.guard)",,false_positive,hunk sides are different code; not a replacement
+cvefixes-diff:171:a535678377:byte_struct/src/lib.rs:408-424,diff,safe,wwylele_byte-struct-rs,171,byte_struct,Critical,Exception Management;Memory Access;Memory Management,a535678377de12bc6bc22620c5f59bcc1369f76f,9c41996e55bc91557edd6fa6f6a1c07a48c55731,byte_struct/src/lib.rs,write_bytes_default_le,ptr::write,408,424,"                let mut pos = 0;
+                let mut result: Self;
+                unsafe {
+                    result = std::mem::uninitialized();
+                    for i in 0 .. ($x) {
+                        std::ptr::write(&mut result[i], <T>::read_bytes_default_le(&bytes[pos .. pos + len]));
+                        pos += len;
+                    }
+                }
+                result","                (0 .. ($x)).map(|i| {
+                    <T>::read_bytes_default_le(&bytes[i * len .. (i + 1) * len])
+                }).collect::<Vec<_>>().try_into().map_err(|_|()).unwrap()",,safe_replacement,uninitialized writes replaced by iterator/collect
+cvefixes-diff:171:a535678377:byte_struct/src/lib.rs:429-445,diff,safe,wwylele_byte-struct-rs,171,byte_struct,Critical,Exception Management;Memory Access;Memory Management,a535678377de12bc6bc22620c5f59bcc1369f76f,9c41996e55bc91557edd6fa6f6a1c07a48c55731,byte_struct/src/lib.rs,write_bytes_default_be,ptr::write,429,445,"                let mut pos = 0;
+                let mut result: Self;
+                unsafe {
+                    result = std::mem::uninitialized();
+                    for i in 0 .. ($x) {
+                        std::ptr::write(&mut result[i], <T>::read_bytes_default_be(&bytes[pos .. pos + len]));
+                        pos += len;
+                    }
+                }
+                result","                (0 .. ($x)).map(|i| {
+                    <T>::read_bytes_default_be(&bytes[i * len .. (i + 1) * len])
+                }).collect::<Vec<_>>().try_into().map_err(|_|()).unwrap()",,safe_replacement,uninitialized writes replaced by iterator/collect

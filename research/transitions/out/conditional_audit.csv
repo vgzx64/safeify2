@@ -1,0 +1,31 @@
+id,method,observed,repo,cve,package,severity,sfp_categories,commit,parent_commit,path,fn,api,span_start,span_end,old_snippet,safe_snippet,auto_category,label,notes
+cvefixes-pattern:93:2c98b6f384:ash/src/util.rs:113-127:set_len,pattern,conditional,ash-rs_ash,93,ash,High,Exception Management;Memory Access,2c98b6f384a017de031698bd623551a45f24c8f9,17149bd791cd6e09b145063a238d3e27d855780c,ash/src/util.rs,read_spv,set_len,113,127,"            result.as_mut_ptr() as *mut u8,
+            words * 4,
+        ))?;
+        result.set_len(words);
+    }","    // https://github.com/MaikKlein/ash/issues/354:
+    // Zero-initialize the result to prevent read_exact from possibly
+    // reading uninitialized memory.
+    let mut result = vec![0u32; words];
+    x.read_exact(unsafe { slice::from_raw_parts_mut(result.as_mut_ptr() as *mut u8, words * 4) })?;",,conditional,set_len replaced by zero-filled Vec but from_raw_parts_mut remains unsafe
+cvefixes-pattern:307:e0fd465b9b:crossbeam-epoch/src/deferred.rs:36-46:uninit,pattern,conditional,crossbeam-rs_crossbeam,307,crossbeam,Medium,,e0fd465b9b7de8b60b0b588e264aca1fa92fbd18,68e8708c2dda24e4b3b1807f5f301ca2b8ffa357,crossbeam-epoch/src/deferred.rs,new,uninit,36,46,"                // TODO(taiki-e): when the minimum supported Rust version is bumped to 1.36+,
+                // replace this with `mem::MaybeUninit`.
+                #[allow(deprecated)]
+                let mut data: Data = mem::uninitialized();
+                ptr::write(&mut data as *mut Data as *mut F, f);","                let mut data = MaybeUninit::<Data>::uninit();
+                ptr::write(data.as_mut_ptr() as *mut F, f);",,conditional,uninitialized replaced by MaybeUninit; ptr::write remains unsafe
+cvefixes-diff:307:f48c1c763a:crossbeam-epoch/src/sync/queue.rs:126-132,diff,conditional,crossbeam-rs_crossbeam,307,crossbeam,Medium,,f48c1c763a73467e2fde6158c0abc2faa162ae81,e0fd465b9b7de8b60b0b588e264aca1fa92fbd18,crossbeam-epoch/src/sync/queue.rs,pop_internal,ptr::read,126,132,                        Some(ManuallyDrop::into_inner(ptr::read(&n.data))),"                        // TODO: Replace with MaybeUninit::read when api is stable
+                        Some(n.data.as_ptr().read())",,conditional,"ptr::read replaced by pointer .read(); still unsafe, not a safe replacement"
+cvefixes-pattern:1111:e64afc8c47:lib.rs:447-456:uninit,pattern,conditional,servo_rust-smallvec,1111,smallvec,Medium,Exception Management;Risky Values,e64afc8c473d43e375ab42bd33db2d0d4ac4e41b,87f156b7adc96100571baf602d5bc61bd4431626,lib.rs,from_vec,uninit,447,456,"                let mut data = SmallVecData::<A>::from_inline(mem::uninitialized());
+                ptr::copy_nonoverlapping(vec.as_ptr(), data.inline_mut().ptr_mut(), len);","                let mut data = SmallVecData::<A>::from_inline(MaybeUninit::uninit());
+                ptr::copy_nonoverlapping(vec.as_ptr(), data.inline_mut(), len);",,conditional,MaybeUninit replaces uninitialized but ptr::copy_nonoverlapping remains unsafe
+cvefixes-pattern:1111:e64afc8c47:lib.rs:651-658:uninit,pattern,conditional,servo_rust-smallvec,1111,smallvec,Medium,Exception Management;Risky Values,e64afc8c473d43e375ab42bd33db2d0d4ac4e41b,87f156b7adc96100571baf602d5bc61bd4431626,lib.rs,grow,uninit,651,658,"                self.data = SmallVecData::from_inline(mem::uninitialized());
+                ptr::copy_nonoverlapping(ptr, self.data.inline_mut().ptr_mut(), len);","                self.data = SmallVecData::from_inline(MaybeUninit::uninit());
+                ptr::copy_nonoverlapping(ptr, self.data.inline_mut(), len);",,conditional,"initialization safer but ptr::copy_nonoverlapping remains unsafe; conditional/guard, not a full safe replacement"
+cvefixes-pattern:1111:e64afc8c47:lib.rs:1041-1048:uninit,pattern,conditional,servo_rust-smallvec,1111,smallvec,Medium,Exception Management;Risky Values,e64afc8c473d43e375ab42bd33db2d0d4ac4e41b,87f156b7adc96100571baf602d5bc61bd4431626,lib.rs,from_slice,uninit,1041,1048,"                    let mut data: A = mem::uninitialized();
+                    ptr::copy_nonoverlapping(slice.as_ptr(), data.ptr_mut(), len);","                    let mut data: MaybeUninit<A> = MaybeUninit::uninit();
+                    ptr::copy_nonoverlapping(
+                        slice.as_ptr(),
+                        data.as_mut_ptr() as *mut A::Item,
+                        len,
+                    );",,conditional,"initialization safer but ptr::copy_nonoverlapping remains unsafe; conditional/guard, not a full safe replacement"

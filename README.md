@@ -11,6 +11,7 @@ real-data evaluation split.
 | Documentation index | [notes/README.md](notes/README.md) | Active notes, research background, archive policy |
 | Current milestone | [notes/nirm3/README.md](notes/nirm3/README.md) | NIRM 3 status, scope, Definition of Done, blockers |
 | Current results | [notes/nirm3/results.md](notes/nirm3/results.md) | Frozen-split protocol, reproducible numbers, limitations |
+| Dataset plan | [notes/research/transition-dataset.md](notes/research/transition-dataset.md) | Classification/retrieval labels, splits, quality gates |
 | Experiments | [research/README.md](research/README.md) | `detect/`, `gnn/`, `synth/` and their READMEs |
 | Dissertation plan | [papers/my_dissertation_plan.md](papers/my_dissertation_plan.md) | Formal NIRM milestones and deadlines |
 | Archive | [notes/archive/README.md](notes/archive/README.md) | Superseded notes, kept for provenance only |

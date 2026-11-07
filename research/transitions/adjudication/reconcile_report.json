@@ -1,0 +1,11 @@
+{
+  "manual_only": 18,
+  "verifier_Y": 16,
+  "verifier_M": 2,
+  "removed_from_positive": 2,
+  "disagreements": [
+    "cvefixes-diff:1113:9998ba0694:src/lib.rs:1036-1077",
+    "cvefixes-diff:372:e4a29e145c:diesel/src/sqlite/connection/raw.rs:481-534"
+  ],
+  "reconciled": true
+}

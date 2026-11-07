@@ -1,0 +1,25 @@
+{
+  "rows": 231,
+  "by_split": {
+    "test": 78,
+    "train": 82,
+    "valid": 71
+  },
+  "by_label": {
+    "Y": 118,
+    "M": 57,
+    "N": 56
+  },
+  "by_split_label": {
+    "test:Y": 51,
+    "train:Y": 36,
+    "valid:Y": 31,
+    "valid:M": 17,
+    "train:M": 25,
+    "test:N": 12,
+    "valid:N": 23,
+    "test:M": 15,
+    "train:N": 21
+  },
+  "repos": 97
+}

@@ -1,0 +1,117 @@
+{
+  "cvefixes": {
+    "fix_commits": 742,
+    "file_changes": 3255,
+    "strict_unsafe_hunks": 772,
+    "hunk_kinds": {
+      "safe_candidate": 121,
+      "unsafe_retained": 366,
+      "unsafe_added": 285,
+      "duplicate": 98
+    },
+    "curated_manifest": 454,
+    "manifest_observed": {
+      "unsafe": 347,
+      "removed": 11,
+      "safe": 90,
+      "conditional": 6
+    }
+  },
+  "safenet": {
+    "testdata_files": 474,
+    "knowledgebase_files": 142,
+    "testdata_verdicts": {
+      "Y": 288,
+      "M": 40,
+      "N": 119,
+      "unknown": 27
+    }
+  },
+  "synth": {
+    "distinct_sequences": 333
+  },
+  "rustsec": {
+    "advisories": 1332,
+    "in_cvefixes": 863,
+    "not_in_cvefixes": 469,
+    "with_url": 1180,
+    "pr_commit_diffs_fetched": 147,
+    "diff_hunks": 189,
+    "diff_kinds": {
+      "unsafe_added": 89,
+      "advisories": 147,
+      "safe_candidate": 39,
+      "unsafe_retained": 61
+    },
+    "clean_safe_candidates": 12,
+    "adjudicated_pilot": 12,
+    "pilot_labels": {
+      "Y": 6,
+      "M": 2,
+      "U": 4,
+      "veto": 4
+    },
+    "issue_urls_resolved": 90,
+    "issue_diff_hunks": 59,
+    "issue_safe_candidates": 9,
+    "issue_clean_safe": 4
+  },
+  "notes": [
+    "CVEfixes strict_unsafe_hunks uses only unsafe keyword/known unsafe APIs, not generic pointer/as_ref heuristics.",
+    "RustSec diff rows are fetched from public PR/commit .diff URLs; not yet adjudicated at scale."
+  ],
+  "adjudication": {
+    "cvefixes_queue": 458,
+    "cvefixes_labeled": 206,
+    "rustsec_labeled": 16,
+    "cratesio_labeled": 54,
+    "combined_labeled": 276,
+    "combined_labels": {
+      "Y": 103,
+      "M": 65,
+      "N": 58,
+      "U": 50
+    },
+    "vetoed": 48,
+    "positive_union": 119,
+    "positive_families": 109,
+    "negative_core": 123,
+    "reconciled": true
+  },
+  "cratesio": {
+    "advisories_piloted": 200,
+    "hunks": 872,
+    "safe_candidates": 191,
+    "pilot_rows": 54,
+    "pilot_labels": {
+      "Y": 23,
+      "M": 5,
+      "N": 3,
+      "U": 23,
+      "veto": 23
+    }
+  },
+  "official_docs": {
+    "safety_sections": 897,
+    "public_safety": 310,
+    "examples": 469,
+    "files": 241,
+    "pilot_rows": 20,
+    "pilot_labels": {
+      "Y": 3,
+      "M": 8,
+      "N": 6,
+      "U": 3,
+      "veto": 3
+    }
+  },
+  "rust_for_linux": {
+    "commits_sampled": 8,
+    "hunks": 3,
+    "kinds": {
+      "unsafe_added": 2,
+      "unsafe_retained": 1
+    },
+    "note": "encapsulation source; no safe-candidate row in pilot"
+  }
+}

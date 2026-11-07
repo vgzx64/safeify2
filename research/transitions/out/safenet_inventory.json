@@ -1,0 +1,2856 @@
+{
+  "files": 474,
+  "apis": 18,
+  "verdicts": {
+    "N": 119,
+    "M": 40,
+    "Y": 288,
+    "?": 27
+  },
+  "rows": [
+    {
+      "rel_path": "Box::from_raw/1-1.rs",
+      "api": "Box::from_raw",
+      "pattern_id": 1,
+      "verdict": "N"
+    },
+    {
+      "rel_path": "Box::from_raw/1-10.rs",
+      "api": "Box::from_raw",
+      "pattern_id": 1,
+      "verdict": "N"
+    },
+    {
+      "rel_path": "Box::from_raw/1-11.rs",
+      "api": "Box::from_raw",
+      "pattern_id": 1,
+      "verdict": "N"
+    },
+    {
+      "rel_path": "Box::from_raw/1-12.rs",
+      "api": "Box::from_raw",
+      "pattern_id": 1,
+      "verdict": "N"
+    },
+    {
+      "rel_path": "Box::from_raw/1-13.rs",
+      "api": "Box::from_raw",
+      "pattern_id": 1,
+      "verdict": "N"
+    },
+    {
+      "rel_path": "Box::from_raw/1-2.rs",
+      "api": "Box::from_raw",
+      "pattern_id": 1,
+      "verdict": "N"
+    },
+    {
+      "rel_path": "Box::from_raw/1-3.rs",
+      "api": "Box::from_raw",
+      "pattern_id": 1,
+      "verdict": "N"
+    },
+    {
+      "rel_path": "Box::from_raw/1-4.rs",
+      "api": "Box::from_raw",
+      "pattern_id": 1,
+      "verdict": "N"
+    },
+    {
+      "rel_path": "Box::from_raw/1-5.rs",
+      "api": "Box::from_raw",
+      "pattern_id": 1,
+      "verdict": "N"
+    },
+    {
+      "rel_path": "Box::from_raw/1-6.rs",
+      "api": "Box::from_raw",
+      "pattern_id": 1,
+      "verdict": "N"
+    },
+    {
+      "rel_path": "Box::from_raw/1-7.rs",
+      "api": "Box::from_raw",
+      "pattern_id": 1,
+      "verdict": "N"
+    },
+    {
+      "rel_path": "Box::from_raw/1-8.rs",
+      "api": "Box::from_raw",
+      "pattern_id": 1,
+      "verdict": "N"
+    },
+    {
+      "rel_path": "Box::from_raw/1-9.rs",
+      "api": "Box::from_raw",
+      "pattern_id": 1,
+      "verdict": "N"
+    },
+    {
+      "rel_path": "Box::from_raw/2-1.rs",
+      "api": "Box::from_raw",
+      "pattern_id": 2,
+      "verdict": "M"
+    },
+    {
+      "rel_path": "Box::from_raw/2-2.rs",
+      "api": "Box::from_raw",
+      "pattern_id": 2,
+      "verdict": "M"
+    },
+    {
+      "rel_path": "Box::from_raw/3-1.rs",
+      "api": "Box::from_raw",
+      "pattern_id": 3,
+      "verdict": "N"
+    },
+    {
+      "rel_path": "Box::from_raw/3-2.rs",
+      "api": "Box::from_raw",
+      "pattern_id": 3,
+      "verdict": "N"
+    },
+    {
+      "rel_path": "Box::from_raw/3-3.rs",
+      "api": "Box::from_raw",
+      "pattern_id": 3,
+      "verdict": "N"
+    },
+    {
+      "rel_path": "Box::from_raw/3-4.rs",
+      "api": "Box::from_raw",
+      "pattern_id": 3,
+      "verdict": "N"
+    },
+    {
+      "rel_path": "Box::from_raw/3-5.rs",
+      "api": "Box::from_raw",
+      "pattern_id": 3,
+      "verdict": "N"
+    },
+    {
+      "rel_path": "Box::from_raw/4-1.rs",
+      "api": "Box::from_raw",
+      "pattern_id": 4,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "Box::from_raw/4-2.rs",
+      "api": "Box::from_raw",
+      "pattern_id": 4,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "Box::from_raw/4-3.rs",
+      "api": "Box::from_raw",
+      "pattern_id": 4,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "Box::from_raw/5-1.rs",
+      "api": "Box::from_raw",
+      "pattern_id": 5,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "CStr::from_ptr/1-1 .rs",
+      "api": "CStr::from_ptr",
+      "pattern_id": 1,
+      "verdict": "N"
+    },
+    {
+      "rel_path": "CStr::from_ptr/1-10.rs",
+      "api": "CStr::from_ptr",
+      "pattern_id": 1,
+      "verdict": "N"
+    },
+    {
+      "rel_path": "CStr::from_ptr/1-11.rs",
+      "api": "CStr::from_ptr",
+      "pattern_id": 1,
+      "verdict": "N"
+    },
+    {
+      "rel_path": "CStr::from_ptr/1-12.rs",
+      "api": "CStr::from_ptr",
+      "pattern_id": 1,
+      "verdict": "N"
+    },
+    {
+      "rel_path": "CStr::from_ptr/1-13.rs",
+      "api": "CStr::from_ptr",
+      "pattern_id": 1,
+      "verdict": "N"
+    },
+    {
+      "rel_path": "CStr::from_ptr/1-14.rs",
+      "api": "CStr::from_ptr",
+      "pattern_id": 1,
+      "verdict": "N"
+    },
+    {
+      "rel_path": "CStr::from_ptr/1-15.rs",
+      "api": "CStr::from_ptr",
+      "pattern_id": 1,
+      "verdict": "N"
+    },
+    {
+      "rel_path": "CStr::from_ptr/1-16.rs",
+      "api": "CStr::from_ptr",
+      "pattern_id": 1,
+      "verdict": "N"
+    },
+    {
+      "rel_path": "CStr::from_ptr/1-2.rs",
+      "api": "CStr::from_ptr",
+      "pattern_id": 1,
+      "verdict": "N"
+    },
+    {
+      "rel_path": "CStr::from_ptr/1-3.rs",
+      "api": "CStr::from_ptr",
+      "pattern_id": 1,
+      "verdict": "N"
+    },
+    {
+      "rel_path": "CStr::from_ptr/1-4.rs",
+      "api": "CStr::from_ptr",
+      "pattern_id": 1,
+      "verdict": "N"
+    },
+    {
+      "rel_path": "CStr::from_ptr/1-5.rs",
+      "api": "CStr::from_ptr",
+      "pattern_id": 1,
+      "verdict": "N"
+    },
+    {
+      "rel_path": "CStr::from_ptr/1-6.rs",
+      "api": "CStr::from_ptr",
+      "pattern_id": 1,
+      "verdict": "N"
+    },
+    {
+      "rel_path": "CStr::from_ptr/1-7.rs",
+      "api": "CStr::from_ptr",
+      "pattern_id": 1,
+      "verdict": "N"
+    },
+    {
+      "rel_path": "CStr::from_ptr/1-8.rs",
+      "api": "CStr::from_ptr",
+      "pattern_id": 1,
+      "verdict": "N"
+    },
+    {
+      "rel_path": "CStr::from_ptr/1-9.rs",
+      "api": "CStr::from_ptr",
+      "pattern_id": 1,
+      "verdict": "N"
+    },
+    {
+      "rel_path": "CStr::from_ptr/2-1.rs",
+      "api": "CStr::from_ptr",
+      "pattern_id": 2,
+      "verdict": "M"
+    },
+    {
+      "rel_path": "CStr::from_ptr/3-1.rs",
+      "api": "CStr::from_ptr",
+      "pattern_id": 3,
+      "verdict": "N"
+    },
+    {
+      "rel_path": "CStr::from_ptr/3-2.rs",
+      "api": "CStr::from_ptr",
+      "pattern_id": 3,
+      "verdict": "N"
+    },
+    {
+      "rel_path": "CStr::from_ptr/3-3.rs",
+      "api": "CStr::from_ptr",
+      "pattern_id": 3,
+      "verdict": "N"
+    },
+    {
+      "rel_path": "CStr::from_ptr/3-4.rs",
+      "api": "CStr::from_ptr",
+      "pattern_id": 3,
+      "verdict": "N"
+    },
+    {
+      "rel_path": "CStr::from_ptr/3-5.rs",
+      "api": "CStr::from_ptr",
+      "pattern_id": 3,
+      "verdict": "N"
+    },
+    {
+      "rel_path": "CStr::from_ptr/3-6.rs",
+      "api": "CStr::from_ptr",
+      "pattern_id": 3,
+      "verdict": "N"
+    },
+    {
+      "rel_path": "CStr::from_ptr/3-7.rs",
+      "api": "CStr::from_ptr",
+      "pattern_id": 3,
+      "verdict": "N"
+    },
+    {
+      "rel_path": "CStr::from_ptr/4-1.rs",
+      "api": "CStr::from_ptr",
+      "pattern_id": 4,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "CString::from_raw/1-1.rs",
+      "api": "CString::from_raw",
+      "pattern_id": 1,
+      "verdict": "N"
+    },
+    {
+      "rel_path": "CString::from_raw/1-2.rs",
+      "api": "CString::from_raw",
+      "pattern_id": 1,
+      "verdict": "N"
+    },
+    {
+      "rel_path": "CString::from_raw/1-3.rs",
+      "api": "CString::from_raw",
+      "pattern_id": 1,
+      "verdict": "N"
+    },
+    {
+      "rel_path": "CString::from_raw/1-4.rs",
+      "api": "CString::from_raw",
+      "pattern_id": 1,
+      "verdict": "N"
+    },
+    {
+      "rel_path": "CString::from_raw/1-5.rs",
+      "api": "CString::from_raw",
+      "pattern_id": 1,
+      "verdict": "N"
+    },
+    {
+      "rel_path": "CString::from_raw/1-6.rs",
+      "api": "CString::from_raw",
+      "pattern_id": 1,
+      "verdict": "N"
+    },
+    {
+      "rel_path": "CString::from_raw/1-8.rs",
+      "api": "CString::from_raw",
+      "pattern_id": 1,
+      "verdict": "N"
+    },
+    {
+      "rel_path": "CString::from_raw/2-1.rs",
+      "api": "CString::from_raw",
+      "pattern_id": 2,
+      "verdict": "M"
+    },
+    {
+      "rel_path": "CString::from_raw/2-2.rs",
+      "api": "CString::from_raw",
+      "pattern_id": 2,
+      "verdict": "M"
+    },
+    {
+      "rel_path": "CString::from_raw/2-3.rs",
+      "api": "CString::from_raw",
+      "pattern_id": 2,
+      "verdict": "M"
+    },
+    {
+      "rel_path": "CString::from_raw/3-1.rs",
+      "api": "CString::from_raw",
+      "pattern_id": 3,
+      "verdict": "N"
+    },
+    {
+      "rel_path": "CString::from_raw/3-2.rs",
+      "api": "CString::from_raw",
+      "pattern_id": 3,
+      "verdict": "N"
+    },
+    {
+      "rel_path": "CString::from_raw/3-3.rs",
+      "api": "CString::from_raw",
+      "pattern_id": 3,
+      "verdict": "N"
+    },
+    {
+      "rel_path": "CString::from_raw/3-4 .rs",
+      "api": "CString::from_raw",
+      "pattern_id": 3,
+      "verdict": "N"
+    },
+    {
+      "rel_path": "CString::from_raw/4-1.rs",
+      "api": "CString::from_raw",
+      "pattern_id": 4,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "CString::from_raw/4-2.rs",
+      "api": "CString::from_raw",
+      "pattern_id": 4,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "CString::from_raw/4-3.rs",
+      "api": "CString::from_raw",
+      "pattern_id": 4,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "CString::from_raw/4-4.rs",
+      "api": "CString::from_raw",
+      "pattern_id": 4,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "CString::from_raw/4-5.rs",
+      "api": "CString::from_raw",
+      "pattern_id": 4,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "CString::from_raw/4-6.rs",
+      "api": "CString::from_raw",
+      "pattern_id": 4,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "CString::from_raw/4-7.rs",
+      "api": "CString::from_raw",
+      "pattern_id": 4,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "Rc::from_raw/1-1.rs",
+      "api": "Rc::from_raw",
+      "pattern_id": 1,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "Rc::from_raw/1-10.rs",
+      "api": "Rc::from_raw",
+      "pattern_id": 1,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "Rc::from_raw/1-2.rs",
+      "api": "Rc::from_raw",
+      "pattern_id": 1,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "Rc::from_raw/1-3.rs",
+      "api": "Rc::from_raw",
+      "pattern_id": 1,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "Rc::from_raw/1-4.rs",
+      "api": "Rc::from_raw",
+      "pattern_id": 1,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "Rc::from_raw/1-5.rs",
+      "api": "Rc::from_raw",
+      "pattern_id": 1,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "Rc::from_raw/1-6.rs",
+      "api": "Rc::from_raw",
+      "pattern_id": 1,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "Rc::from_raw/1-7.rs",
+      "api": "Rc::from_raw",
+      "pattern_id": 1,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "Rc::from_raw/1-8.rs",
+      "api": "Rc::from_raw",
+      "pattern_id": 1,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "Rc::from_raw/1-9.rs",
+      "api": "Rc::from_raw",
+      "pattern_id": 1,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "Rc::from_raw/2-1.rs",
+      "api": "Rc::from_raw",
+      "pattern_id": 2,
+      "verdict": "M"
+    },
+    {
+      "rel_path": "Rc::from_raw/2-2.rs",
+      "api": "Rc::from_raw",
+      "pattern_id": 2,
+      "verdict": "M"
+    },
+    {
+      "rel_path": "Rc::from_raw/2-3.rs",
+      "api": "Rc::from_raw",
+      "pattern_id": 2,
+      "verdict": "M"
+    },
+    {
+      "rel_path": "Rc::from_raw/3-1.rs",
+      "api": "Rc::from_raw",
+      "pattern_id": 3,
+      "verdict": "N"
+    },
+    {
+      "rel_path": "Rc::from_raw/3-2.rs",
+      "api": "Rc::from_raw",
+      "pattern_id": 3,
+      "verdict": "N"
+    },
+    {
+      "rel_path": "Rc::from_raw/4-1.rs",
+      "api": "Rc::from_raw",
+      "pattern_id": 4,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "Rc::from_raw/4-2.rs",
+      "api": "Rc::from_raw",
+      "pattern_id": 4,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "Rc::from_raw/4-3.rs",
+      "api": "Rc::from_raw",
+      "pattern_id": 4,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "Rc::from_raw/4-4.rs",
+      "api": "Rc::from_raw",
+      "pattern_id": 4,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "Rc::from_raw/4-5.rs",
+      "api": "Rc::from_raw",
+      "pattern_id": 4,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "Rc::from_raw/pending.rs",
+      "api": "Rc::from_raw",
+      "pattern_id": null,
+      "verdict": "?"
+    },
+    {
+      "rel_path": "Vec::from_raw_parts/1-1.rs",
+      "api": "Vec::from_raw_parts",
+      "pattern_id": 1,
+      "verdict": "N"
+    },
+    {
+      "rel_path": "Vec::from_raw_parts/1-2.rs",
+      "api": "Vec::from_raw_parts",
+      "pattern_id": 1,
+      "verdict": "N"
+    },
+    {
+      "rel_path": "Vec::from_raw_parts/1-3.rs",
+      "api": "Vec::from_raw_parts",
+      "pattern_id": 1,
+      "verdict": "N"
+    },
+    {
+      "rel_path": "Vec::from_raw_parts/1-4.rs",
+      "api": "Vec::from_raw_parts",
+      "pattern_id": 1,
+      "verdict": "N"
+    },
+    {
+      "rel_path": "Vec::from_raw_parts/2-1.rs",
+      "api": "Vec::from_raw_parts",
+      "pattern_id": 2,
+      "verdict": "M"
+    },
+    {
+      "rel_path": "Vec::from_raw_parts/2-2.rs",
+      "api": "Vec::from_raw_parts",
+      "pattern_id": 2,
+      "verdict": "M"
+    },
+    {
+      "rel_path": "Vec::from_raw_parts/2-3.rs",
+      "api": "Vec::from_raw_parts",
+      "pattern_id": 2,
+      "verdict": "M"
+    },
+    {
+      "rel_path": "Vec::from_raw_parts/2-4.rs",
+      "api": "Vec::from_raw_parts",
+      "pattern_id": 2,
+      "verdict": "M"
+    },
+    {
+      "rel_path": "Vec::from_raw_parts/2-5.rs",
+      "api": "Vec::from_raw_parts",
+      "pattern_id": 2,
+      "verdict": "M"
+    },
+    {
+      "rel_path": "Vec::from_raw_parts/2-6.rs",
+      "api": "Vec::from_raw_parts",
+      "pattern_id": 2,
+      "verdict": "M"
+    },
+    {
+      "rel_path": "Vec::from_raw_parts/3-1.rs",
+      "api": "Vec::from_raw_parts",
+      "pattern_id": 3,
+      "verdict": "N"
+    },
+    {
+      "rel_path": "Vec::from_raw_parts/3-2.rs",
+      "api": "Vec::from_raw_parts",
+      "pattern_id": 3,
+      "verdict": "N"
+    },
+    {
+      "rel_path": "Vec::from_raw_parts/3-3.rs",
+      "api": "Vec::from_raw_parts",
+      "pattern_id": 3,
+      "verdict": "N"
+    },
+    {
+      "rel_path": "Vec::from_raw_parts/3-4.rs",
+      "api": "Vec::from_raw_parts",
+      "pattern_id": 3,
+      "verdict": "N"
+    },
+    {
+      "rel_path": "Vec::from_raw_parts/3-5.rs",
+      "api": "Vec::from_raw_parts",
+      "pattern_id": 3,
+      "verdict": "N"
+    },
+    {
+      "rel_path": "Vec::from_raw_parts/3-6.rs",
+      "api": "Vec::from_raw_parts",
+      "pattern_id": 3,
+      "verdict": "N"
+    },
+    {
+      "rel_path": "Vec::from_raw_parts/3-7.rs",
+      "api": "Vec::from_raw_parts",
+      "pattern_id": 3,
+      "verdict": "N"
+    },
+    {
+      "rel_path": "Vec::from_raw_parts/3-8.rs",
+      "api": "Vec::from_raw_parts",
+      "pattern_id": 3,
+      "verdict": "N"
+    },
+    {
+      "rel_path": "Vec::from_raw_parts/3-9.rs",
+      "api": "Vec::from_raw_parts",
+      "pattern_id": 3,
+      "verdict": "N"
+    },
+    {
+      "rel_path": "Vec::from_raw_parts/4-1.rs",
+      "api": "Vec::from_raw_parts",
+      "pattern_id": 4,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "Vec::from_raw_parts/4-2.rs",
+      "api": "Vec::from_raw_parts",
+      "pattern_id": 4,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "Vec::from_raw_parts/4-3.rs",
+      "api": "Vec::from_raw_parts",
+      "pattern_id": 4,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "Vec::from_raw_parts/5-1.rs",
+      "api": "Vec::from_raw_parts",
+      "pattern_id": 5,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "Vec::from_raw_parts/5-2.rs",
+      "api": "Vec::from_raw_parts",
+      "pattern_id": 5,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "Vec::from_raw_parts/5-3.rs",
+      "api": "Vec::from_raw_parts",
+      "pattern_id": 5,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "Vec::from_raw_parts/5-4.rs",
+      "api": "Vec::from_raw_parts",
+      "pattern_id": 5,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "Vec::from_raw_parts/5-5.rs",
+      "api": "Vec::from_raw_parts",
+      "pattern_id": 5,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "as_ref/1-1.rs",
+      "api": "as_ref",
+      "pattern_id": 1,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "as_ref/1-2.rs",
+      "api": "as_ref",
+      "pattern_id": 1,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "as_ref/1-3.rs",
+      "api": "as_ref",
+      "pattern_id": 1,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "as_ref/1-4.rs",
+      "api": "as_ref",
+      "pattern_id": 1,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "as_ref/1-5.rs",
+      "api": "as_ref",
+      "pattern_id": 1,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "as_ref/1-6.rs",
+      "api": "as_ref",
+      "pattern_id": 1,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "as_ref/2-1.rs",
+      "api": "as_ref",
+      "pattern_id": 2,
+      "verdict": "N"
+    },
+    {
+      "rel_path": "as_ref/2-2.rs",
+      "api": "as_ref",
+      "pattern_id": 2,
+      "verdict": "N"
+    },
+    {
+      "rel_path": "as_ref/2-3.rs",
+      "api": "as_ref",
+      "pattern_id": 2,
+      "verdict": "N"
+    },
+    {
+      "rel_path": "as_ref/2-4.rs",
+      "api": "as_ref",
+      "pattern_id": 2,
+      "verdict": "N"
+    },
+    {
+      "rel_path": "as_ref/2-5.rs",
+      "api": "as_ref",
+      "pattern_id": 2,
+      "verdict": "N"
+    },
+    {
+      "rel_path": "as_ref/2-6.rs",
+      "api": "as_ref",
+      "pattern_id": 2,
+      "verdict": "N"
+    },
+    {
+      "rel_path": "as_ref/3-1.rs",
+      "api": "as_ref",
+      "pattern_id": 3,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "as_ref/3-2.rs",
+      "api": "as_ref",
+      "pattern_id": 3,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "as_ref/3-3.rs",
+      "api": "as_ref",
+      "pattern_id": 3,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "as_ref/3-4.rs",
+      "api": "as_ref",
+      "pattern_id": 3,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "as_ref/3-5.rs",
+      "api": "as_ref",
+      "pattern_id": 3,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "as_ref/3-6.rs",
+      "api": "as_ref",
+      "pattern_id": 3,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "as_ref/3-7.rs",
+      "api": "as_ref",
+      "pattern_id": 3,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "as_ref/4-1.rs",
+      "api": "as_ref",
+      "pattern_id": 4,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "assume_init /1-1.rs",
+      "api": "assume_init ",
+      "pattern_id": 1,
+      "verdict": "?"
+    },
+    {
+      "rel_path": "assume_init /1-10.rs",
+      "api": "assume_init ",
+      "pattern_id": 1,
+      "verdict": "?"
+    },
+    {
+      "rel_path": "assume_init /1-11.rs",
+      "api": "assume_init ",
+      "pattern_id": 1,
+      "verdict": "?"
+    },
+    {
+      "rel_path": "assume_init /1-12.rs",
+      "api": "assume_init ",
+      "pattern_id": 1,
+      "verdict": "?"
+    },
+    {
+      "rel_path": "assume_init /1-13.rs",
+      "api": "assume_init ",
+      "pattern_id": 1,
+      "verdict": "?"
+    },
+    {
+      "rel_path": "assume_init /1-14.rs",
+      "api": "assume_init ",
+      "pattern_id": 1,
+      "verdict": "?"
+    },
+    {
+      "rel_path": "assume_init /1-15.rs",
+      "api": "assume_init ",
+      "pattern_id": 1,
+      "verdict": "?"
+    },
+    {
+      "rel_path": "assume_init /1-16.rs",
+      "api": "assume_init ",
+      "pattern_id": 1,
+      "verdict": "?"
+    },
+    {
+      "rel_path": "assume_init /1-17.rs",
+      "api": "assume_init ",
+      "pattern_id": 1,
+      "verdict": "?"
+    },
+    {
+      "rel_path": "assume_init /1-2.rs",
+      "api": "assume_init ",
+      "pattern_id": 1,
+      "verdict": "?"
+    },
+    {
+      "rel_path": "assume_init /1-3.rs",
+      "api": "assume_init ",
+      "pattern_id": 1,
+      "verdict": "?"
+    },
+    {
+      "rel_path": "assume_init /1-4.rs",
+      "api": "assume_init ",
+      "pattern_id": 1,
+      "verdict": "?"
+    },
+    {
+      "rel_path": "assume_init /1-5.rs",
+      "api": "assume_init ",
+      "pattern_id": 1,
+      "verdict": "?"
+    },
+    {
+      "rel_path": "assume_init /1-6.rs",
+      "api": "assume_init ",
+      "pattern_id": 1,
+      "verdict": "?"
+    },
+    {
+      "rel_path": "assume_init /1-7.rs",
+      "api": "assume_init ",
+      "pattern_id": 1,
+      "verdict": "?"
+    },
+    {
+      "rel_path": "assume_init /1-8.rs",
+      "api": "assume_init ",
+      "pattern_id": 1,
+      "verdict": "?"
+    },
+    {
+      "rel_path": "assume_init /1-9.rs",
+      "api": "assume_init ",
+      "pattern_id": 1,
+      "verdict": "?"
+    },
+    {
+      "rel_path": "assume_init /2-1.rs",
+      "api": "assume_init ",
+      "pattern_id": 2,
+      "verdict": "?"
+    },
+    {
+      "rel_path": "assume_init /3-1.rs",
+      "api": "assume_init ",
+      "pattern_id": 3,
+      "verdict": "?"
+    },
+    {
+      "rel_path": "assume_init /3-2.rs",
+      "api": "assume_init ",
+      "pattern_id": 3,
+      "verdict": "?"
+    },
+    {
+      "rel_path": "assume_init /3-3.rs",
+      "api": "assume_init ",
+      "pattern_id": 3,
+      "verdict": "?"
+    },
+    {
+      "rel_path": "assume_init /3-4.rs",
+      "api": "assume_init ",
+      "pattern_id": 3,
+      "verdict": "?"
+    },
+    {
+      "rel_path": "assume_init /3-5.rs",
+      "api": "assume_init ",
+      "pattern_id": 3,
+      "verdict": "?"
+    },
+    {
+      "rel_path": "assume_init /4-1.rs",
+      "api": "assume_init ",
+      "pattern_id": 4,
+      "verdict": "?"
+    },
+    {
+      "rel_path": "assume_init /4-2.rs",
+      "api": "assume_init ",
+      "pattern_id": 4,
+      "verdict": "?"
+    },
+    {
+      "rel_path": "assume_init /4-3.rs",
+      "api": "assume_init ",
+      "pattern_id": 4,
+      "verdict": "?"
+    },
+    {
+      "rel_path": "mem::transmute/1-1.rs",
+      "api": "mem::transmute",
+      "pattern_id": 1,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "mem::transmute/1-10.rs",
+      "api": "mem::transmute",
+      "pattern_id": 1,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "mem::transmute/1-11.rs",
+      "api": "mem::transmute",
+      "pattern_id": 1,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "mem::transmute/1-12.rs",
+      "api": "mem::transmute",
+      "pattern_id": 1,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "mem::transmute/1-13.rs",
+      "api": "mem::transmute",
+      "pattern_id": 1,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "mem::transmute/1-14.rs",
+      "api": "mem::transmute",
+      "pattern_id": 1,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "mem::transmute/1-15.rs",
+      "api": "mem::transmute",
+      "pattern_id": 1,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "mem::transmute/1-2.rs",
+      "api": "mem::transmute",
+      "pattern_id": 1,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "mem::transmute/1-3.rs",
+      "api": "mem::transmute",
+      "pattern_id": 1,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "mem::transmute/1-4.rs",
+      "api": "mem::transmute",
+      "pattern_id": 1,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "mem::transmute/1-5.rs",
+      "api": "mem::transmute",
+      "pattern_id": 1,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "mem::transmute/1-6.rs",
+      "api": "mem::transmute",
+      "pattern_id": 1,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "mem::transmute/1-7.rs",
+      "api": "mem::transmute",
+      "pattern_id": 1,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "mem::transmute/1-8.rs",
+      "api": "mem::transmute",
+      "pattern_id": 1,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "mem::transmute/1-9.rs",
+      "api": "mem::transmute",
+      "pattern_id": 1,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "mem::transmute/2-1.rs",
+      "api": "mem::transmute",
+      "pattern_id": 2,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "mem::transmute/2-10.rs",
+      "api": "mem::transmute",
+      "pattern_id": 2,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "mem::transmute/2-2.rs",
+      "api": "mem::transmute",
+      "pattern_id": 2,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "mem::transmute/2-3.rs",
+      "api": "mem::transmute",
+      "pattern_id": 2,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "mem::transmute/2-4.rs",
+      "api": "mem::transmute",
+      "pattern_id": 2,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "mem::transmute/2-5.rs",
+      "api": "mem::transmute",
+      "pattern_id": 2,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "mem::transmute/2-6.rs",
+      "api": "mem::transmute",
+      "pattern_id": 2,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "mem::transmute/2-7.rs",
+      "api": "mem::transmute",
+      "pattern_id": 2,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "mem::transmute/2-8.rs",
+      "api": "mem::transmute",
+      "pattern_id": 2,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "mem::transmute/2-9.rs",
+      "api": "mem::transmute",
+      "pattern_id": 2,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "mem::transmute/3-1.rs",
+      "api": "mem::transmute",
+      "pattern_id": 3,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "mem::transmute/3-2.rs",
+      "api": "mem::transmute",
+      "pattern_id": 3,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "mem::transmute/6-1.rs",
+      "api": "mem::transmute",
+      "pattern_id": 6,
+      "verdict": "N"
+    },
+    {
+      "rel_path": "mem::transmute/6-2.rs",
+      "api": "mem::transmute",
+      "pattern_id": 6,
+      "verdict": "N"
+    },
+    {
+      "rel_path": "mem::transmute/6-3.rs",
+      "api": "mem::transmute",
+      "pattern_id": 6,
+      "verdict": "N"
+    },
+    {
+      "rel_path": "mem::transmute_copy/1-1.rs",
+      "api": "mem::transmute_copy",
+      "pattern_id": 1,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "mem::transmute_copy/1-2.rs",
+      "api": "mem::transmute_copy",
+      "pattern_id": 1,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "mem::transmute_copy/1-3.rs",
+      "api": "mem::transmute_copy",
+      "pattern_id": 1,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "mem::transmute_copy/1-4.rs",
+      "api": "mem::transmute_copy",
+      "pattern_id": 1,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "mem::transmute_copy/1-5.rs",
+      "api": "mem::transmute_copy",
+      "pattern_id": 1,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "mem::transmute_copy/2-1.rs",
+      "api": "mem::transmute_copy",
+      "pattern_id": 2,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "mem::transmute_copy/2-2.rs",
+      "api": "mem::transmute_copy",
+      "pattern_id": 2,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "mem::transmute_copy/2-3.rs",
+      "api": "mem::transmute_copy",
+      "pattern_id": 2,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "mem::transmute_copy/2-4.rs",
+      "api": "mem::transmute_copy",
+      "pattern_id": 2,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "mem::transmute_copy/3-1.rs",
+      "api": "mem::transmute_copy",
+      "pattern_id": 3,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "mem::transmute_copy/4-1.rs",
+      "api": "mem::transmute_copy",
+      "pattern_id": 4,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "mem::transmute_copy/4-2.rs",
+      "api": "mem::transmute_copy",
+      "pattern_id": 4,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "mem::transmute_copy/4-3.rs",
+      "api": "mem::transmute_copy",
+      "pattern_id": 4,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "mem::transmute_copy/4-4.rs",
+      "api": "mem::transmute_copy",
+      "pattern_id": 4,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "mem::transmute_copy/4-5.rs",
+      "api": "mem::transmute_copy",
+      "pattern_id": 4,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "mem::transmute_copy/4-6.rs",
+      "api": "mem::transmute_copy",
+      "pattern_id": 4,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "mem::transmute_copy/6-1.rs",
+      "api": "mem::transmute_copy",
+      "pattern_id": 6,
+      "verdict": "N"
+    },
+    {
+      "rel_path": "mem::transmute_copy/6-2.rs",
+      "api": "mem::transmute_copy",
+      "pattern_id": 6,
+      "verdict": "N"
+    },
+    {
+      "rel_path": "mem::transmute_copy/6-3.rs",
+      "api": "mem::transmute_copy",
+      "pattern_id": 6,
+      "verdict": "N"
+    },
+    {
+      "rel_path": "mem::transmute_copy/6-4.rs",
+      "api": "mem::transmute_copy",
+      "pattern_id": 6,
+      "verdict": "N"
+    },
+    {
+      "rel_path": "mem::transmute_copy/6-5.rs",
+      "api": "mem::transmute_copy",
+      "pattern_id": 6,
+      "verdict": "N"
+    },
+    {
+      "rel_path": "mem::transmute_copy/6-6.rs",
+      "api": "mem::transmute_copy",
+      "pattern_id": 6,
+      "verdict": "N"
+    },
+    {
+      "rel_path": "mem::zeroed/1-1.rs",
+      "api": "mem::zeroed",
+      "pattern_id": 1,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "mem::zeroed/1-2.rs",
+      "api": "mem::zeroed",
+      "pattern_id": 1,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "mem::zeroed/1-3.rs",
+      "api": "mem::zeroed",
+      "pattern_id": 1,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "mem::zeroed/1-4.rs",
+      "api": "mem::zeroed",
+      "pattern_id": 1,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "mem::zeroed/1-5.rs",
+      "api": "mem::zeroed",
+      "pattern_id": 1,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "mem::zeroed/1-6.rs",
+      "api": "mem::zeroed",
+      "pattern_id": 1,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "mem::zeroed/1-7.rs",
+      "api": "mem::zeroed",
+      "pattern_id": 1,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "mem::zeroed/1-8.rs",
+      "api": "mem::zeroed",
+      "pattern_id": 1,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "mem::zeroed/2-1.rs",
+      "api": "mem::zeroed",
+      "pattern_id": 2,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "mem::zeroed/2-2.rs",
+      "api": "mem::zeroed",
+      "pattern_id": 2,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "mem::zeroed/2-3.rs",
+      "api": "mem::zeroed",
+      "pattern_id": 2,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "mem::zeroed/2-4.rs",
+      "api": "mem::zeroed",
+      "pattern_id": 2,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "offset_from/1-1.rs",
+      "api": "offset_from",
+      "pattern_id": 1,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "offset_from/1-2.rs",
+      "api": "offset_from",
+      "pattern_id": 1,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "offset_from/1-3.rs",
+      "api": "offset_from",
+      "pattern_id": 1,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "offset_from/1-4.rs",
+      "api": "offset_from",
+      "pattern_id": 1,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "offset_from/1-5.rs",
+      "api": "offset_from",
+      "pattern_id": 1,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "offset_from/2-1.rs",
+      "api": "offset_from",
+      "pattern_id": 2,
+      "verdict": "N"
+    },
+    {
+      "rel_path": "offset_from/3-1.rs",
+      "api": "offset_from",
+      "pattern_id": 3,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "offset_from/3-10.rs",
+      "api": "offset_from",
+      "pattern_id": 3,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "offset_from/3-11.rs",
+      "api": "offset_from",
+      "pattern_id": 3,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "offset_from/3-2.rs",
+      "api": "offset_from",
+      "pattern_id": 3,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "offset_from/3-3.rs",
+      "api": "offset_from",
+      "pattern_id": 3,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "offset_from/3-4.rs",
+      "api": "offset_from",
+      "pattern_id": 3,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "offset_from/3-5.rs",
+      "api": "offset_from",
+      "pattern_id": 3,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "offset_from/3-6.rs",
+      "api": "offset_from",
+      "pattern_id": 3,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "offset_from/3-7.rs",
+      "api": "offset_from",
+      "pattern_id": 3,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "offset_from/3-8.rs",
+      "api": "offset_from",
+      "pattern_id": 3,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "offset_from/3-9.rs",
+      "api": "offset_from",
+      "pattern_id": 3,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "offset_from/4-1.rs",
+      "api": "offset_from",
+      "pattern_id": 4,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "offset_from/4-2.rs",
+      "api": "offset_from",
+      "pattern_id": 4,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "offset_from/4-3.rs",
+      "api": "offset_from",
+      "pattern_id": 4,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "offset_from/4-4.rs",
+      "api": "offset_from",
+      "pattern_id": 4,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "offset_from/4-5.rs",
+      "api": "offset_from",
+      "pattern_id": 4,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "offset_from/4-6.rs",
+      "api": "offset_from",
+      "pattern_id": 4,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "offset_from/4-7.rs",
+      "api": "offset_from",
+      "pattern_id": 4,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "offset_from/4-8.rs",
+      "api": "offset_from",
+      "pattern_id": 4,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "offset_from/4-9.rs",
+      "api": "offset_from",
+      "pattern_id": 4,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "offset_from/5-1.rs",
+      "api": "offset_from",
+      "pattern_id": 5,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "offset_from/5-2.rs",
+      "api": "offset_from",
+      "pattern_id": 5,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "offset_from/5-3.rs",
+      "api": "offset_from",
+      "pattern_id": 5,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "offset_from/5-4.rs",
+      "api": "offset_from",
+      "pattern_id": 5,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "ptr::copy/1-1.rs",
+      "api": "ptr::copy",
+      "pattern_id": 1,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "ptr::copy/1-2(4-14).rs",
+      "api": "ptr::copy",
+      "pattern_id": 1,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "ptr::copy/1-3(3-15).rs",
+      "api": "ptr::copy",
+      "pattern_id": 1,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "ptr::copy/1-4(3-12).rs",
+      "api": "ptr::copy",
+      "pattern_id": 1,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "ptr::copy/1-5(4-3).rs",
+      "api": "ptr::copy",
+      "pattern_id": 1,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "ptr::copy/1-6(4-13).rs",
+      "api": "ptr::copy",
+      "pattern_id": 1,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "ptr::copy/2-1.rs",
+      "api": "ptr::copy",
+      "pattern_id": 2,
+      "verdict": "N"
+    },
+    {
+      "rel_path": "ptr::copy/2-2(5-2).rs",
+      "api": "ptr::copy",
+      "pattern_id": 2,
+      "verdict": "N"
+    },
+    {
+      "rel_path": "ptr::copy/2-3.rs",
+      "api": "ptr::copy",
+      "pattern_id": 2,
+      "verdict": "N"
+    },
+    {
+      "rel_path": "ptr::copy/2-4.rs",
+      "api": "ptr::copy",
+      "pattern_id": 2,
+      "verdict": "N"
+    },
+    {
+      "rel_path": "ptr::copy/3-1(4-4).rs",
+      "api": "ptr::copy",
+      "pattern_id": 3,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "ptr::copy/3-2(4-3).rs",
+      "api": "ptr::copy",
+      "pattern_id": 3,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "ptr::copy/3-3.rs",
+      "api": "ptr::copy",
+      "pattern_id": 3,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "ptr::copy/3-4.rs",
+      "api": "ptr::copy",
+      "pattern_id": 3,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "ptr::copy/4-1.rs",
+      "api": "ptr::copy",
+      "pattern_id": 4,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "ptr::copy/4-10.rs",
+      "api": "ptr::copy",
+      "pattern_id": 4,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "ptr::copy/4-11.rs",
+      "api": "ptr::copy",
+      "pattern_id": 4,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "ptr::copy/4-12.rs",
+      "api": "ptr::copy",
+      "pattern_id": 4,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "ptr::copy/4-13.rs",
+      "api": "ptr::copy",
+      "pattern_id": 4,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "ptr::copy/4-2.rs",
+      "api": "ptr::copy",
+      "pattern_id": 4,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "ptr::copy/4-3.rs",
+      "api": "ptr::copy",
+      "pattern_id": 4,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "ptr::copy/4-4.rs",
+      "api": "ptr::copy",
+      "pattern_id": 4,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "ptr::copy/4-5.rs",
+      "api": "ptr::copy",
+      "pattern_id": 4,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "ptr::copy/4-6.rs",
+      "api": "ptr::copy",
+      "pattern_id": 4,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "ptr::copy/4-7.rs",
+      "api": "ptr::copy",
+      "pattern_id": 4,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "ptr::copy/4-8.rs",
+      "api": "ptr::copy",
+      "pattern_id": 4,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "ptr::copy/4-9.rs",
+      "api": "ptr::copy",
+      "pattern_id": 4,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "ptr::copy/5-1.rs",
+      "api": "ptr::copy",
+      "pattern_id": 5,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "ptr::copy/5-2.rs",
+      "api": "ptr::copy",
+      "pattern_id": 5,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "ptr::copy/5-3.rs",
+      "api": "ptr::copy",
+      "pattern_id": 5,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "ptr::copy/5-4.rs",
+      "api": "ptr::copy",
+      "pattern_id": 5,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "ptr::copy_nonoverlapping/1-1.rs",
+      "api": "ptr::copy_nonoverlapping",
+      "pattern_id": 1,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "ptr::copy_nonoverlapping/1-2(4-3).rs",
+      "api": "ptr::copy_nonoverlapping",
+      "pattern_id": 1,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "ptr::copy_nonoverlapping/1-3(3-6).rs",
+      "api": "ptr::copy_nonoverlapping",
+      "pattern_id": 1,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "ptr::copy_nonoverlapping/2-1.rs",
+      "api": "ptr::copy_nonoverlapping",
+      "pattern_id": 2,
+      "verdict": "N"
+    },
+    {
+      "rel_path": "ptr::copy_nonoverlapping/2-2.rs",
+      "api": "ptr::copy_nonoverlapping",
+      "pattern_id": 2,
+      "verdict": "N"
+    },
+    {
+      "rel_path": "ptr::copy_nonoverlapping/2-3(5-5).rs",
+      "api": "ptr::copy_nonoverlapping",
+      "pattern_id": 2,
+      "verdict": "N"
+    },
+    {
+      "rel_path": "ptr::copy_nonoverlapping/3-1(4-8).rs",
+      "api": "ptr::copy_nonoverlapping",
+      "pattern_id": 3,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "ptr::copy_nonoverlapping/3-2(4-2).rs",
+      "api": "ptr::copy_nonoverlapping",
+      "pattern_id": 3,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "ptr::copy_nonoverlapping/3-3(4-12).rs",
+      "api": "ptr::copy_nonoverlapping",
+      "pattern_id": 3,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "ptr::copy_nonoverlapping/3-4(4-10).rs",
+      "api": "ptr::copy_nonoverlapping",
+      "pattern_id": 3,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "ptr::copy_nonoverlapping/3-5.rs",
+      "api": "ptr::copy_nonoverlapping",
+      "pattern_id": 3,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "ptr::copy_nonoverlapping/3-6.rs",
+      "api": "ptr::copy_nonoverlapping",
+      "pattern_id": 3,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "ptr::copy_nonoverlapping/3-7.rs",
+      "api": "ptr::copy_nonoverlapping",
+      "pattern_id": 3,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "ptr::copy_nonoverlapping/3-8.rs",
+      "api": "ptr::copy_nonoverlapping",
+      "pattern_id": 3,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "ptr::copy_nonoverlapping/3-9.rs",
+      "api": "ptr::copy_nonoverlapping",
+      "pattern_id": 3,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "ptr::copy_nonoverlapping/4-1.rs",
+      "api": "ptr::copy_nonoverlapping",
+      "pattern_id": 4,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "ptr::copy_nonoverlapping/4-10.rs",
+      "api": "ptr::copy_nonoverlapping",
+      "pattern_id": 4,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "ptr::copy_nonoverlapping/4-11(5-3).rs",
+      "api": "ptr::copy_nonoverlapping",
+      "pattern_id": 4,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "ptr::copy_nonoverlapping/4-12.rs",
+      "api": "ptr::copy_nonoverlapping",
+      "pattern_id": 4,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "ptr::copy_nonoverlapping/4-2.rs",
+      "api": "ptr::copy_nonoverlapping",
+      "pattern_id": 4,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "ptr::copy_nonoverlapping/4-3.rs",
+      "api": "ptr::copy_nonoverlapping",
+      "pattern_id": 4,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "ptr::copy_nonoverlapping/4-4.rs",
+      "api": "ptr::copy_nonoverlapping",
+      "pattern_id": 4,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "ptr::copy_nonoverlapping/4-5.rs",
+      "api": "ptr::copy_nonoverlapping",
+      "pattern_id": 4,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "ptr::copy_nonoverlapping/4-6.rs",
+      "api": "ptr::copy_nonoverlapping",
+      "pattern_id": 4,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "ptr::copy_nonoverlapping/4-7.rs",
+      "api": "ptr::copy_nonoverlapping",
+      "pattern_id": 4,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "ptr::copy_nonoverlapping/4-8.rs",
+      "api": "ptr::copy_nonoverlapping",
+      "pattern_id": 4,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "ptr::copy_nonoverlapping/4-9.rs",
+      "api": "ptr::copy_nonoverlapping",
+      "pattern_id": 4,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "ptr::copy_nonoverlapping/5-1.rs",
+      "api": "ptr::copy_nonoverlapping",
+      "pattern_id": 5,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "ptr::copy_nonoverlapping/5-2.rs",
+      "api": "ptr::copy_nonoverlapping",
+      "pattern_id": 5,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "ptr::copy_nonoverlapping/5-3.rs",
+      "api": "ptr::copy_nonoverlapping",
+      "pattern_id": 5,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "ptr::copy_nonoverlapping/5-4.rs",
+      "api": "ptr::copy_nonoverlapping",
+      "pattern_id": 5,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "ptr::copy_nonoverlapping/5-5.rs",
+      "api": "ptr::copy_nonoverlapping",
+      "pattern_id": 5,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "ptr::deref/1-1.rs",
+      "api": "ptr::deref",
+      "pattern_id": 1,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "ptr::deref/1-2.rs",
+      "api": "ptr::deref",
+      "pattern_id": 1,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "ptr::deref/1-3.rs",
+      "api": "ptr::deref",
+      "pattern_id": 1,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "ptr::deref/1-4.rs",
+      "api": "ptr::deref",
+      "pattern_id": 1,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "ptr::deref/1-5.rs",
+      "api": "ptr::deref",
+      "pattern_id": 1,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "ptr::deref/1-6.rs",
+      "api": "ptr::deref",
+      "pattern_id": 1,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "ptr::deref/1-7.rs",
+      "api": "ptr::deref",
+      "pattern_id": 1,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "ptr::deref/1-8.rs",
+      "api": "ptr::deref",
+      "pattern_id": 1,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "ptr::deref/1-9.rs",
+      "api": "ptr::deref",
+      "pattern_id": 1,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "ptr::deref/2-1.rs",
+      "api": "ptr::deref",
+      "pattern_id": 2,
+      "verdict": "N"
+    },
+    {
+      "rel_path": "ptr::deref/2-2.rs",
+      "api": "ptr::deref",
+      "pattern_id": 2,
+      "verdict": "N"
+    },
+    {
+      "rel_path": "ptr::deref/2-3.rs",
+      "api": "ptr::deref",
+      "pattern_id": 2,
+      "verdict": "N"
+    },
+    {
+      "rel_path": "ptr::deref/2-4.rs",
+      "api": "ptr::deref",
+      "pattern_id": 2,
+      "verdict": "N"
+    },
+    {
+      "rel_path": "ptr::deref/2-5.rs",
+      "api": "ptr::deref",
+      "pattern_id": 2,
+      "verdict": "N"
+    },
+    {
+      "rel_path": "ptr::deref/3-1.rs",
+      "api": "ptr::deref",
+      "pattern_id": 3,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "ptr::deref/3-2.rs",
+      "api": "ptr::deref",
+      "pattern_id": 3,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "ptr::deref/3-3.rs",
+      "api": "ptr::deref",
+      "pattern_id": 3,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "ptr::deref/3-4.rs",
+      "api": "ptr::deref",
+      "pattern_id": 3,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "ptr::deref/3-5.rs",
+      "api": "ptr::deref",
+      "pattern_id": 3,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "ptr::deref/3-6.rs",
+      "api": "ptr::deref",
+      "pattern_id": 3,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "ptr::deref/3-7.rs",
+      "api": "ptr::deref",
+      "pattern_id": 3,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "ptr::deref/3-8.rs",
+      "api": "ptr::deref",
+      "pattern_id": 3,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "ptr::deref/3-9.rs",
+      "api": "ptr::deref",
+      "pattern_id": 3,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "ptr::deref/4-1.rs",
+      "api": "ptr::deref",
+      "pattern_id": 4,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "ptr::deref/4-10.rs",
+      "api": "ptr::deref",
+      "pattern_id": 4,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "ptr::deref/4-2.rs",
+      "api": "ptr::deref",
+      "pattern_id": 4,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "ptr::deref/4-3.rs",
+      "api": "ptr::deref",
+      "pattern_id": 4,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "ptr::deref/4-4.rs",
+      "api": "ptr::deref",
+      "pattern_id": 4,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "ptr::deref/4-5.rs",
+      "api": "ptr::deref",
+      "pattern_id": 4,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "ptr::deref/4-6.rs",
+      "api": "ptr::deref",
+      "pattern_id": 4,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "ptr::deref/4-7.rs",
+      "api": "ptr::deref",
+      "pattern_id": 4,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "ptr::deref/4-8.rs",
+      "api": "ptr::deref",
+      "pattern_id": 4,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "ptr::deref/4-9.rs",
+      "api": "ptr::deref",
+      "pattern_id": 4,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "ptr::read/1-1.rs",
+      "api": "ptr::read",
+      "pattern_id": 1,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "ptr::read/1-2.rs",
+      "api": "ptr::read",
+      "pattern_id": 1,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "ptr::read/1-3.rs",
+      "api": "ptr::read",
+      "pattern_id": 1,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "ptr::read/1-4.rs",
+      "api": "ptr::read",
+      "pattern_id": 1,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "ptr::read/1-5.rs",
+      "api": "ptr::read",
+      "pattern_id": 1,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "ptr::read/1-6.rs",
+      "api": "ptr::read",
+      "pattern_id": 1,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "ptr::read/2-1.rs",
+      "api": "ptr::read",
+      "pattern_id": 2,
+      "verdict": "N"
+    },
+    {
+      "rel_path": "ptr::read/2-2.rs",
+      "api": "ptr::read",
+      "pattern_id": 2,
+      "verdict": "N"
+    },
+    {
+      "rel_path": "ptr::read/2-3.rs",
+      "api": "ptr::read",
+      "pattern_id": 2,
+      "verdict": "N"
+    },
+    {
+      "rel_path": "ptr::read/2-4.rs",
+      "api": "ptr::read",
+      "pattern_id": 2,
+      "verdict": "N"
+    },
+    {
+      "rel_path": "ptr::read/2-5.rs",
+      "api": "ptr::read",
+      "pattern_id": 2,
+      "verdict": "N"
+    },
+    {
+      "rel_path": "ptr::read/2-6.rs",
+      "api": "ptr::read",
+      "pattern_id": 2,
+      "verdict": "N"
+    },
+    {
+      "rel_path": "ptr::read/4-1.rs",
+      "api": "ptr::read",
+      "pattern_id": 4,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "ptr::read/4-10.rs",
+      "api": "ptr::read",
+      "pattern_id": 4,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "ptr::read/4-11.rs",
+      "api": "ptr::read",
+      "pattern_id": 4,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "ptr::read/4-12.rs",
+      "api": "ptr::read",
+      "pattern_id": 4,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "ptr::read/4-13.rs",
+      "api": "ptr::read",
+      "pattern_id": 4,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "ptr::read/4-14.rs",
+      "api": "ptr::read",
+      "pattern_id": 4,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "ptr::read/4-15.rs",
+      "api": "ptr::read",
+      "pattern_id": 4,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "ptr::read/4-2.rs",
+      "api": "ptr::read",
+      "pattern_id": 4,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "ptr::read/4-3.rs",
+      "api": "ptr::read",
+      "pattern_id": 4,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "ptr::read/4-4.rs",
+      "api": "ptr::read",
+      "pattern_id": 4,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "ptr::read/4-5.rs",
+      "api": "ptr::read",
+      "pattern_id": 4,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "ptr::read/4-6.rs",
+      "api": "ptr::read",
+      "pattern_id": 4,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "ptr::read/4-7.rs",
+      "api": "ptr::read",
+      "pattern_id": 4,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "ptr::read/4-8.rs",
+      "api": "ptr::read",
+      "pattern_id": 4,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "ptr::read/4-9.rs",
+      "api": "ptr::read",
+      "pattern_id": 4,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "ptr::read/5-1.rs",
+      "api": "ptr::read",
+      "pattern_id": 5,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "ptr::read/5-2.rs",
+      "api": "ptr::read",
+      "pattern_id": 5,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "ptr::read/5-3.rs",
+      "api": "ptr::read",
+      "pattern_id": 5,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "ptr::write/1-1.rs",
+      "api": "ptr::write",
+      "pattern_id": 1,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "ptr::write/1-2.rs",
+      "api": "ptr::write",
+      "pattern_id": 1,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "ptr::write/1-3.rs",
+      "api": "ptr::write",
+      "pattern_id": 1,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "ptr::write/1-4.rs",
+      "api": "ptr::write",
+      "pattern_id": 1,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "ptr::write/1-5.rs",
+      "api": "ptr::write",
+      "pattern_id": 1,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "ptr::write/1-6.rs",
+      "api": "ptr::write",
+      "pattern_id": 1,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "ptr::write/2-1.rs",
+      "api": "ptr::write",
+      "pattern_id": 2,
+      "verdict": "N"
+    },
+    {
+      "rel_path": "ptr::write/2-2.rs",
+      "api": "ptr::write",
+      "pattern_id": 2,
+      "verdict": "N"
+    },
+    {
+      "rel_path": "ptr::write/2-3.rs",
+      "api": "ptr::write",
+      "pattern_id": 2,
+      "verdict": "N"
+    },
+    {
+      "rel_path": "ptr::write/2-4.rs",
+      "api": "ptr::write",
+      "pattern_id": 2,
+      "verdict": "N"
+    },
+    {
+      "rel_path": "ptr::write/3-1.rs",
+      "api": "ptr::write",
+      "pattern_id": 3,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "ptr::write/4-1.rs",
+      "api": "ptr::write",
+      "pattern_id": 4,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "ptr::write/4-10.rs",
+      "api": "ptr::write",
+      "pattern_id": 4,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "ptr::write/4-11.rs",
+      "api": "ptr::write",
+      "pattern_id": 4,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "ptr::write/4-12.rs",
+      "api": "ptr::write",
+      "pattern_id": 4,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "ptr::write/4-13.rs",
+      "api": "ptr::write",
+      "pattern_id": 4,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "ptr::write/4-14.rs",
+      "api": "ptr::write",
+      "pattern_id": 4,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "ptr::write/4-2.rs",
+      "api": "ptr::write",
+      "pattern_id": 4,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "ptr::write/4-3.rs",
+      "api": "ptr::write",
+      "pattern_id": 4,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "ptr::write/4-4.rs",
+      "api": "ptr::write",
+      "pattern_id": 4,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "ptr::write/4-5.rs",
+      "api": "ptr::write",
+      "pattern_id": 4,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "ptr::write/4-6.rs",
+      "api": "ptr::write",
+      "pattern_id": 4,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "ptr::write/4-7.rs",
+      "api": "ptr::write",
+      "pattern_id": 4,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "ptr::write/4-8.rs",
+      "api": "ptr::write",
+      "pattern_id": 4,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "ptr::write/4-9.rs",
+      "api": "ptr::write",
+      "pattern_id": 4,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "ptr::write/5-1.rs",
+      "api": "ptr::write",
+      "pattern_id": 5,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "ptr::write/5-2.rs",
+      "api": "ptr::write",
+      "pattern_id": 5,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "ptr::write/5-3.rs",
+      "api": "ptr::write",
+      "pattern_id": 5,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "ptr::write/5-4.rs",
+      "api": "ptr::write",
+      "pattern_id": 5,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "ptr::write_bytes/1-1.rs",
+      "api": "ptr::write_bytes",
+      "pattern_id": 1,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "ptr::write_bytes/1-2.rs",
+      "api": "ptr::write_bytes",
+      "pattern_id": 1,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "ptr::write_bytes/1-3.rs",
+      "api": "ptr::write_bytes",
+      "pattern_id": 1,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "ptr::write_bytes/2-1.rs",
+      "api": "ptr::write_bytes",
+      "pattern_id": 2,
+      "verdict": "N"
+    },
+    {
+      "rel_path": "ptr::write_bytes/2-2.rs",
+      "api": "ptr::write_bytes",
+      "pattern_id": 2,
+      "verdict": "N"
+    },
+    {
+      "rel_path": "ptr::write_bytes/2-3.rs",
+      "api": "ptr::write_bytes",
+      "pattern_id": 2,
+      "verdict": "N"
+    },
+    {
+      "rel_path": "ptr::write_bytes/2-4.rs",
+      "api": "ptr::write_bytes",
+      "pattern_id": 2,
+      "verdict": "N"
+    },
+    {
+      "rel_path": "ptr::write_bytes/2-5.rs",
+      "api": "ptr::write_bytes",
+      "pattern_id": 2,
+      "verdict": "N"
+    },
+    {
+      "rel_path": "ptr::write_bytes/4-1.rs",
+      "api": "ptr::write_bytes",
+      "pattern_id": 4,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "ptr::write_bytes/4-10.rs",
+      "api": "ptr::write_bytes",
+      "pattern_id": 4,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "ptr::write_bytes/4-11.rs",
+      "api": "ptr::write_bytes",
+      "pattern_id": 4,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "ptr::write_bytes/4-12.rs",
+      "api": "ptr::write_bytes",
+      "pattern_id": 4,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "ptr::write_bytes/4-13.rs",
+      "api": "ptr::write_bytes",
+      "pattern_id": 4,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "ptr::write_bytes/4-14.rs",
+      "api": "ptr::write_bytes",
+      "pattern_id": 4,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "ptr::write_bytes/4-15.rs",
+      "api": "ptr::write_bytes",
+      "pattern_id": 4,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "ptr::write_bytes/4-2.rs",
+      "api": "ptr::write_bytes",
+      "pattern_id": 4,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "ptr::write_bytes/4-3.rs",
+      "api": "ptr::write_bytes",
+      "pattern_id": 4,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "ptr::write_bytes/4-4.rs",
+      "api": "ptr::write_bytes",
+      "pattern_id": 4,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "ptr::write_bytes/4-5.rs",
+      "api": "ptr::write_bytes",
+      "pattern_id": 4,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "ptr::write_bytes/4-6.rs",
+      "api": "ptr::write_bytes",
+      "pattern_id": 4,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "ptr::write_bytes/4-7.rs",
+      "api": "ptr::write_bytes",
+      "pattern_id": 4,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "ptr::write_bytes/4-8.rs",
+      "api": "ptr::write_bytes",
+      "pattern_id": 4,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "ptr::write_bytes/4-9.rs",
+      "api": "ptr::write_bytes",
+      "pattern_id": 4,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "ptr::write_bytes/5-1.rs",
+      "api": "ptr::write_bytes",
+      "pattern_id": 5,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "ptr::write_bytes/5-2.rs",
+      "api": "ptr::write_bytes",
+      "pattern_id": 5,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "ptr::write_bytes/5-3.rs",
+      "api": "ptr::write_bytes",
+      "pattern_id": 5,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "ptr::write_bytes/5-4.rs",
+      "api": "ptr::write_bytes",
+      "pattern_id": 5,
+      "verdict": "Y"
+    },
+    {
+      "rel_path": "set_len/1-1.rs",
+      "api": "set_len",
+      "pattern_id": 1,
+      "verdict": "M"
+    },
+    {
+      "rel_path": "set_len/1-10.rs",
+      "api": "set_len",
+      "pattern_id": 1,
+      "verdict": "M"
+    },
+    {
+      "rel_path": "set_len/1-11.rs",
+      "api": "set_len",
+      "pattern_id": 1,
+      "verdict": "M"
+    },
+    {
+      "rel_path": "set_len/1-12.rs",
+      "api": "set_len",
+      "pattern_id": 1,
+      "verdict": "M"
+    },
+    {
+      "rel_path": "set_len/1-13.rs",
+      "api": "set_len",
+      "pattern_id": 1,
+      "verdict": "M"
+    },
+    {
+      "rel_path": "set_len/1-2.rs",
+      "api": "set_len",
+      "pattern_id": 1,
+      "verdict": "M"
+    },
+    {
+      "rel_path": "set_len/1-3.rs",
+      "api": "set_len",
+      "pattern_id": 1,
+      "verdict": "M"
+    },
+    {
+      "rel_path": "set_len/1-4.rs",
+      "api": "set_len",
+      "pattern_id": 1,
+      "verdict": "M"
+    },
+    {
+      "rel_path": "set_len/1-5.rs",
+      "api": "set_len",
+      "pattern_id": 1,
+      "verdict": "M"
+    },
+    {
+      "rel_path": "set_len/1-6.rs",
+      "api": "set_len",
+      "pattern_id": 1,
+      "verdict": "M"
+    },
+    {
+      "rel_path": "set_len/1-7.rs",
+      "api": "set_len",
+      "pattern_id": 1,
+      "verdict": "M"
+    },
+    {
+      "rel_path": "set_len/1-8.rs",
+      "api": "set_len",
+      "pattern_id": 1,
+      "verdict": "M"
+    },
+    {
+      "rel_path": "set_len/1-9.rs",
+      "api": "set_len",
+      "pattern_id": 1,
+      "verdict": "M"
+    },
+    {
+      "rel_path": "set_len/2-1.rs",
+      "api": "set_len",
+      "pattern_id": 2,
+      "verdict": "M"
+    },
+    {
+      "rel_path": "set_len/2-10.rs",
+      "api": "set_len",
+      "pattern_id": 2,
+      "verdict": "M"
+    },
+    {
+      "rel_path": "set_len/2-11.rs",
+      "api": "set_len",
+      "pattern_id": 2,
+      "verdict": "M"
+    },
+    {
+      "rel_path": "set_len/2-12.rs",
+      "api": "set_len",
+      "pattern_id": 2,
+      "verdict": "M"
+    },
+    {
+      "rel_path": "set_len/2-2.rs",
+      "api": "set_len",
+      "pattern_id": 2,
+      "verdict": "M"
+    },
+    {
+      "rel_path": "set_len/2-3.rs",
+      "api": "set_len",
+      "pattern_id": 2,
+      "verdict": "M"
+    },
+    {
+      "rel_path": "set_len/2-4.rs",
+      "api": "set_len",
+      "pattern_id": 2,
+      "verdict": "M"
+    },
+    {
+      "rel_path": "set_len/2-5.rs",
+      "api": "set_len",
+      "pattern_id": 2,
+      "verdict": "M"
+    },
+    {
+      "rel_path": "set_len/2-6.rs",
+      "api": "set_len",
+      "pattern_id": 2,
+      "verdict": "M"
+    },
+    {
+      "rel_path": "set_len/2-7.rs",
+      "api": "set_len",
+      "pattern_id": 2,
+      "verdict": "M"
+    },
+    {
+      "rel_path": "set_len/2-8.rs",
+      "api": "set_len",
+      "pattern_id": 2,
+      "verdict": "M"
+    },
+    {
+      "rel_path": "set_len/2-9.rs",
+      "api": "set_len",
+      "pattern_id": 2,
+      "verdict": "M"
+    },
+    {
+      "rel_path": "set_len/3-1.rs",
+      "api": "set_len",
+      "pattern_id": 3,
+      "verdict": "N"
+    },
+    {
+      "rel_path": "set_len/3-2.rs",
+      "api": "set_len",
+      "pattern_id": 3,
+      "verdict": "N"
+    },
+    {
+      "rel_path": "set_len/3-3.rs",
+      "api": "set_len",
+      "pattern_id": 3,
+      "verdict": "N"
+    },
+    {
+      "rel_path": "set_len/3-4.rs",
+      "api": "set_len",
+      "pattern_id": 3,
+      "verdict": "N"
+    },
+    {
+      "rel_path": "set_len/3-5.rs",
+      "api": "set_len",
+      "pattern_id": 3,
+      "verdict": "N"
+    },
+    {
+      "rel_path": "set_len/3-6.rs",
+      "api": "set_len",
+      "pattern_id": 3,
+      "verdict": "N"
+    },
+    {
+      "rel_path": "set_len/3-7.rs",
+      "api": "set_len",
+      "pattern_id": 3,
+      "verdict": "N"
+    },
+    {
+      "rel_path": "set_len/3-8.rs",
+      "api": "set_len",
+      "pattern_id": 3,
+      "verdict": "N"
+    },
+    {
+      "rel_path": "set_len/3-9.rs",
+      "api": "set_len",
+      "pattern_id": 3,
+      "verdict": "N"
+    }
+  ]
+}

@@ -1,0 +1,1168 @@
+{
+  "summary": {
+    "negative:M": 3,
+    "negative:N": 0,
+    "negative:Y": 2,
+    "negative:dangerous_Y": 2,
+    "negative:files": 9,
+    "negative:no_sink": 4,
+    "positive:M": 34,
+    "positive:N": 0,
+    "positive:Y": 27,
+    "positive:files": 74,
+    "positive:has_Y": 18,
+    "positive:no_sink": 31
+  },
+  "details": [
+    {
+      "group": "positive",
+      "expected": "Y",
+      "id": "cvefixes:648:b633bf265e:compress::compress:51-51",
+      "repo": "badboy_lzf-rs",
+      "cve": "648",
+      "file": "p000.rs",
+      "sinks": 1,
+      "verdicts": [
+        "M"
+      ],
+      "apis": [
+        "set_len"
+      ]
+    },
+    {
+      "group": "positive",
+      "expected": "Y",
+      "id": "cvefixes:648:b633bf265e:compress::compress:61-61",
+      "repo": "badboy_lzf-rs",
+      "cve": "648",
+      "file": "p001.rs",
+      "sinks": 0,
+      "verdicts": [],
+      "apis": []
+    },
+    {
+      "group": "positive",
+      "expected": "Y",
+      "id": "cvefixes-diff:17:c41b5d8dd4:actix-codec/src/framed.rs:239-283",
+      "repo": "actix_actix-net",
+      "cve": "17",
+      "file": "p002.rs",
+      "sinks": 0,
+      "verdicts": [],
+      "apis": []
+    },
+    {
+      "group": "positive",
+      "expected": "Y",
+      "id": "cvefixes-diff:17:c41b5d8dd4:actix-codec/src/framed.rs:288-313",
+      "repo": "actix_actix-net",
+      "cve": "17",
+      "file": "p003.rs",
+      "sinks": 0,
+      "verdicts": [],
+      "apis": []
+    },
+    {
+      "group": "positive",
+      "expected": "Y",
+      "id": "cvefixes-diff:17:c41b5d8dd4:actix-rt/src/arbiter.rs:181-187",
+      "repo": "actix_actix-net",
+      "cve": "17",
+      "file": "p004.rs",
+      "sinks": 0,
+      "verdicts": [],
+      "apis": []
+    },
+    {
+      "group": "positive",
+      "expected": "Y",
+      "id": "cvefixes-diff:23:a67e38b4a0:actix-service/src/apply_cfg.rs:102-111",
+      "repo": "actix_actix-net",
+      "cve": "23",
+      "file": "p005.rs",
+      "sinks": 0,
+      "verdicts": [],
+      "apis": []
+    },
+    {
+      "group": "positive",
+      "expected": "Y",
+      "id": "cvefixes-diff:24:0dca1a705a:actix-utils/src/condition.rs:54-65",
+      "repo": "actix_actix-net",
+      "cve": "24",
+      "file": "p006.rs",
+      "sinks": 0,
+      "verdicts": [],
+      "apis": []
+    },
+    {
+      "group": "positive",
+      "expected": "Y",
+      "id": "cvefixes-diff:24:0dca1a705a:actix-utils/src/mpsc.rs:46-52",
+      "repo": "actix_actix-net",
+      "cve": "24",
+      "file": "p007.rs",
+      "sinks": 0,
+      "verdicts": [],
+      "apis": []
+    },
+    {
+      "group": "positive",
+      "expected": "Y",
+      "id": "cvefixes-diff:40:4790c47518:crates/sol-type-parser/src/ident.rs:64-75",
+      "repo": "alloy-rs_core",
+      "cve": "40",
+      "file": "p008.rs",
+      "sinks": 2,
+      "verdicts": [
+        "Y",
+        "Y"
+      ],
+      "apis": [
+        "get_unchecked",
+        "get_unchecked"
+      ]
+    },
+    {
+      "group": "positive",
+      "expected": "Y",
+      "id": "cvefixes-diff:160:aabf5562f8:src/greedy.rs:197-222",
+      "repo": "Enet4_bra-rs",
+      "cve": "160",
+      "file": "p009.rs",
+      "sinks": 1,
+      "verdicts": [
+        "M"
+      ],
+      "apis": [
+        "set_len"
+      ]
+    },
+    {
+      "group": "positive",
+      "expected": "Y",
+      "id": "cvefixes-diff:171:a535678377:byte_struct/src/lib.rs:408-424",
+      "repo": "wwylele_byte-struct-rs",
+      "cve": "171",
+      "file": "p010.rs",
+      "sinks": 1,
+      "verdicts": [
+        "M"
+      ],
+      "apis": [
+        "ptr::write"
+      ]
+    },
+    {
+      "group": "positive",
+      "expected": "Y",
+      "id": "cvefixes-diff:171:a535678377:byte_struct/src/lib.rs:429-445",
+      "repo": "wwylele_byte-struct-rs",
+      "cve": "171",
+      "file": "p011.rs",
+      "sinks": 1,
+      "verdicts": [
+        "M"
+      ],
+      "apis": [
+        "ptr::write"
+      ]
+    },
+    {
+      "group": "positive",
+      "expected": "Y",
+      "id": "cvefixes-diff:193:0e6006de46:src/de.rs:70-76",
+      "repo": "hrektts_cdr-rs",
+      "cve": "193",
+      "file": "p012.rs",
+      "sinks": 1,
+      "verdicts": [
+        "M"
+      ],
+      "apis": [
+        "set_len"
+      ]
+    },
+    {
+      "group": "positive",
+      "expected": "Y",
+      "id": "cvefixes-diff:411:bb661f29e0:src/lib.rs:91-97",
+      "repo": "rust-lang_ferris-says",
+      "cve": "411",
+      "file": "p013.rs",
+      "sinks": 0,
+      "verdicts": [],
+      "apis": []
+    },
+    {
+      "group": "positive",
+      "expected": "Y",
+      "id": "cvefixes-diff:478:c8219563bc:src/covdir.rs:59-69",
+      "repo": "mozilla_grcov",
+      "cve": "478",
+      "file": "p014.rs",
+      "sinks": 1,
+      "verdicts": [
+        "Y"
+      ],
+      "apis": [
+        "get_unchecked_mut"
+      ]
+    },
+    {
+      "group": "positive",
+      "expected": "Y",
+      "id": "cvefixes-diff:529:3c607a003e:src/rust/iced-x86/src/decoder.rs:728-743",
+      "repo": "icedland_iced",
+      "cve": "529",
+      "file": "p015.rs",
+      "sinks": 1,
+      "verdicts": [
+        "Y"
+      ],
+      "apis": [
+        "get_unchecked"
+      ]
+    },
+    {
+      "group": "positive",
+      "expected": "Y",
+      "id": "cvefixes-diff:529:3c607a003e:src/rust/iced-x86/src/decoder.rs:961-970",
+      "repo": "icedland_iced",
+      "cve": "529",
+      "file": "p016.rs",
+      "sinks": 1,
+      "verdicts": [
+        "Y"
+      ],
+      "apis": [
+        "get_unchecked"
+      ]
+    },
+    {
+      "group": "positive",
+      "expected": "Y",
+      "id": "cvefixes-diff:531:fab6922b95:src/lib.rs:66-72",
+      "repo": "andrewhickman_id-map",
+      "cve": "531",
+      "file": "p017.rs",
+      "sinks": 0,
+      "verdicts": [],
+      "apis": []
+    },
+    {
+      "group": "positive",
+      "expected": "Y",
+      "id": "cvefixes-diff:531:fab6922b95:src/lib.rs:99-110",
+      "repo": "andrewhickman_id-map",
+      "cve": "531",
+      "file": "p018.rs",
+      "sinks": 2,
+      "verdicts": [
+        "M",
+        "M"
+      ],
+      "apis": [
+        "set_len",
+        "set_len"
+      ]
+    },
+    {
+      "group": "positive",
+      "expected": "Y",
+      "id": "cvefixes-diff:531:fab6922b95:src/lib.rs:117-126",
+      "repo": "andrewhickman_id-map",
+      "cve": "531",
+      "file": "p019.rs",
+      "sinks": 2,
+      "verdicts": [
+        "M",
+        "Y"
+      ],
+      "apis": [
+        "ptr::write",
+        "get_unchecked_mut"
+      ]
+    },
+    {
+      "group": "positive",
+      "expected": "Y",
+      "id": "cvefixes-diff:531:fab6922b95:src/lib.rs:134-147",
+      "repo": "andrewhickman_id-map",
+      "cve": "531",
+      "file": "p020.rs",
+      "sinks": 3,
+      "verdicts": [
+        "M",
+        "Y",
+        "Y"
+      ],
+      "apis": [
+        "ptr::write",
+        "get_unchecked_mut",
+        "get_unchecked_mut"
+      ]
+    },
+    {
+      "group": "positive",
+      "expected": "Y",
+      "id": "cvefixes-diff:531:fab6922b95:src/lib.rs:150-156",
+      "repo": "andrewhickman_id-map",
+      "cve": "531",
+      "file": "p021.rs",
+      "sinks": 2,
+      "verdicts": [
+        "Y",
+        "Y"
+      ],
+      "apis": [
+        "ptr::read",
+        "get_unchecked"
+      ]
+    },
+    {
+      "group": "positive",
+      "expected": "Y",
+      "id": "cvefixes-diff:531:fab6922b95:src/lib.rs:170-186",
+      "repo": "andrewhickman_id-map",
+      "cve": "531",
+      "file": "p022.rs",
+      "sinks": 3,
+      "verdicts": [
+        "Y",
+        "M",
+        "Y"
+      ],
+      "apis": [
+        "get_unchecked_mut",
+        "ptr::write",
+        "get_unchecked_mut"
+      ]
+    },
+    {
+      "group": "positive",
+      "expected": "Y",
+      "id": "cvefixes-diff:531:fab6922b95:src/lib.rs:192-204",
+      "repo": "andrewhickman_id-map",
+      "cve": "531",
+      "file": "p023.rs",
+      "sinks": 2,
+      "verdicts": [
+        "Y",
+        "Y"
+      ],
+      "apis": [
+        "get_unchecked_mut",
+        "get_unchecked_mut"
+      ]
+    },
+    {
+      "group": "positive",
+      "expected": "Y",
+      "id": "cvefixes-diff:531:fab6922b95:src/lib.rs:213-226",
+      "repo": "andrewhickman_id-map",
+      "cve": "531",
+      "file": "p024.rs",
+      "sinks": 2,
+      "verdicts": [
+        "Y",
+        "Y"
+      ],
+      "apis": [
+        "get_unchecked",
+        "get_unchecked_mut"
+      ]
+    },
+    {
+      "group": "positive",
+      "expected": "Y",
+      "id": "cvefixes-diff:531:fab6922b95:src/lib.rs:235-241",
+      "repo": "andrewhickman_id-map",
+      "cve": "531",
+      "file": "p025.rs",
+      "sinks": 1,
+      "verdicts": [
+        "Y"
+      ],
+      "apis": [
+        "get_unchecked"
+      ]
+    },
+    {
+      "group": "positive",
+      "expected": "Y",
+      "id": "cvefixes-diff:531:fab6922b95:src/lib.rs:245-251",
+      "repo": "andrewhickman_id-map",
+      "cve": "531",
+      "file": "p026.rs",
+      "sinks": 1,
+      "verdicts": [
+        "Y"
+      ],
+      "apis": [
+        "get_unchecked_mut"
+      ]
+    },
+    {
+      "group": "positive",
+      "expected": "Y",
+      "id": "cvefixes-diff:531:fab6922b95:src/lib.rs:291-311",
+      "repo": "andrewhickman_id-map",
+      "cve": "531",
+      "file": "p027.rs",
+      "sinks": 2,
+      "verdicts": [
+        "Y",
+        "Y"
+      ],
+      "apis": [
+        "ptr::read",
+        "ptr::read"
+      ]
+    },
+    {
+      "group": "positive",
+      "expected": "Y",
+      "id": "cvefixes-diff:531:fab6922b95:src/lib.rs:316-335",
+      "repo": "andrewhickman_id-map",
+      "cve": "531",
+      "file": "p028.rs",
+      "sinks": 0,
+      "verdicts": [],
+      "apis": []
+    },
+    {
+      "group": "positive",
+      "expected": "Y",
+      "id": "cvefixes-diff:531:fab6922b95:src/lib.rs:406-415",
+      "repo": "andrewhickman_id-map",
+      "cve": "531",
+      "file": "p029.rs",
+      "sinks": 2,
+      "verdicts": [
+        "Y",
+        "Y"
+      ],
+      "apis": [
+        "get_unchecked",
+        "get_unchecked"
+      ]
+    },
+    {
+      "group": "positive",
+      "expected": "Y",
+      "id": "cvefixes-diff:531:fab6922b95:src/lib.rs:425-439",
+      "repo": "andrewhickman_id-map",
+      "cve": "531",
+      "file": "p030.rs",
+      "sinks": 1,
+      "verdicts": [
+        "M"
+      ],
+      "apis": [
+        "set_len"
+      ]
+    },
+    {
+      "group": "positive",
+      "expected": "Y",
+      "id": "cvefixes-diff:531:fab6922b95:src/lib.rs:485-491",
+      "repo": "andrewhickman_id-map",
+      "cve": "531",
+      "file": "p031.rs",
+      "sinks": 1,
+      "verdicts": [
+        "Y"
+      ],
+      "apis": [
+        "get_unchecked"
+      ]
+    },
+    {
+      "group": "positive",
+      "expected": "Y",
+      "id": "cvefixes-diff:531:fab6922b95:src/lib.rs:493-499",
+      "repo": "andrewhickman_id-map",
+      "cve": "531",
+      "file": "p032.rs",
+      "sinks": 1,
+      "verdicts": [
+        "Y"
+      ],
+      "apis": [
+        "get_unchecked_mut"
+      ]
+    },
+    {
+      "group": "positive",
+      "expected": "Y",
+      "id": "cvefixes-diff:531:fab6922b95:src/lib.rs:536-542",
+      "repo": "andrewhickman_id-map",
+      "cve": "531",
+      "file": "p033.rs",
+      "sinks": 1,
+      "verdicts": [
+        "M"
+      ],
+      "apis": [
+        "ptr::deref"
+      ]
+    },
+    {
+      "group": "positive",
+      "expected": "Y",
+      "id": "cvefixes-diff:531:fab6922b95:src/lib.rs:574-580",
+      "repo": "andrewhickman_id-map",
+      "cve": "531",
+      "file": "p034.rs",
+      "sinks": 0,
+      "verdicts": [],
+      "apis": []
+    },
+    {
+      "group": "positive",
+      "expected": "Y",
+      "id": "cvefixes-diff:531:fab6922b95:src/lib.rs:602-608",
+      "repo": "andrewhickman_id-map",
+      "cve": "531",
+      "file": "p035.rs",
+      "sinks": 1,
+      "verdicts": [
+        "M"
+      ],
+      "apis": [
+        "ptr::deref"
+      ]
+    },
+    {
+      "group": "positive",
+      "expected": "Y",
+      "id": "cvefixes-diff:531:fab6922b95:src/lib.rs:640-646",
+      "repo": "andrewhickman_id-map",
+      "cve": "531",
+      "file": "p036.rs",
+      "sinks": 0,
+      "verdicts": [],
+      "apis": []
+    },
+    {
+      "group": "positive",
+      "expected": "Y",
+      "id": "cvefixes-diff:531:fab6922b95:src/lib.rs:668-678",
+      "repo": "andrewhickman_id-map",
+      "cve": "531",
+      "file": "p037.rs",
+      "sinks": 2,
+      "verdicts": [
+        "Y",
+        "Y"
+      ],
+      "apis": [
+        "ptr::read",
+        "get_unchecked"
+      ]
+    },
+    {
+      "group": "positive",
+      "expected": "Y",
+      "id": "cvefixes-diff:648:b633bf265e:src/compress.rs:47-64",
+      "repo": "badboy_lzf-rs",
+      "cve": "648",
+      "file": "p038.rs",
+      "sinks": 1,
+      "verdicts": [
+        "M"
+      ],
+      "apis": [
+        "set_len"
+      ]
+    },
+    {
+      "group": "positive",
+      "expected": "Y",
+      "id": "cvefixes-diff:648:b633bf265e:src/decompress.rs:26-33",
+      "repo": "badboy_lzf-rs",
+      "cve": "648",
+      "file": "p039.rs",
+      "sinks": 1,
+      "verdicts": [
+        "M"
+      ],
+      "apis": [
+        "set_len"
+      ]
+    },
+    {
+      "group": "positive",
+      "expected": "Y",
+      "id": "cvefixes-diff:654:6299af0:src/lib.rs:134-141",
+      "repo": "blackbeam_rust-marc",
+      "cve": "654",
+      "file": "p040.rs",
+      "sinks": 1,
+      "verdicts": [
+        "M"
+      ],
+      "apis": [
+        "set_len"
+      ]
+    },
+    {
+      "group": "positive",
+      "expected": "Y",
+      "id": "cvefixes-diff:715:599313b:src/read.rs:17-28",
+      "repo": "andrewhickman_ms3d",
+      "cve": "715",
+      "file": "p041.rs",
+      "sinks": 1,
+      "verdicts": [
+        "Y"
+      ],
+      "apis": [
+        "get_unchecked_mut"
+      ]
+    },
+    {
+      "group": "positive",
+      "expected": "Y",
+      "id": "cvefixes-diff:842:dd59b3066e:src/fcgi.rs:180-191",
+      "repo": "SolraBizna_outer_cgi",
+      "cve": "842",
+      "file": "p042.rs",
+      "sinks": 2,
+      "verdicts": [
+        "M",
+        "M"
+      ],
+      "apis": [
+        "set_len",
+        "set_len"
+      ]
+    },
+    {
+      "group": "positive",
+      "expected": "Y",
+      "id": "cvefixes-diff:891:8026286:src/tape.rs:100-107",
+      "repo": "bodoni_postscript",
+      "cve": "891",
+      "file": "p043.rs",
+      "sinks": 1,
+      "verdicts": [
+        "M"
+      ],
+      "apis": [
+        "set_len"
+      ]
+    },
+    {
+      "group": "positive",
+      "expected": "Y",
+      "id": "cvefixes-diff:963:3f00e1fa01:risc0/zkos/v1compat/src/main.rs:72-80",
+      "repo": "risc0_risc0",
+      "cve": "963",
+      "file": "p044.rs",
+      "sinks": 0,
+      "verdicts": [],
+      "apis": []
+    },
+    {
+      "group": "positive",
+      "expected": "Y",
+      "id": "cvefixes-diff:1111:e64afc8c47:lib.rs:403-413",
+      "repo": "servo_rust-smallvec",
+      "cve": "1111",
+      "file": "p045.rs",
+      "sinks": 0,
+      "verdicts": [],
+      "apis": []
+    },
+    {
+      "group": "positive",
+      "expected": "Y",
+      "id": "cvefixes-diff:1113:9998ba0694:src/lib.rs:1036-1077",
+      "repo": "servo_rust-smallvec",
+      "cve": "1113",
+      "file": "p046.rs",
+      "sinks": 0,
+      "verdicts": [],
+      "apis": []
+    },
+    {
+      "group": "positive",
+      "expected": "Y",
+      "id": "cvefixes-diff:1240:cdff034e6d:crates/xdv/src/lib.rs:221-230",
+      "repo": "tectonic-typesetting_tectonic",
+      "cve": "1240",
+      "file": "p047.rs",
+      "sinks": 1,
+      "verdicts": [
+        "M"
+      ],
+      "apis": [
+        "set_len"
+      ]
+    },
+    {
+      "group": "positive",
+      "expected": "Y",
+      "id": "cvefixes-diff:1241:2820cf12f2:src/misc.rs:108-151",
+      "repo": "Yoric_telemetry.rs",
+      "cve": "1241",
+      "file": "p048.rs",
+      "sinks": 5,
+      "verdicts": [
+        "M",
+        "M",
+        "M",
+        "M",
+        "M"
+      ],
+      "apis": [
+        "ptr::write",
+        "set_len",
+        "ptr::write",
+        "set_len",
+        "set_len"
+      ]
+    },
+    {
+      "group": "positive",
+      "expected": "Y",
+      "id": "cvefixes-diff:1386:3535acbf3b:crates/runtime/src/memory.rs:413-433",
+      "repo": "bytecodealliance_wasmtime",
+      "cve": "1386",
+      "file": "p049.rs",
+      "sinks": 0,
+      "verdicts": [],
+      "apis": []
+    },
+    {
+      "group": "positive",
+      "expected": "Y",
+      "id": "cvefixes-diff:1412:192f2fcdad:crates/wasmtime/src/runtime/func.rs:1495-1521",
+      "repo": "bytecodealliance_wasmtime",
+      "cve": "1412",
+      "file": "p050.rs",
+      "sinks": 0,
+      "verdicts": [],
+      "apis": []
+    },
+    {
+      "group": "positive",
+      "expected": "Y",
+      "id": "cvefixes-diff:1414:b5e31a5c33:crates/jit-debug/src/perf_jitdump.rs:271-286",
+      "repo": "bytecodealliance_wasmtime",
+      "cve": "1414",
+      "file": "p051.rs",
+      "sinks": 0,
+      "verdicts": [],
+      "apis": []
+    },
+    {
+      "group": "positive",
+      "expected": "Y",
+      "id": "cvefixes-diff:151:ae9b8dd23c:borsh/src/de/mod.rs:383-397",
+      "repo": "near_borsh-rs",
+      "cve": "151",
+      "file": "p052.rs",
+      "sinks": 1,
+      "verdicts": [
+        "M"
+      ],
+      "apis": [
+        "Vec::from_raw_parts"
+      ]
+    },
+    {
+      "group": "positive",
+      "expected": "Y",
+      "id": "cvefixes-diff:307:f48c1c763a:crossbeam-epoch/src/sync/queue.rs:49-59",
+      "repo": "crossbeam-rs_crossbeam",
+      "cve": "307",
+      "file": "p053.rs",
+      "sinks": 0,
+      "verdicts": [],
+      "apis": []
+    },
+    {
+      "group": "positive",
+      "expected": "Y",
+      "id": "cvefixes-diff:372:e4a29e145c:diesel/src/mysql/types/date_and_time/mod.rs:115-127",
+      "repo": "diesel-rs_diesel",
+      "cve": "372",
+      "file": "p054.rs",
+      "sinks": 0,
+      "verdicts": [],
+      "apis": []
+    },
+    {
+      "group": "positive",
+      "expected": "Y",
+      "id": "cvefixes-diff:372:e4a29e145c:diesel/src/pg/connection/result.rs:27-41",
+      "repo": "diesel-rs_diesel",
+      "cve": "372",
+      "file": "p055.rs",
+      "sinks": 0,
+      "verdicts": [],
+      "apis": []
+    },
+    {
+      "group": "positive",
+      "expected": "Y",
+      "id": "cvefixes-diff:372:e4a29e145c:diesel/src/pg/connection/result.rs:97-115",
+      "repo": "diesel-rs_diesel",
+      "cve": "372",
+      "file": "p056.rs",
+      "sinks": 0,
+      "verdicts": [],
+      "apis": []
+    },
+    {
+      "group": "positive",
+      "expected": "Y",
+      "id": "cvefixes-diff:372:e4a29e145c:diesel/src/pg/connection/result.rs:130-146",
+      "repo": "diesel-rs_diesel",
+      "cve": "372",
+      "file": "p057.rs",
+      "sinks": 0,
+      "verdicts": [],
+      "apis": []
+    },
+    {
+      "group": "positive",
+      "expected": "Y",
+      "id": "cvefixes-diff:372:e4a29e145c:diesel/src/pg/connection/result.rs:152-165",
+      "repo": "diesel-rs_diesel",
+      "cve": "372",
+      "file": "p058.rs",
+      "sinks": 0,
+      "verdicts": [],
+      "apis": []
+    },
+    {
+      "group": "positive",
+      "expected": "Y",
+      "id": "cvefixes-diff:372:e4a29e145c:diesel/src/pg/connection/result.rs:171-189",
+      "repo": "diesel-rs_diesel",
+      "cve": "372",
+      "file": "p059.rs",
+      "sinks": 1,
+      "verdicts": [
+        "M"
+      ],
+      "apis": [
+        "CStr::from_ptr"
+      ]
+    },
+    {
+      "group": "positive",
+      "expected": "Y",
+      "id": "cvefixes-diff:372:e4a29e145c:diesel/src/pg/connection/result.rs:205-270",
+      "repo": "diesel-rs_diesel",
+      "cve": "372",
+      "file": "p060.rs",
+      "sinks": 1,
+      "verdicts": [
+        "M"
+      ],
+      "apis": [
+        "CStr::from_ptr"
+      ]
+    },
+    {
+      "group": "positive",
+      "expected": "Y",
+      "id": "cvefixes-diff:372:e4a29e145c:diesel/src/sqlite/connection/raw.rs:481-534",
+      "repo": "diesel-rs_diesel",
+      "cve": "372",
+      "file": "p061.rs",
+      "sinks": 0,
+      "verdicts": [],
+      "apis": []
+    },
+    {
+      "group": "positive",
+      "expected": "Y",
+      "id": "cvefixes-diff:372:e4a29e145c:diesel/src/type_impls/primitives.rs:130-143",
+      "repo": "diesel-rs_diesel",
+      "cve": "372",
+      "file": "p062.rs",
+      "sinks": 1,
+      "verdicts": [
+        "M"
+      ],
+      "apis": [
+        "ptr::deref"
+      ]
+    },
+    {
+      "group": "positive",
+      "expected": "Y",
+      "id": "cvefixes-diff:372:e4a29e145c:diesel/src/type_impls/primitives.rs:169-182",
+      "repo": "diesel-rs_diesel",
+      "cve": "372",
+      "file": "p063.rs",
+      "sinks": 1,
+      "verdicts": [
+        "M"
+      ],
+      "apis": [
+        "ptr::deref"
+      ]
+    },
+    {
+      "group": "positive",
+      "expected": "Y",
+      "id": "cvefixes-diff:417:cdc8204a11:tests/monster_test/my_game/example/color_generated.rs:44-59",
+      "repo": "google_flatbuffers",
+      "cve": "417",
+      "file": "p064.rs",
+      "sinks": 0,
+      "verdicts": [],
+      "apis": []
+    },
+    {
+      "group": "positive",
+      "expected": "Y",
+      "id": "cvefixes-diff:417:cdc8204a11:tests/monster_test/my_game/example/long_enum_generated.rs:40-55",
+      "repo": "google_flatbuffers",
+      "cve": "417",
+      "file": "p065.rs",
+      "sinks": 0,
+      "verdicts": [],
+      "apis": []
+    },
+    {
+      "group": "positive",
+      "expected": "Y",
+      "id": "cvefixes-diff:417:cdc8204a11:tests/monster_test_serialize/my_game/example/color_generated.rs:55-70",
+      "repo": "google_flatbuffers",
+      "cve": "417",
+      "file": "p066.rs",
+      "sinks": 0,
+      "verdicts": [],
+      "apis": []
+    },
+    {
+      "group": "positive",
+      "expected": "Y",
+      "id": "cvefixes-diff:417:cdc8204a11:tests/monster_test_serialize/my_game/example/long_enum_generated.rs:51-66",
+      "repo": "google_flatbuffers",
+      "cve": "417",
+      "file": "p067.rs",
+      "sinks": 0,
+      "verdicts": [],
+      "apis": []
+    },
+    {
+      "group": "positive",
+      "expected": "Y",
+      "id": "cvefixes-diff:885:dde31d26fd:pnet_macros/src/decorator.rs:657-670",
+      "repo": "libpnet_libpnet",
+      "cve": "885",
+      "file": "p068.rs",
+      "sinks": 0,
+      "verdicts": [],
+      "apis": []
+    },
+    {
+      "group": "positive",
+      "expected": "Y",
+      "id": "cvefixes-diff:1264:4b174ce2c9:tokio/src/sync/broadcast.rs:1486-1492",
+      "repo": "tokio-rs_tokio",
+      "cve": "1264",
+      "file": "p069.rs",
+      "sinks": 1,
+      "verdicts": [
+        "M"
+      ],
+      "apis": [
+        "ptr::deref"
+      ]
+    },
+    {
+      "group": "positive",
+      "expected": "Y",
+      "id": "cvefixes-diff:1264:4b174ce2c9:tokio/src/sync/broadcast.rs:1494-1501",
+      "repo": "tokio-rs_tokio",
+      "cve": "1264",
+      "file": "p070.rs",
+      "sinks": 1,
+      "verdicts": [
+        "M"
+      ],
+      "apis": [
+        "ptr::deref"
+      ]
+    },
+    {
+      "group": "positive",
+      "expected": "Y",
+      "id": "cvefixes-diff:20:fe13789345:actix-http/src/body.rs:396-402",
+      "repo": "actix_actix-web",
+      "cve": "20",
+      "file": "p071.rs",
+      "sinks": 0,
+      "verdicts": [],
+      "apis": []
+    },
+    {
+      "group": "positive",
+      "expected": "Y",
+      "id": "cvefixes-diff:584:ea7e6f2a2c:lexical-write-float/src/compact.rs:64-72",
+      "repo": "Alexhuszagh_rust-lexical",
+      "cve": "584",
+      "file": "p072.rs",
+      "sinks": 1,
+      "verdicts": [
+        "M"
+      ],
+      "apis": [
+        "assume_init"
+      ]
+    },
+    {
+      "group": "positive",
+      "expected": "Y",
+      "id": "cvefixes-diff:584:ea7e6f2a2c:lexical-write-float/src/radix.rs:67-76",
+      "repo": "Alexhuszagh_rust-lexical",
+      "cve": "584",
+      "file": "p073.rs",
+      "sinks": 1,
+      "verdicts": [
+        "M"
+      ],
+      "apis": [
+        "assume_init"
+      ]
+    },
+    {
+      "group": "negative",
+      "expected": "N_or_M",
+      "id": "cvefixes:620:7fd282aef7:introspect::get_stat_info_cb_proxy:2188-2188",
+      "negative_label": "guard",
+      "repo": "jnqnfe_pulse-binding-rust",
+      "cve": "620",
+      "file": "n000.rs",
+      "sinks": 1,
+      "verdicts": [
+        "M"
+      ],
+      "apis": [
+        "as_ref"
+      ]
+    },
+    {
+      "group": "negative",
+      "expected": "N_or_M",
+      "id": "cvefixes-diff:620:7fd282aef7:pulse-binding/src/stream.rs:1694-1706",
+      "negative_label": "guard",
+      "repo": "jnqnfe_pulse-binding-rust",
+      "cve": "620",
+      "file": "n001.rs",
+      "sinks": 1,
+      "verdicts": [
+        "M"
+      ],
+      "apis": [
+        "CStr::from_ptr"
+      ]
+    },
+    {
+      "group": "negative",
+      "expected": "N_or_M",
+      "id": "cvefixes-diff:891:8026286:src/tape.rs:56-62",
+      "negative_label": "guard",
+      "repo": "bodoni_postscript",
+      "cve": "891",
+      "file": "n002.rs",
+      "sinks": 0,
+      "verdicts": [],
+      "apis": []
+    },
+    {
+      "group": "negative",
+      "expected": "N_or_M",
+      "id": "cvefixes:1095:9a2e7891f0:inline_array::new:172-172",
+      "negative_label": "guard",
+      "repo": "bodil_sized-chunks",
+      "cve": "1095",
+      "file": "n003.rs",
+      "sinks": 1,
+      "verdicts": [
+        "M"
+      ],
+      "apis": [
+        "ptr::deref"
+      ]
+    },
+    {
+      "group": "negative",
+      "expected": "N_or_M",
+      "id": "cvefixes:24:0dca1a705a:condition::poll:76-76",
+      "negative_label": "hard_negative",
+      "repo": "actix_actix-net",
+      "cve": "24",
+      "file": "n004.rs",
+      "sinks": 1,
+      "verdicts": [
+        "Y"
+      ],
+      "apis": [
+        "get_unchecked_mut"
+      ]
+    },
+    {
+      "group": "negative",
+      "expected": "N_or_M",
+      "id": "cvefixes-diff:1273:e6e16d5a97:src/toodee.rs:1073-1079",
+      "negative_label": "guard",
+      "repo": "antonmarsden_toodee",
+      "cve": "1273",
+      "file": "n005.rs",
+      "sinks": 0,
+      "verdicts": [],
+      "apis": []
+    },
+    {
+      "group": "negative",
+      "expected": "N_or_M",
+      "id": "cvefixes:24:0dca1a705a:oneshot::is_canceled:202-202",
+      "negative_label": "hard_negative",
+      "repo": "actix_actix-net",
+      "cve": "24",
+      "file": "n006.rs",
+      "sinks": 1,
+      "verdicts": [
+        "Y"
+      ],
+      "apis": [
+        "get_unchecked"
+      ]
+    },
+    {
+      "group": "negative",
+      "expected": "N_or_M",
+      "id": "cvefixes-diff:965:b48a86e8b5:rkyv/src/impls/alloc/collections/vec_deque.rs:56-62",
+      "negative_label": "guard",
+      "repo": "rkyv_rkyv",
+      "cve": "965",
+      "file": "n007.rs",
+      "sinks": 0,
+      "verdicts": [],
+      "apis": []
+    },
+    {
+      "group": "negative",
+      "expected": "N_or_M",
+      "id": "cvefixes-diff:965:b48a86e8b5:rkyv/src/impls/alloc/vec.rs:42-48",
+      "negative_label": "guard",
+      "repo": "rkyv_rkyv",
+      "cve": "965",
+      "file": "n008.rs",
+      "sinks": 0,
+      "verdicts": [],
+      "apis": []
+    }
+  ]
+}

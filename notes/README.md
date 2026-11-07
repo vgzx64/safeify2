@@ -8,6 +8,7 @@ Working notes for the dissertation and the SafeNet experiments.
 - **Historical / archived** — retained for provenance only; do not cite as current.
 - **Provisional** — produced before a freeze/commit; must be re-run before being
   treated as a result.
+- **Draft** — a proposed design; not a protocol until its freeze gates are met.
 
 ## Notes index
 
@@ -18,6 +19,8 @@ Working notes for the dissertation and the SafeNet experiments.
 | [research/research-vectors.md](research/research-vectors.md) | Active | Research directions beyond the SafeNet baseline |
 | [research/synthetic-data-theory.md](research/synthetic-data-theory.md) | Active | Why and how to build synthetic data without a circular evaluation |
 | [research/gnn-coder-evaluation.md](research/gnn-coder-evaluation.md) | Historical | 2026-09-22 evaluation of GNN-Coder as a research candidate |
+| [research/transition-dataset.md](research/transition-dataset.md) | Draft | Classification/retrieval dataset: labels, splits, gates |
+| [research/transition-dataset-pilot.md](research/transition-dataset-pilot.md) | Provisional | CVEfixes/repo pilot: v0.1 exploratory 190 rows; 276 adjudicated; 109 positive families; negatives/queue still short |
 
 ## Archive
 

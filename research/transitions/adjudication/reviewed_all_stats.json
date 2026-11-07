@@ -1,0 +1,22 @@
+{
+  "rows": 276,
+  "replaceability": {
+    "M": 65,
+    "U": 50,
+    "Y": 103,
+    "N": 58
+  },
+  "action": {
+    "guard": 55,
+    "unknown": 50,
+    "replace": 109,
+    "keep": 56,
+    "encapsulate": 6
+  },
+  "vetoed": 48,
+  "sources": {
+    "cvefixes": 206,
+    "rustsec": 16,
+    "cratesio": 54
+  }
+}

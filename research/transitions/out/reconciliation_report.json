@@ -1,0 +1,13 @@
+{
+  "manual_positives": 74,
+  "llm_cvefixes_Y": 73,
+  "overlap": 56,
+  "manual_only": 18,
+  "llm_only": 17,
+  "cvefixes_union": 91,
+  "llm_rustsec_Y": 7,
+  "llm_cratesio_Y": 23,
+  "total_union": 121,
+  "reconciled": false,
+  "note": "manual-only and LLM-only rows are not yet adjudicated by the other track"
+}
