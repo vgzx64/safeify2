@@ -1,0 +1,31 @@
+=== split audit (frozen) ===
+testdata: 474 files, usable 454, excluded 20
+train=288 valid=69 test=97 (70/10/20, seed 1234)
+leakage: same_api=0 cross_api=6 label_conflicts=14
+strata: 76 (api,pattern) cells, 68 represented in test
+verdict map: missing=none
+eval: test snippets=97 pairs=76 (pos=38 neg=38)
+gallery: 141 entries / 18 apis
+irreplaceable (verdict=N): 23 test snippets, 3 pairs with both endpoints N
+
+=== retrieval metrics (test queries vs fixed KB gallery) ===
+queries=97  top-1 pattern accuracy=0.0928  macro per-API recall=0.0988
+recall on verdict=N (irreplaceable) queries: 5/23 = 0.2174  (miss rate = 0.7826)
+  Box::from_raw: 1/5 = 0.200
+  CStr::from_ptr: 1/3 = 0.333
+  CString::from_raw: 1/4 = 0.250
+  Rc::from_raw: 2/5 = 0.400
+  Vec::from_raw_parts: 1/7 = 0.143
+  as_ref: 0/3 = 0.000
+  assume_init: 0/5 = 0.000
+  mem::transmute: 0/7 = 0.000
+  mem::transmute_copy: 0/4 = 0.000
+  mem::zeroed: 0/2 = 0.000
+  offset_from: 0/6 = 0.000
+  ptr::copy: 0/7 = 0.000
+  ptr::copy_nonoverlapping: 0/8 = 0.000
+  ptr::deref: 0/7 = 0.000
+  ptr::read: 2/7 = 0.286
+  ptr::write: 0/6 = 0.000
+  ptr::write_bytes: 1/6 = 0.167
+  set_len: 0/5 = 0.000

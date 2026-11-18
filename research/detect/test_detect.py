@@ -88,6 +88,18 @@ def test_verdict_tables() -> None:
                        args=["&owner.val"], recv_type=None, arg_types=["&String"],
                        ret_type=None, guards=[],
                        signature="fn dup(owner: &Wrap) -> String")
+    # KB p2: a `&`-borrow rooted at a parameter points outside this frame.
+    assert (v.v, v.kb_gold, v.pattern_hint) == ("N", "N", 2)
+    # KB p1: a LOCAL owner binding is replaceable ...
+    v = verdict.decide(db, "ptr::read", call_text="std::ptr::read(&s)",
+                       args=["&s"], recv_type=None, arg_types=["&String"],
+                       ret_type=None, guards=[], signature="fn dup2() -> String")
+    assert (v.v, v.kb_gold, v.pattern_hint) == ("Y", "Y", 1)
+    # ... and so is a local re-borrow of a local (`let v = from_raw_parts_mut`).
+    v = verdict.decide(db, "ptr::read", call_text="ptr::read(&this.inner)",
+                       args=["&this.inner"], recv_type=None,
+                       arg_types=["&String"], ret_type=None, guards=[],
+                       signature="fn into_inner(self) -> Box<[u8]>")
     assert (v.v, v.kb_gold, v.pattern_hint) == ("Y", "Y", 1)
     v = verdict.decide(db, "ptr::write", call_text="ptr::write(p, x)",
                        args=["p", "x"], recv_type=None, arg_types=[None, None],
@@ -97,6 +109,34 @@ def test_verdict_tables() -> None:
                        recv_type=None, arg_types=[None], ret_type=None,
                        guards=["with_capacity"], signature="fn f() -> Vec<u64>")
     assert v.v == "M" and v.encapsulate
+
+
+def test_ptr_read_borrowed_param_n() -> None:
+    """Regression 2026-11-18 for the `ptr::read/2-1.rs` false positive.
+
+    `std::ptr::read(&self.entries[i])` used to be claimed Y (KB p1) because the
+    indexed expression looked "owner-shaped", although the borrow is rooted at
+    `&mut self` — the owner is outside this frame, so KB p2 says N.
+    """
+    db = spec_db.load_spec_db()
+    sig = "pub fn grow(&mut self, shift: u8)"
+    for arg_types in ([None], ["{unknown}"]):
+        v = verdict.decide(db, "ptr::read",
+                           call_text="std::ptr::read(&self.entries[i])",
+                           args=["&self.entries[i]"], recv_type=None,
+                           arg_types=arg_types, ret_type=None, guards=[],
+                           signature=sig)
+        assert (v.v, v.confidence, v.pattern_hint, v.kb_gold) == \
+            ("N", "high", 2, "N"), (arg_types, v)
+    # `&a as *const _ as *const B` is a raw-pointer re-derive (KB p1 rawptr),
+    # not a borrowed-reference read: it must not be turned into N by the fix.
+    v = verdict.decide(db, "ptr::read",
+                       call_text="ptr::read(&a as *const _ as *const B)",
+                       args=["&a as *const _ as *const B"], recv_type=None,
+                       arg_types=["*const B"], ret_type=None, guards=[],
+                       signature="pub fn unsafe_try_cast<A: Any, B: Any>(a: A) "
+                                "-> Result<B, A>")
+    assert v.v == "M", v
 
 
 def test_no_lsp_detect() -> None:

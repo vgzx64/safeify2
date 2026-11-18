@@ -5636,13 +5636,13 @@
             "lsp": false
           },
           "verdict": {
-            "v": "Y",
+            "v": "N",
             "confidence": "high",
-            "reason": "owner/reference is present in this frame (KB ptr::read p1 -> Y): clone/read through the owner instead.",
-            "safe_alternative": "owner.clone()",
-            "encapsulate": false,
-            "pattern_hint": 1,
-            "kb_gold": "Y",
+            "reason": "reference borrowed from a parameter/self: the owner lives outside this frame, so the value cannot be replaced here (KB ptr::read p2 -> N); encapsulate.",
+            "safe_alternative": null,
+            "encapsulate": true,
+            "pattern_hint": 2,
+            "kb_gold": "N",
             "rules": [
               "ptr_read_1.yaml",
               "ptr_read_2.yaml"
@@ -5686,13 +5686,13 @@
             "lsp": false
           },
           "verdict": {
-            "v": "Y",
+            "v": "N",
             "confidence": "high",
-            "reason": "owner/reference is present in this frame (KB ptr::read p1 -> Y): clone/read through the owner instead.",
-            "safe_alternative": "owner.clone()",
-            "encapsulate": false,
-            "pattern_hint": 1,
-            "kb_gold": "Y",
+            "reason": "reference borrowed from a parameter/self: the owner lives outside this frame, so the value cannot be replaced here (KB ptr::read p2 -> N); encapsulate.",
+            "safe_alternative": null,
+            "encapsulate": true,
+            "pattern_hint": 2,
+            "kb_gold": "N",
             "rules": [
               "ptr_read_1.yaml",
               "ptr_read_2.yaml"
@@ -7286,9 +7286,9 @@
   "summary": {
     "files": 97,
     "verdicts": {
-      "Y": 8,
+      "Y": 6,
       "M": 128,
-      "N": 0
+      "N": 2
     }
   }
 }

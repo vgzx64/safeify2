@@ -15,6 +15,11 @@ Measured per SINK against its FILE's gold verdict:
     of notes/research/research-vectors.md)
   - N recall, Y precision, per-API accuracy
   - pattern-claim coverage/accuracy (verdict.pattern_hint vs gold pattern_id)
+  - per-class precision/recall/F1 + macro-F1
+  - coverage / risk (abstentions are not correct answers)
+  - risk–coverage by verdict confidence (high before low)
+  - 95% intervals from a bootstrap clustered by FILE (sinks in one file are
+    correlated; per-sink resampling would understate the interval)
 
 Never fabricates: files without a gold row and sinks whose api != gold api
 are reported separately as unmatched.
@@ -24,6 +29,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import random
 import sys
 from collections import Counter, defaultdict
 from pathlib import Path
@@ -87,6 +93,7 @@ def score(report_path: str, gold: dict[str, dict]) -> dict:
     hint_total = hint_correct = 0
     hint_wrong: list[tuple[str, str, int, int]] = []
     per_family = defaultdict(lambda: [0, 0])       # family -> [correct, total]
+    rows: list[tuple[str, str, str, str]] = []     # (file, gold, pred, conf)
 
     for r in reports:
         n_files += 1
@@ -104,6 +111,7 @@ def score(report_path: str, gold: dict[str, dict]) -> dict:
             n_evaluated += 1
             pv = s["verdict"]["v"]
             conf[gv][pv] += 1
+            rows.append((rel, gv, pv, s["verdict"].get("confidence", "low")))
             per_api[g["api"]][1] += 1
             if pv == gv:
                 per_api[g["api"]][0] += 1
@@ -139,6 +147,7 @@ def score(report_path: str, gold: dict[str, dict]) -> dict:
         "files": n_files, "sinks": n_sinks, "evaluated": n_evaluated,
         "unmatched_files": unmatched_files, "api_mismatch": api_mismatch,
         "conf": {p: dict(conf[p]) for p in VS},
+        "rows": rows,
         "accuracy": correct / n_evaluated if n_evaluated else 0.0,
         "fp_on_n": fp_on_n, "n_gold": n_gold,
         "n_recall": n_gold_pred_n / n_gold if n_gold else None,
@@ -152,6 +161,82 @@ def score(report_path: str, gold: dict[str, dict]) -> dict:
         "per_api": {a: (c, t, c / t) for a, (c, t) in sorted(per_api.items())},
         "per_family": {f: (c, t, c / t) for f, (c, t) in sorted(per_family.items())},
     }
+
+
+def per_class(conf: dict) -> dict:
+    """Per-class precision/recall/F1 from a gold->pred confusion table."""
+    out = {}
+    for c in VS:
+        tp = conf[c].get(c, 0)
+        pred_c = sum(conf[g].get(c, 0) for g in VS)
+        gold_c = sum(conf[c].values())
+        p = tp / pred_c if pred_c else None
+        r = tp / gold_c if gold_c else None
+        f1 = 2 * p * r / (p + r) if (p and r) else None
+        out[c] = {"tp": tp, "pred": pred_c, "gold": gold_c,
+                  "p": p, "r": r, "f1": f1}
+    return out
+
+
+def macro_f1(conf: dict) -> float:
+    """Macro-F1 over classes that have gold support (Y/M/N)."""
+    f1s = [m["f1"] for m in per_class(conf).values()
+           if m["f1"] is not None]
+    return sum(f1s) / len(f1s) if f1s else 0.0
+
+
+def _conf_from(rows) -> dict:
+    conf = {p: Counter() for p in VS}
+    for _, gv, pv, _ in rows:
+        conf[gv][pv] += 1
+    return conf
+
+
+def bootstrap_ci(rows, n_boot: int = 2000, seed: int = 1234) -> dict:
+    """95% percentile intervals, resampling FILES (cluster bootstrap)."""
+    by_file: dict[str, list] = defaultdict(list)
+    for r in rows:
+        by_file[r[0]].append(r)
+    files = sorted(by_file)
+    rng = random.Random(seed)
+    stats = {"accuracy": [], "fp_on_n": [], "recall_n": [], "macro_f1": []}
+    for _ in range(n_boot):
+        conf = {p: Counter() for p in VS}
+        n = 0
+        for _ in range(len(files)):
+            for _, gv, pv, _ in by_file[files[rng.randrange(len(files))]]:
+                conf[gv][pv] += 1
+                n += 1
+        correct = sum(conf[v].get(v, 0) for v in VS)
+        n_gold = sum(conf["N"].values())
+        stats["accuracy"].append(correct / n if n else 0.0)
+        stats["fp_on_n"].append(conf["N"].get("Y", 0) / n_gold if n_gold else 0.0)
+        stats["recall_n"].append(conf["N"].get("N", 0) / n_gold if n_gold else 0.0)
+        stats["macro_f1"].append(macro_f1(conf))
+    out = {}
+    for k, vals in stats.items():
+        vals.sort()
+        out[k] = (vals[int(0.025 * len(vals))],
+                  vals[min(len(vals) - 1, int(0.975 * len(vals)))])
+    return out
+
+
+def risk_coverage(rows) -> list[tuple[str, int, int, float, float]]:
+    """(level, claims, errors, coverage, risk) with high-confidence first.
+
+    A verdict is a *claim* when it is Y or N; M is an abstention. Coverage is
+    the share of evaluated sinks claimed, risk the error rate among claims.
+    """
+    total = len(rows)
+    levels = [("high", [r for r in rows if r[2] in "YN" and r[3] == "high"]),
+              ("all", [r for r in rows if r[2] in "YN"])]
+    out = []
+    for name, claimed in levels:
+        errors = sum(1 for _, gv, pv, _ in claimed if gv != pv)
+        cov = len(claimed) / total if total else 0.0
+        risk = errors / len(claimed) if claimed else 0.0
+        out.append((name, len(claimed), errors, cov, risk))
+    return out
 
 
 def show(out: dict) -> None:
@@ -175,6 +260,17 @@ def show(out: dict) -> None:
         print(f"Y precision: {out['y_precision']:.4f} ({out['y_pred']} Y predictions)")
     print(f"claim_rate: {out['claim_rate']:.4f}  (M-rate {out['m_rate']:.4f} — "
           f"abstentions)")
+    print("\nper-class (gold, pred, tp, precision, recall, F1):")
+    for c, m in per_class(out["conf"]).items():
+        def f(x):
+            return "n/a" if x is None else f"{x:.4f}"
+        print(f"  {c}: gold={m['gold']:<3d} pred={m['pred']:<3d} "
+              f"tp={m['tp']:<3d} P={f(m['p'])} R={f(m['r'])} F1={f(m['f1'])}")
+    print(f"macro-F1: {macro_f1(out['conf']):.4f}")
+    print("\nrisk-coverage (claim = Y/N; M abstains; high-confidence first):")
+    for name, k, err, cov, risk in risk_coverage(out["rows"]):
+        print(f"  {name:4s} claims={k:<3d} errors={err:<2d} "
+              f"coverage={cov:.4f} risk={risk:.4f}")
     print(f"pattern claims: {out['hint_total']}/{out['evaluated']} sinks, "
           f"correct={out['hint_correct']}"
           + (f" ({out['hint_correct']/out['hint_total']:.4f})" if out["hint_total"] else ""))
@@ -194,6 +290,9 @@ def main() -> int:
     ap.add_argument("--report2", help="second report for a delta summary")
     ap.add_argument("--split", default="test", choices=("test", "valid", "train"),
                     help="gold split to score against (default: test)")
+    ap.add_argument("--bootstrap", type=int, default=2000,
+                    help="file-clustered bootstrap reps for 95%% CIs "
+                         "(0 disables)")
     args = ap.parse_args()
 
     if not MANIFEST.exists():
@@ -211,6 +310,13 @@ def main() -> int:
         print(f"accuracy: {out1['accuracy']:.4f} vs {out2['accuracy']:.4f}")
         print(f"FP-on-N:  {out1['fp_on_n']} vs {out2['fp_on_n']}")
         print(f"pattern claims: {out1['hint_total']} vs {out2['hint_total']}")
+    if args.bootstrap:
+        for out in ([out1] + ([out2] if args.report2 else [])):
+            ci = bootstrap_ci(out["rows"], args.bootstrap)
+            print(f"\n95% CI, file-clustered bootstrap ({args.bootstrap} reps) "
+                  f"— {out['report']}:")
+            for k, (lo, hi) in ci.items():
+                print(f"  {k:9s} [{lo:.4f}, {hi:.4f}]")
     return 0
 
 

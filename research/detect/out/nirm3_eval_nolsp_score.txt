@@ -7,21 +7,29 @@ confusion (rows=gold, cols=pred):
  gold     Y     M     N
     Y     2    67     0
     M     0     9     0
-    N     2    25     0
+    N     0    25     2
 
-accuracy: 0.1048 (11/105)
-FP-on-N (gold N -> pred Y): 2/27  recall_N=0.0000
-Y precision: 0.5000 (4 Y predictions)
+accuracy: 0.1238 (13/105)
+FP-on-N (gold N -> pred Y): 0/27  recall_N=0.0741
+Y precision: 1.0000 (2 Y predictions)
 claim_rate: 0.0381  (M-rate 0.9619 — abstentions)
-pattern claims: 4/105 sinks, correct=1 (0.2500)
-  wrong hint: ptr::read/2-1.rs ptr::read hint=p1 gold=p2
-  wrong hint: ptr::read/2-1.rs ptr::read hint=p1 gold=p2
+
+per-class (gold, pred, tp, precision, recall, F1):
+  Y: gold=69  pred=2   tp=2   P=1.0000 R=0.0290 F1=0.0563
+  M: gold=9   pred=101 tp=9   P=0.0891 R=1.0000 F1=0.1636
+  N: gold=27  pred=2   tp=2   P=1.0000 R=0.0741 F1=0.1379
+macro-F1: 0.1193
+
+risk-coverage (claim = Y/N; M abstains; high-confidence first):
+  high claims=4   errors=0  coverage=0.0381 risk=0.0000
+  all  claims=4   errors=0  coverage=0.0381 risk=0.0000
+pattern claims: 4/105 sinks, correct=3 (0.7500)
   wrong hint: ptr::read/5-3.rs ptr::read hint=p1 gold=p5
 
 per-family accuracy (correct/total):
   borrow_ffi       0/6   0.000
   ptr_arith        0/6   0.000
-  rawmem           3/54  0.056
+  rawmem           5/54  0.093
   rawref           0/4   0.000
   reconstitute     4/21  0.190
   transmute        0/7   0.000
@@ -43,7 +51,13 @@ per-API accuracy (correct/total):
   ptr::copy                  0/11  0.000
   ptr::copy_nonoverlapping   0/10  0.000
   ptr::deref                 0/7   0.000
-  ptr::read                  2/8   0.250
+  ptr::read                  4/8   0.500
   ptr::write                 0/8   0.000
   ptr::write_bytes           0/5   0.000
   set_len                    4/5   0.800
+
+95% CI, file-clustered bootstrap (2000 reps) — detect/out/nirm3_eval_nolsp.json:
+  accuracy  [0.0588, 0.2020]
+  fp_on_n   [0.0000, 0.0000]
+  recall_n  [0.0000, 0.2400]
+  macro_f1  [0.0700, 0.2413]

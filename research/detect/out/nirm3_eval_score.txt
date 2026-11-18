@@ -5,39 +5,49 @@ files=97 sinks=136 evaluated=105 unmatched_files=0 api_mismatch=31
 
 confusion (rows=gold, cols=pred):
  gold     Y     M     N
-    Y     2    64     3
+    Y     2    62     5
     M     0     9     0
-    N     2    18     7
+    N     0    17    10
 
-accuracy: 0.1714 (18/105)
-FP-on-N (gold N -> pred Y): 2/27  recall_N=0.2593
-Y precision: 0.5000 (4 Y predictions)
-claim_rate: 0.1333  (M-rate 0.8667 — abstentions)
-pattern claims: 14/105 sinks, correct=7 (0.5000)
+accuracy: 0.2000 (21/105)
+FP-on-N (gold N -> pred Y): 0/27  recall_N=0.3704
+Y precision: 1.0000 (2 Y predictions)
+claim_rate: 0.1619  (M-rate 0.8381 — abstentions)
+
+per-class (gold, pred, tp, precision, recall, F1):
+  Y: gold=69  pred=2   tp=2   P=1.0000 R=0.0290 F1=0.0563
+  M: gold=9   pred=88  tp=9   P=0.1023 R=1.0000 F1=0.1856
+  N: gold=27  pred=15  tp=10  P=0.6667 R=0.3704 F1=0.4762
+macro-F1: 0.2394
+
+risk-coverage (claim = Y/N; M abstains; high-confidence first):
+  high claims=17  errors=5  coverage=0.1619 risk=0.2941
+  all  claims=17  errors=5  coverage=0.1619 risk=0.2941
+pattern claims: 17/105 sinks, correct=10 (0.5882)
   wrong hint: Box::from_raw/3-1.rs Box::from_raw hint=p1 gold=p3
   wrong hint: Box::from_raw/4-1.rs Box::from_raw hint=p1 gold=p4
+  wrong hint: CString::from_raw/3-4 .rs CString::from_raw hint=p1 gold=p3
+  wrong hint: CString::from_raw/4-4.rs CString::from_raw hint=p1 gold=p4
   wrong hint: Vec::from_raw_parts/3-2.rs Vec::from_raw_parts hint=p1 gold=p3
   wrong hint: Vec::from_raw_parts/4-3.rs Vec::from_raw_parts hint=p1 gold=p4
-  wrong hint: ptr::read/2-1.rs ptr::read hint=p1 gold=p2
-  wrong hint: ptr::read/2-1.rs ptr::read hint=p1 gold=p2
   wrong hint: ptr::read/5-3.rs ptr::read hint=p1 gold=p5
 
 per-family accuracy (correct/total):
-  borrow_ffi       3/6   0.500
+  borrow_ffi       2/6   0.333
   ptr_arith        0/6   0.000
-  rawmem           3/54  0.056
+  rawmem           5/54  0.093
   rawref           0/4   0.000
-  reconstitute     8/21  0.381
+  reconstitute    10/21  0.476
   transmute        0/7   0.000
   vec_len          4/5   0.800
   zeroed           0/2   0.000
 
 per-API accuracy (correct/total):
   Box::from_raw              3/5   0.600
-  CStr::from_ptr             3/6   0.500
-  CString::from_raw          2/4   0.500
+  CStr::from_ptr             2/6   0.333
+  CString::from_raw          3/4   0.750
   Rc::from_raw               1/5   0.200
-  Vec::from_raw_parts        2/7   0.286
+  Vec::from_raw_parts        3/7   0.429
   as_ref                     0/4   0.000
   assume_init                1/5   0.200
   mem::transmute             0/3   0.000
@@ -47,7 +57,7 @@ per-API accuracy (correct/total):
   ptr::copy                  0/11  0.000
   ptr::copy_nonoverlapping   0/10  0.000
   ptr::deref                 0/7   0.000
-  ptr::read                  2/8   0.250
+  ptr::read                  4/8   0.500
   ptr::write                 0/8   0.000
   ptr::write_bytes           0/5   0.000
   set_len                    4/5   0.800
@@ -59,21 +69,29 @@ confusion (rows=gold, cols=pred):
  gold     Y     M     N
     Y     2    67     0
     M     0     9     0
-    N     2    25     0
+    N     0    25     2
 
-accuracy: 0.1048 (11/105)
-FP-on-N (gold N -> pred Y): 2/27  recall_N=0.0000
-Y precision: 0.5000 (4 Y predictions)
+accuracy: 0.1238 (13/105)
+FP-on-N (gold N -> pred Y): 0/27  recall_N=0.0741
+Y precision: 1.0000 (2 Y predictions)
 claim_rate: 0.0381  (M-rate 0.9619 — abstentions)
-pattern claims: 4/105 sinks, correct=1 (0.2500)
-  wrong hint: ptr::read/2-1.rs ptr::read hint=p1 gold=p2
-  wrong hint: ptr::read/2-1.rs ptr::read hint=p1 gold=p2
+
+per-class (gold, pred, tp, precision, recall, F1):
+  Y: gold=69  pred=2   tp=2   P=1.0000 R=0.0290 F1=0.0563
+  M: gold=9   pred=101 tp=9   P=0.0891 R=1.0000 F1=0.1636
+  N: gold=27  pred=2   tp=2   P=1.0000 R=0.0741 F1=0.1379
+macro-F1: 0.1193
+
+risk-coverage (claim = Y/N; M abstains; high-confidence first):
+  high claims=4   errors=0  coverage=0.0381 risk=0.0000
+  all  claims=4   errors=0  coverage=0.0381 risk=0.0000
+pattern claims: 4/105 sinks, correct=3 (0.7500)
   wrong hint: ptr::read/5-3.rs ptr::read hint=p1 gold=p5
 
 per-family accuracy (correct/total):
   borrow_ffi       0/6   0.000
   ptr_arith        0/6   0.000
-  rawmem           3/54  0.056
+  rawmem           5/54  0.093
   rawref           0/4   0.000
   reconstitute     4/21  0.190
   transmute        0/7   0.000
@@ -95,12 +113,24 @@ per-API accuracy (correct/total):
   ptr::copy                  0/11  0.000
   ptr::copy_nonoverlapping   0/10  0.000
   ptr::deref                 0/7   0.000
-  ptr::read                  2/8   0.250
+  ptr::read                  4/8   0.500
   ptr::write                 0/8   0.000
   ptr::write_bytes           0/5   0.000
   set_len                    4/5   0.800
 
 === delta (report - report2) ===
-accuracy: 0.1714 vs 0.1048
-FP-on-N:  2 vs 2
-pattern claims: 14 vs 4
+accuracy: 0.2000 vs 0.1238
+FP-on-N:  0 vs 0
+pattern claims: 17 vs 4
+
+95% CI, file-clustered bootstrap (2000 reps) — detect/out/nirm3_eval_lsp.json:
+  accuracy  [0.1238, 0.2925]
+  fp_on_n   [0.0000, 0.0000]
+  recall_n  [0.1724, 0.6000]
+  macro_f1  [0.1583, 0.3923]
+
+95% CI, file-clustered bootstrap (2000 reps) — detect/out/nirm3_eval_nolsp.json:
+  accuracy  [0.0588, 0.2020]
+  fp_on_n   [0.0000, 0.0000]
+  recall_n  [0.0000, 0.2400]
+  macro_f1  [0.0700, 0.2413]

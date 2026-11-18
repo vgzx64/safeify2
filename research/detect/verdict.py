@@ -73,6 +73,67 @@ def _type_of_hover(text: str | None) -> str | None:
     return None
 
 
+def _param_names(signature: str | None) -> set[str]:
+    """Formal parameter names of a fn signature (best effort; `self` included).
+
+    Used only to tell a LOCAL owner binding from a borrow that arrived as a
+    parameter. KB ptr::read p1/p5 Y-shapes read through a local
+    (`let this = ManuallyDrop::new(self)`, `let v = slice::from_raw_parts_mut`),
+    while the p2 N-shape reads through a `&`-borrow of an argument
+    (`&self.entries[i]`, `&v[0]` with `v: &mut [T]`, `&b.1` with `b: Self`).
+    """
+    if not signature:
+        return set()
+    i = signature.find("(")
+    if i < 0:
+        return set()
+    # scan to the matching close paren (types may nest `()`/`<>`/`[]`)
+    depth = 0
+    end = len(signature)
+    for j in range(i, len(signature)):
+        c = signature[j]
+        if c in "(<[":
+            depth += 1
+        elif c in ")>]":
+            depth -= 1
+            if depth == 0:
+                end = j
+                break
+    inner = signature[i + 1:end]
+    parts: list[str] = []
+    cur: list[str] = []
+    depth = 0
+    for c in inner:
+        if c in "(<[":
+            depth += 1
+        elif c in ")>]":
+            depth -= 1
+        if c == "," and depth == 0:
+            parts.append("".join(cur))
+            cur = []
+        else:
+            cur.append(c)
+    parts.append("".join(cur))
+    names: set[str] = set()
+    for p in parts:
+        p = p.strip()
+        if not p:
+            continue
+        if re.search(r"\bself\b", p):  # &self / &mut self / self / mut self
+            names.add("self")
+            continue
+        m = re.match(r"(?:mut\s+)?([A-Za-z_]\w*)\s*:", p)
+        if m:
+            names.add(m.group(1))
+    return names
+
+
+def _root_ident(expr: str) -> str | None:
+    """First identifier of an argument expression (`&self.entries[i]` -> self)."""
+    m = re.match(r"\s*[&*(\s]*(?:mut\s+)?([A-Za-z_]\w*)", expr)
+    return m.group(1) if m else None
+
+
 def _kb(db: SpecDB, api: str, pid: int | None) -> str | None:
     if pid is None:
         return None
@@ -178,6 +239,29 @@ def decide(db: SpecDB, api: str, *, call_text: str, args: list[str],
         # Owner-shaped call expression? KB p1 Y-shape needs a CONCRETE
         # owner materialised in-frame: dotted path, index, or method call on
         # the FIRST argument (bare identifiers are params -> borrowed shape).
+        # KB p2 N-shape (bug fix 2026-11-18): a `&`-borrow rooted at a formal
+        # parameter (or `self`) points into a place owned OUTSIDE this frame, so
+        # there is no in-frame owner to read through — `&self.entries[i]`,
+        # `&v[0]` with `v: &mut [T]`, `&b.1` with `b: Self` are all p2 -> N.
+        # The p1/p5 Y-shapes that must stay Y read through a LOCAL binding
+        # (`let this = ManuallyDrop::new(self); ptr::read(&this.inner)`), or
+        # re-derive a raw pointer (`&a as *const _`, KB p1 rawptr).
+        params = _param_names(signature)
+        arg0 = args[0].strip() if args else ""
+        ref_from_param = bool(
+            arg0.startswith("&")
+            and not re.search(r"\*\s*(const|mut)\b", arg0)  # raw-ptr re-derive
+            and not raw_evidence
+            and (_root_ident(arg0) == "self" or _root_ident(arg0) in params)
+        )
+        if api == "ptr::read" and ref_from_param:
+            return Verdict("N", "high",
+                           "reference borrowed from a parameter/self: the "
+                           "owner lives outside this frame, so the value "
+                           "cannot be replaced here (KB ptr::read p2 -> N); "
+                           "encapsulate.",
+                           encapsulate=True, pattern_hint=2,
+                           kb_gold=_kb(db, api, 2), rules=rules)
         owner_shaped = (
             args
             and re.search(r"[.\[]|\(\)|as_ptr|as_mut_ptr", args[0])
