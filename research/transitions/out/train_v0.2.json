@@ -1,0 +1,85 @@
+{
+  "dataset": "transitions_core_v0.2_draft",
+  "models": {
+    "snippet": {
+      "cv_folds": 5,
+      "cv_pooled": {
+        "accuracy": 0.872,
+        "precision_Y": 0.814,
+        "recall_Y": 0.636,
+        "f1_Y": 0.714,
+        "roc_auc": 0.831
+      },
+      "valid": {
+        "accuracy": 0.759,
+        "precision_Y": 0.538,
+        "recall_Y": 0.318,
+        "f1_Y": 0.4,
+        "roc_auc": 0.665
+      },
+      "valid_by_source": {
+        "cratesio": {
+          "rows": 33,
+          "positives": 3,
+          "roc_auc": 0.911
+        },
+        "cvefixes": {
+          "rows": 46,
+          "positives": 16,
+          "roc_auc": 0.635
+        },
+        "rustsec": {
+          "rows": 8,
+          "positives": 3,
+          "roc_auc": 0.333
+        }
+      }
+    },
+    "context": {
+      "cv_folds": 5,
+      "cv_pooled": {
+        "accuracy": 0.826,
+        "precision_Y": 0.774,
+        "recall_Y": 0.436,
+        "f1_Y": 0.558,
+        "roc_auc": 0.78
+      },
+      "valid": {
+        "accuracy": 0.678,
+        "precision_Y": 0.25,
+        "recall_Y": 0.136,
+        "f1_Y": 0.176,
+        "roc_auc": 0.388
+      },
+      "valid_by_source": {
+        "cratesio": {
+          "rows": 33,
+          "positives": 3,
+          "roc_auc": 0.567
+        },
+        "cvefixes": {
+          "rows": 46,
+          "positives": 16,
+          "roc_auc": 0.391
+        },
+        "rustsec": {
+          "rows": 8,
+          "positives": 3,
+          "roc_auc": 0.0
+        }
+      }
+    }
+  },
+  "valid_rows": 87,
+  "valid_positives": 22,
+  "context_coverage": {
+    "cvefixes:found": 247,
+    "cvefixes:missing": 6,
+    "rustsec:missing": 35,
+    "cratesio:found": 146,
+    "rust-for-linux:missing": 1
+  },
+  "test_split_evaluated": false,
+  "verdict": "no model is trustworthy yet: grouped-CV AUC overstates transfer and the best held-out valid AUC is 0.665; training needs frozen labels, more positives, or synthetic pretraining",
+  "caveat": "55 training positives; prototype run, not a model-quality claim"
+}

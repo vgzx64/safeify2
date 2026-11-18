@@ -1,8 +1,8 @@
 # Transition dataset — source expansion plan
 
-> **Status: v0.2 draft · 2026-11-07; all five gates pass**
+> **Status: v0.2 FROZEN · 2026-11-08; 8 gates pass; split leakage 0; binary label target verified; no trained model yet**
 >
-> Current v0.2 draft: [pilot results](transition-dataset-pilot.md).
+> Frozen v0.2: [pilot results](transition-dataset-pilot.md).
 > This page defines the new sources and what must be reworked. It is deliberately
 > short; detailed counts live in the pilot/QA artifacts.
 
@@ -118,14 +118,27 @@ not a CVE-positive source.
 ## Gate-closing result (2026-11-07)
 
 A 331-row run (161 CVEfixes queue rows + 170 crates.io/RustSec families) closed
-the two failing gates. The v0.2 draft has 435 family rows: 110 positives,
-325 negatives, 127 test rows, and 367/458 queue coverage (80.1%). All five gates
-pass; the dataset is still **not frozen**.
+the two failing gates. The v0.2 draft had 435 family rows (110 positives, 325
+negatives, 130 test rows, 367/458 queue coverage). Verification then applied
+three corrections (one row dropped, two relabeled) and showed the M/N boundary
+is not reproducible across annotators, so the frozen core is 433 rows (109 Y /
+193 N / 131 M) with a binary `safe_replaceable` target. It is frozen on 2026-11-08;
+see the [pilot results](transition-dataset-pilot.md).
+
+`repo_identity.py` now normalizes package -> repo before splitting: 189
+source-level names collapse to 154 canonical repositories, and the audit reports
+0 cross-split duplicate groups (`out/split_leakage.json`). crates.io metadata is
+the source of record for repository moves. Three rows keep a `pkg:`/`name:`
+fallback (`abox`, `atom`, `torvalds_linux`).
 
 ## Next phases
 
-1. Second independent spot-check (Y precision, N/M boundary).
-2. Cap per-repo family weight (google/flatbuffers is 57 of 325 negative families).
-3. Finish the 91 remaining CVEfixes queue rows (optional; coverage passes).
-4. Adjudicate more of the 310 public doc contracts and 469 examples.
-5. Freeze only after NIRM 3 sign-off and the spot-check.
+1. Second independent spot-check (Y precision, N/M boundary), then freeze.
+2. Retrain with curated API/contract features; the raw 60-line context window
+   scored 0.388 AUC on valid (worse than snippet-only 0.665), so raw code is
+   not the missing input.
+3. Grow positives or pretrain on `research/synth`; 55 train positives cannot
+   support a neural encoder.
+4. Cap per-repo family weight (google/flatbuffers is 59 of 325 negative families).
+5. Finish the 91 remaining CVEfixes queue rows.
+6. Adjudicate more of the 310 public doc contracts and 469 examples.

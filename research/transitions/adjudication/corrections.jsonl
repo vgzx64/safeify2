@@ -1,0 +1,3 @@
+{"id":"rustsec:RUSTSEC-2026-0300:src/skip_map/filter.rs:55:1","replaceability":"U","action":"unknown","reason":"Snippets are clipped to a bare `unsafe {` and an argument fragment; reviewer could not decide whether a safe replacement exists","spot_check":"spotcheck2"}
+{"id":"cratesio:RUSTSEC-2020-0045:actix-utils:1.0.6->2.0.0-beta.1:src/oneshot.rs:184:9","replaceability":"M","action":"guard","reason":"Patch adds a borrow/length guard, but get_unchecked_mut remains inside the guarded block","spot_check":"spotcheck2"}
+{"id":"hunk:675:cee7cf03a9:src/unix.rs:452:8","replaceability":"M","action":"replace","reason":"ptr::write is replaced, but mremap and from_raw_parts remain unsafe in the same hunk","spot_check":"spotcheck2"}

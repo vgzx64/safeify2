@@ -26,6 +26,12 @@ safe wrapper. The `unsafe` keyword may remain in a guard/encapsulation case.
 | `keep` | No safe alternative; retain unsafe with justification. |
 | `unknown` | Unresolved. |
 
+**M is a descriptor, not a training class.** Two independent annotators
+reproduce Y vs not-Y but not M vs N (see
+`../out/label_reliability.json`), so the frozen dataset trains the binary
+question "is there a safe replacement" and keeps M to record that a guard or
+restructuring is what stands in the way.
+
 `encapsulate` is an action, not a fourth `replaceability` class. A block can be
 `N` for direct replacement and still have action `encapsulate`.
 
@@ -44,6 +50,21 @@ safe wrapper. The `unsafe` keyword may remain in a guard/encapsulation case.
    unsafe API (`from_raw_parts`, `get_unchecked`, `set_len`, `assume_init`,
    `transmute`, `ptr::read`/`copy`/`write`, ...) still counts as the unsafe
    operation; do not veto only because the `unsafe` keyword is absent.
+9. `M` requires something in the new snippet that actually discharges part of
+   the operation's safety requirement:
+   (a) a check, branch, or validation the old snippet lacked that prevents a
+       class of UB (`is_null()`, a length bound, an alignment check,
+       `checked_*`, a clamp before `get_unchecked`, ...); or
+   (b) a safe replacement that is only correct under a precondition, where the
+       hunk shows that precondition.
+   Not enough on its own: renaming, threading extra metadata or an alignment
+   field into the same unsafe call, turning the wrapper into `unsafe fn`
+   (surfacing a precondition without enforcing it), adding SAFETY comments,
+   doctests, or tests. Those stay `N`/`keep` unless (a) or (b) also holds.
+   For `M`, `evidence_new` must quote the added check or precondition.
+10. When torn between `M` and `N`, choose `N` unless you can quote the added
+    check. `M` is for "safe path exists but needs a guard", not for "the
+    signature changed while the unsafe operation stayed".
 
 ## Output JSONL
 

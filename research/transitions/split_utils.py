@@ -1,26 +1,46 @@
-"""Source-stratified repository split that targets row proportions."""
+"""Repository split targeting 50/20/30 rows *and* positives.
+
+Repositories are the unit, so a whole repo never straddles splits. Repos are
+processed positive-first and placed in the split with the largest positive
+deficit that still has row capacity; zero-positive repos fill the remainder by
+row deficit. This keeps both row and label composition close to target without
+splitting a repository.
+"""
 
 from __future__ import annotations
 
-from collections import Counter, defaultdict
+from collections import Counter
+
+SPLITS = ("train", "valid", "test")
 
 
 def assign_splits(rows):
-    by_source = defaultdict(list)
-    for r in rows:
-        by_source[r.get("source", "cvefixes")].append(r.get("repo_name", "unknown"))
-    test, valid = set(), set()
-    for _, src_rows in sorted(by_source.items()):
-        counts = Counter(src_rows)
-        total = sum(counts.values())
-        ordered = sorted(counts, key=lambda x: (-counts[x], x))
-        cum = 0
-        for repo in ordered:
-            if cum < total * 0.5:
-                cum += counts[repo]
-            elif cum < total * 0.7:
-                valid.add(repo)
-                cum += counts[repo]
-            else:
-                test.add(repo)
-    return test, valid
+    counts = Counter(r.get("repo_key") or r.get("repo_name", "unknown") for r in rows)
+    pos = Counter(
+        r.get("repo_key") or r.get("repo_name", "unknown")
+        for r in rows
+        if r.get("label") == "Y"
+    )
+    total, positives = sum(counts.values()), sum(pos.values()) or 1
+    target_rows = {s: f * total for s, f in zip(SPLITS, (0.5, 0.2, 0.3))}
+    target_pos = {s: f * positives for s, f in zip(SPLITS, (0.5, 0.2, 0.3))}
+
+    got = dict.fromkeys(SPLITS, 0)
+    got_pos = dict.fromkeys(SPLITS, 0)
+    where = {}
+    for repo in sorted(counts, key=lambda r: (-pos[r], -counts[r], r)):
+        fits = [s for s in SPLITS if got[s] + counts[repo] <= target_rows[s]]
+        split = max(
+            fits or SPLITS,
+            key=lambda s: (target_pos[s] - got_pos[s]) / target_pos[s]
+            if fits
+            else target_rows[s] - got[s],
+        )
+        where[repo] = split
+        got[split] += counts[repo]
+        got_pos[split] += pos[repo]
+
+    return (
+        {r for r, s in where.items() if s == "test"},
+        {r for r, s in where.items() if s == "valid"},
+    )

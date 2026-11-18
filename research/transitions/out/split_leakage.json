@@ -1,0 +1,42 @@
+{
+  "core": "transitions_core_v0.2_draft.jsonl",
+  "rows": 433,
+  "splits": {
+    "test": 130,
+    "train": 216,
+    "valid": 87
+  },
+  "pairwise_overlap": {
+    "test/train": {
+      "repos": 0,
+      "commits": 0,
+      "cves": 0
+    },
+    "test/valid": {
+      "repos": 0,
+      "commits": 0,
+      "cves": 0
+    },
+    "train/valid": {
+      "repos": 0,
+      "commits": 0,
+      "cves": 0
+    }
+  },
+  "cross_split_snippet_groups": 0,
+  "cross_split_rows": 0,
+  "cross_split_rows_by_split": {
+    "test": 0,
+    "train": 0,
+    "valid": 0
+  },
+  "cross_split_positives": 0,
+  "alias_pairs": {},
+  "unresolved_repo_keys": [
+    "name:torvalds_linux",
+    "pkg:abox",
+    "pkg:atom"
+  ],
+  "groups": [],
+  "verdict": "no split leakage on canonical repository keys; test split is a clean holdout."
+}

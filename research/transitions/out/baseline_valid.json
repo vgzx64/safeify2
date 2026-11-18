@@ -1,0 +1,29 @@
+{
+  "model": "TF-IDF char_wb(2,5) + logistic regression (class_weight=balanced)",
+  "input": "old_snippet only",
+  "label": "Y vs {N,M}",
+  "train": {
+    "rows": 218,
+    "positives": 55
+  },
+  "valid": {
+    "rows": 87,
+    "positives": 22
+  },
+  "valid_majority_accuracy": 0.7471264367816092,
+  "valid_metrics": {
+    "accuracy": 0.759,
+    "precision_Y": 0.538,
+    "recall_Y": 0.318,
+    "f1_Y": 0.4,
+    "roc_auc": 0.665
+  },
+  "confusion": {
+    "tn": 59,
+    "fp": 6,
+    "fn": 15,
+    "tp": 7
+  },
+  "test_split_evaluated": false,
+  "caveat": "smoke test on 87 valid rows; not a model-quality claim"
+}

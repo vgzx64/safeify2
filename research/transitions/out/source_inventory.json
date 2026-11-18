@@ -123,5 +123,106 @@
       "unsafe_retained": 1
     },
     "note": "encapsulation source; no safe-candidate row in pilot"
+  },
+  "core_v0_2": {
+    "rows": 433,
+    "positives": 109,
+    "negatives": 324,
+    "by_label": {
+      "Y": 109,
+      "N": 193,
+      "M": 131
+    },
+    "target": {
+      "name": "safe_replaceable",
+      "positive": "Y",
+      "negative": "M or N"
+    },
+    "splits": {
+      "train": 216,
+      "valid": 87,
+      "test": 130
+    },
+    "splits_positives": {
+      "train": 54,
+      "valid": 22,
+      "test": 33
+    },
+    "repos_canonical": 154,
+    "repos_by_split": {
+      "train": 42,
+      "valid": 31,
+      "test": 81
+    },
+    "gates_pass": true,
+    "frozen": true,
+    "train_ready": true,
+    "split_leakage": {
+      "cross_split_groups": 0,
+      "cross_split_rows": 0,
+      "unresolved_repo_keys": [
+        "name:torvalds_linux",
+        "pkg:abox",
+        "pkg:atom"
+      ],
+      "pairwise_overlap": {
+        "test/train": {
+          "repos": 0,
+          "commits": 0,
+          "cves": 0
+        },
+        "test/valid": {
+          "repos": 0,
+          "commits": 0,
+          "cves": 0
+        },
+        "train/valid": {
+          "repos": 0,
+          "commits": 0,
+          "cves": 0
+        }
+      }
+    },
+    "label_verification": {
+      "binary_agreement": 0.952,
+      "binary_kappa": 0.818,
+      "rows": 83,
+      "three_class_kappa_range": [
+        0.83,
+        0.417,
+        0.52
+      ],
+      "corrections_applied": 2
+    },
+    "baseline_valid": {
+      "model": "TF-IDF char_wb + logistic regression on old_snippet",
+      "accuracy": 0.759,
+      "majority_accuracy": 0.747,
+      "f1_y": 0.4,
+      "roc_auc": 0.665,
+      "test_evaluated": false
+    }
+  },
+  "train_v0_2": {
+    "harness": "train_model.py",
+    "cv": "grouped 5-fold by canonical repo on train, pooled out-of-fold",
+    "snippet": {
+      "cv_auc": 0.831,
+      "valid_auc": 0.665,
+      "valid_f1_y": 0.4
+    },
+    "context": {
+      "cv_auc": 0.78,
+      "valid_auc": 0.388,
+      "valid_f1_y": 0.176
+    },
+    "context_coverage": {
+      "cvefixes": 247,
+      "cratesio": 146,
+      "rustsec": 0,
+      "rust_for_linux": 0
+    },
+    "test_evaluated": false,
+    "verdict": "no transfer yet: CV overstates held-out repos; raw context is worse than snippet"
   }
 }

@@ -11,6 +11,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+import corrections
 from build_family_core import main as build_family
 
 HERE = Path(__file__).resolve().parent
@@ -27,7 +28,7 @@ def norm(s: str) -> str:
 
 
 def main() -> int:
-    reviewed = load(ADJ / "reviewed_all.jsonl")
+    reviewed = corrections.apply(load(ADJ / "reviewed_all.jsonl"))
     neg = [r for r in reviewed if r.get("replaceability") in ("N", "M")]
     with (OUT / "negative_core.jsonl").open("w") as f:
         for r in neg:

@@ -1,0 +1,77 @@
+{
+  "runs": [
+    {
+      "sample": "spotcheck2 (36 rows, all classes)",
+      "rows": 35,
+      "binary_agreement": 0.914,
+      "binary_kappa": 0.815,
+      "three_class_agreement": 0.886,
+      "three_class_kappa": 0.83,
+      "per_class": {
+        "Y": {
+          "rows": 11,
+          "agree": 11
+        },
+        "M": {
+          "rows": 13,
+          "agree": 9
+        },
+        "N": {
+          "rows": 11,
+          "agree": 11
+        }
+      }
+    },
+    {
+      "sample": "spotcheck3 pass A (24 M/N rows)",
+      "rows": 24,
+      "binary_agreement": 1.0,
+      "binary_kappa": 1.0,
+      "three_class_agreement": 0.708,
+      "three_class_kappa": 0.417,
+      "per_class": {
+        "Y": {
+          "rows": 0,
+          "agree": 0
+        },
+        "M": {
+          "rows": 12,
+          "agree": 12
+        },
+        "N": {
+          "rows": 12,
+          "agree": 5
+        }
+      }
+    },
+    {
+      "sample": "spotcheck3 pass B (clarified rule)",
+      "rows": 24,
+      "binary_agreement": 0.958,
+      "binary_kappa": 0.0,
+      "three_class_agreement": 0.75,
+      "three_class_kappa": 0.52,
+      "per_class": {
+        "Y": {
+          "rows": 0,
+          "agree": 0
+        },
+        "M": {
+          "rows": 12,
+          "agree": 8
+        },
+        "N": {
+          "rows": 12,
+          "agree": 10
+        }
+      }
+    }
+  ],
+  "combined": {
+    "rows": 83,
+    "binary_agreement": 0.952,
+    "binary_kappa": 0.818
+  },
+  "finding": "Y vs not-Y reproduces across annotators (89-96% agreement per pass, 0.76 kappa on the balanced sample); M vs N does not (kappa 0.42-0.52), and the disagreements sit exactly on the 'guard/restructuring vs keep' boundary. The dataset therefore supports a binary replaceable/not-replaceable target; M stays in the schema as a descriptor of 'guard or restructuring required' but is not a training class.",
+  "decision": "binary target: Y vs {M,N}; M/N retained for analysis only; U dropped"
+}

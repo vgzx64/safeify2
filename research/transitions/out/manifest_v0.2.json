@@ -1,0 +1,14 @@
+{
+  "version": "v0.2",
+  "files": {
+    "transitions_core_v0.2.jsonl": {
+      "sha256": "a2a6906cee3bb33f03c2152e121e7450ccf7521c4829960cc0f3d97c21f5e4a8",
+      "bytes": 1062198
+    },
+    "transitions_core_v0.2_quality.json": {
+      "sha256": "9ee39d208b1cb397c5864efb48f0f91338d537a7be6fb6f3b5398e547a38a9d3",
+      "bytes": 9747
+    }
+  },
+  "source_core": "transitions_core_v0.2_draft.jsonl"
+}

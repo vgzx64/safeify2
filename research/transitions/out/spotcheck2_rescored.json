@@ -1,0 +1,80 @@
+{
+  "sample": "spotcheck2_blind.jsonl",
+  "rows": 35,
+  "missing_new_labels": [
+    "rustsec:RUSTSEC-2026-0300:src/skip_map/filter.rs:55:1"
+  ],
+  "raw_agreement": 0.886,
+  "kappa_3class": 0.83,
+  "kappa_y_m_n_only": 0.83,
+  "binary_agreement": 0.914,
+  "binary_kappa": 0.815,
+  "per_class_agreement": {
+    "Y": {
+      "agree": 11,
+      "rows": 11,
+      "rate": 1.0
+    },
+    "M": {
+      "agree": 9,
+      "rows": 13,
+      "rate": 0.692
+    },
+    "N": {
+      "agree": 11,
+      "rows": 11,
+      "rate": 1.0
+    }
+  },
+  "confusion_original_rows_new_cols": {
+    "M": {
+      "M": 9,
+      "Y": 3,
+      "N": 1
+    },
+    "N": {
+      "N": 11
+    },
+    "Y": {
+      "Y": 11
+    }
+  },
+  "disagreements": [
+    {
+      "id": "hunk:1412:192f2fcdad:crates/wasmtime/src/runtime/func.rs:1495:0",
+      "source": "cvefixes",
+      "original": "M",
+      "second": "Y",
+      "action": "replace",
+      "confidence": "medium",
+      "rationale": "The `unsafe { ... }` block around `enter_wasm`/`catch_traps` is removed and the body is otherwise unchanged, so the same operations are now performed without an unsafe block. No unsafe operation is shown in the new snippet."
+    },
+    {
+      "id": "hunk:326:339efb90fd:rust/dbn/src/record/conv.rs:124:0",
+      "source": "cvefixes",
+      "original": "M",
+      "second": "Y",
+      "action": "replace",
+      "confidence": "medium",
+      "rationale": "`CStr::from_ptr` is replaced by the safe `CStr::from_bytes_until_nul`, which also rejects non-null-terminated input. Only a separate i8-to-u8 slice cast remains unsafe."
+    },
+    {
+      "id": "rfl:c15c5befd6d6:rust/kernel/scatterlist.rs:350:0",
+      "source": "rust-for-linux",
+      "original": "M",
+      "second": "N",
+      "action": "keep",
+      "confidence": "high",
+      "rationale": "Both unsafe FFI calls to `dma_max_mapping_size`/`dma_get_max_seg_size` remain; the change only caps the resulting size with `min`. No safe replacement for the foreign calls is available in this frame."
+    },
+    {
+      "id": "rustsec:RUSTSEC-2026-0300:src/ordered_skip_list/structural.rs:570:11",
+      "source": "rustsec",
+      "original": "M",
+      "second": "Y",
+      "action": "replace",
+      "confidence": "medium",
+      "rationale": "`NonNull::new_unchecked(new_tail_ptr)` is replaced by storing the already-constructed `new_tail_node` NonNull value, removing the unsafe constructor. The replacement expression itself is safe."
+    }
+  ]
+}

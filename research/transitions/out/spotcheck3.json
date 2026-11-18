@@ -1,0 +1,94 @@
+{
+  "sample": "spotcheck3_blind.jsonl",
+  "rows": 24,
+  "missing_new_labels": [],
+  "raw_agreement": 0.75,
+  "kappa_3class": 0.52,
+  "kappa_y_m_n_only": 0.52,
+  "binary_agreement": 0.958,
+  "binary_kappa": 0.0,
+  "per_class_agreement": {
+    "Y": {
+      "agree": 0,
+      "rows": 0,
+      "rate": null
+    },
+    "M": {
+      "agree": 8,
+      "rows": 12,
+      "rate": 0.667
+    },
+    "N": {
+      "agree": 10,
+      "rows": 12,
+      "rate": 0.833
+    }
+  },
+  "confusion_original_rows_new_cols": {
+    "M": {
+      "M": 8,
+      "N": 3,
+      "Y": 1
+    },
+    "N": {
+      "N": 10,
+      "M": 2
+    }
+  },
+  "disagreements": [
+    {
+      "id": "hunk:1351:18847c50e5:src/util.rs:1:0",
+      "source": "cvefixes",
+      "original": "M",
+      "second": "N",
+      "action": "keep",
+      "confidence": "medium",
+      "rationale": "The unsafe impls are still present; the change narrows the impls to SyncRef<RunList<T>> with a TableMarker bound, but that bound is not a Send/Sync soundness condition and the only explicit evidence added is a compile_fail doctest, which rule 9 excludes. No quotable check on T's sharing/moving properties."
+    },
+    {
+      "id": "hunk:671:98f0e4fff9:src/reader.rs:64:0",
+      "source": "cvefixes",
+      "original": "M",
+      "second": "N",
+      "action": "keep",
+      "confidence": "high",
+      "rationale": "The mmap call is unchanged; the fn is merely made `pub unsafe fn` and given a Safety section, which rule 9 explicitly says is not enough (surfacing a precondition without enforcing it). The unsafe mmap operation remains and no check was added."
+    },
+    {
+      "id": "rustsec-issue:RUSTSEC-2021-0144:src/lib.rs:5:0",
+      "source": "rustsec",
+      "original": "M",
+      "second": "Y",
+      "action": "replace",
+      "confidence": "high",
+      "rationale": "The fat-pointer-to-thin-pointer transmutes are gone; plain `as` pointer casts (safe) do the same job, and the unsafe fn now needs no unsafe operation for it. The only remaining transmute is in the test-assert line measuring data(), not the replaced operation."
+    },
+    {
+      "id": "rustsec:RUSTSEC-2026-0300:src/skip_list/structural.rs:135:6",
+      "source": "rustsec",
+      "original": "M",
+      "second": "N",
+      "action": "keep",
+      "confidence": "low",
+      "rationale": "The old NonNull::new_unchecked site now assigns a pre-built new_tail_node, but the hunk shows only a commit-before-free reordering and comments; the raw deref `(*new_tail_ptr)` and Node::drop_chain still need unsafe and no added check is quotable (how new_tail_node is validated is not shown). Rule 10 therefore lands on N."
+    },
+    {
+      "id": "cratesio:RUSTSEC-2019-0011:memoffset:0.2.1->0.5.0:src/span_of.rs:43:1",
+      "source": "cratesio",
+      "original": "N",
+      "second": "M",
+      "action": "guard",
+      "confidence": "low",
+      "rationale": "mem::uninitialized() is gone (replaced by let_base_ptr! + raw pointer arithmetic) and per-field `field_check!` validation is added at each range endpoint, but raw deref of the pointer and references into uninitialized fields remain (the new code admits that UB 'cannot be avoided'), so unsafe is retained behind checks."
+    },
+    {
+      "id": "cratesio:RUSTSEC-2020-0014:rusqlite:0.22.0->0.23.0:src/types/value_ref.rs:136:1",
+      "source": "cratesio",
+      "original": "N",
+      "second": "M",
+      "action": "guard",
+      "confidence": "high",
+      "rationale": "The unbounded NUL scan (CStr::from_ptr then to_bytes) is replaced by a slice built with the length reported by sqlite3_value_bytes, an added length bound that prevents out-of-bounds reads. The construction is still unsafe from_raw_parts, so the fix is a bounded unsafe op, not fully safe."
+    }
+  ]
+}

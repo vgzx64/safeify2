@@ -9,7 +9,10 @@ from __future__ import annotations
 import json
 from collections import Counter, defaultdict
 
+import corrections
 from split_utils import assign_splits
+from repo_identity import annotate
+from check_split_leakage import audit, verdict
 from pathlib import Path
 
 OUT = Path(__file__).resolve().parent / "out"
@@ -20,8 +23,10 @@ def norm(s: str) -> str:
 
 
 def main() -> int:
-    pos = [json.loads(x) for x in (OUT / "positive_union.jsonl").open()]
-    neg = [json.loads(x) for x in (OUT / "negative_core.jsonl").open()]
+    pos = corrections.apply([json.loads(x) for x in (OUT / "positive_union.jsonl").open()])
+    neg = corrections.apply([json.loads(x) for x in (OUT / "negative_core.jsonl").open()])
+    pos = [r for r in pos if r.get("positive_source") == "manual" or r.get("replaceability", "Y") == "Y"]
+    neg = [r for r in neg if r.get("replaceability") in ("N", "M")]
     # One row per family; prefer manual, then a row with a function id.
     fam = {}
     for r in pos:
@@ -43,20 +48,23 @@ def main() -> int:
         r["label"] = r["replaceability"]
         r["unit"] = "family"
     rows = pos_rows + neg_rows
+    identity = annotate(rows)
 
     test, valid = assign_splits(rows)
-    repos = sorted({r.get("repo_name", "unknown") for r in rows})
+    repos = sorted({r.get("repo_key", "unknown") for r in rows})
     for r in rows:
-        repo = r.get("repo_name", "unknown")
+        repo = r.get("repo_key", "unknown")
         r["split"] = "test" if repo in test else "valid" if repo in valid else "train"
         r["dataset_version"] = "v0.2-draft"
         r["frozen"] = False
+        r["target"] = 1 if r["label"] == "Y" else 0
+        r["target_name"] = "safe_replaceable" if r["target"] else "unsafe_retained"
 
     with (OUT / "transitions_core_v0.2_draft.jsonl").open("w") as f:
         for r in rows:
             f.write(json.dumps(r, ensure_ascii=False) + "\n")
     splits = {
-        "strategy": "source-stratified repository split, 50/20/30 train/valid/test",
+        "strategy": "canonical-repository split, 50/20/30 rows and positives",
         "test_repos": sorted(test),
         "valid_repos": sorted(valid),
         "train_repos": sorted(set(repos) - test - valid),
@@ -82,9 +90,18 @@ def main() -> int:
         "by_split": dict(Counter(r["split"] for r in rows)),
         "by_split_label": {f"{s}:{l}": c for (s, l), c in Counter((r["split"], r["label"]) for r in rows).items()},
         "repos": len(repos),
+        "identity": dict(identity),
         "queue_labeled": len(queue_ids & reviewed_ids),
         "queue_total": len(queue_ids),
     }
+    leak = audit(rows)
+    issues = []
+    if leak["cross_split_snippet_groups"]:
+        issues.append(
+            f"split leakage: {leak['cross_split_snippet_groups']} cross-split duplicate "
+            f"groups / {leak['cross_split_rows']} rows; see out/split_leakage.json"
+        )
+    issues.append("single-annotator LLM labels; second independent spot-check still required")
     quality = {
         "dataset_version": "v0.2-draft",
         "frozen": False,
@@ -96,7 +113,15 @@ def main() -> int:
             "manual_llm_tracks_reconciled": True,
         },
         "counts": counts,
-        "verdict": "all gates pass; not frozen (requires NIRM 3 sign-off)",
+        "split_leakage": {
+            "cross_split_snippet_groups": leak["cross_split_snippet_groups"],
+            "cross_split_rows": leak["cross_split_rows"],
+            "unresolved_repo_keys": leak["unresolved_repo_keys"],
+            "pairwise_overlap": leak["pairwise_overlap"],
+        },
+        "train_ready": False,
+        "known_issues": issues,
+        "verdict": "all gates pass; " + verdict(leak),
     }
     (OUT / "transitions_core_v0.2_quality.json").write_text(json.dumps(quality, indent=2) + "\n")
     print(json.dumps(quality, indent=2))

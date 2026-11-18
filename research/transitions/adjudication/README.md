@@ -1,6 +1,6 @@
 # LLM adjudication
 
-> Status: v0.2 draft; all five dataset gates pass; not frozen.
+> Status: v0.2 **frozen** (2026-11-08); 8 dataset gates pass; split leakage 0; labels verified by two blind spot-checks plus a focused M/N re-label.
 
 The rubric is [RUBRIC.md](RUBRIC.md). Labels are semantic decisions about the
 shown old/new hunk. Compilation, tests, and Miri are intentionally **not**
@@ -17,7 +17,11 @@ python research/transitions/adjudication/build_batches.py     # 161 queue + 170 
 python research/transitions/adjudication/validate_gate_labels.py
 python research/transitions/adjudication/merge_gate_batches.py --strict
 python research/transitions/adjudication/spotcheck_gate.py    # documented corrections
+python research/transitions/adjudication/make_spotcheck3.py   # blind M/N sample
+python research/transitions/score_spotcheck.py ...            # agree/kappa report
+python research/transitions/label_reliability.py              # combined across passes
 python research/transitions/rebuild_v01.py                    # core + splits + gates
+python research/transitions/freeze_v02.py                     # gates + freeze + sha256
 ```
 
 `make_queue.py` / `merge_labels.py` are the older round-12 helpers; the gate
@@ -89,9 +93,10 @@ unsafe operations and do not veto them on the missing keyword.
 | Negative core | 425 rows / 325 families |
 | Queue coverage | 367/458 (80.1%) |
 
-The v0.2 family core is 435 rows (110 `Y`, 194 `N`, 131 `M`), split 225 train /
-83 valid / 127 test. All five gates pass in
-`out/transitions_core_v0.2_quality.json`.
+The frozen v0.2 core is 433 rows (109 `Y`, 193 `N`, 131 `M`), split 216 train /
+87 valid / 130 test on canonical repository keys. Eight gates pass in
+`out/transitions_core_v0.2_quality.json`; `check_split_leakage.py` reports 0
+cross-split leakage.
 
 ## RustSec
 
@@ -110,9 +115,18 @@ The v0.2 family core is 435 rows (110 `Y`, 194 `N`, 131 `M`), split 225 train /
 - Queue coverage just clears the gate at 80.1%; 91 CVEfixes queue rows remain.
 - crates.io contributes 194 reviewed rows but only 23 new `Y`; its value is
   negative/guard coverage.
-- Manual spot-checks are not yet a systematic 10–20% sample; one demotion this
-  round and two in the earlier reconciliation are the current record.
-- Negatives are concentrated: google/flatbuffers is 57 of 325 negative families.
+- Spot-checks are not a random 10–20% sample of the whole pool: 36 + 24 blind
+  rows, with the second sample deliberately focused on M/N. Five corrections
+  are the current record.
+- **M vs N is not a reproducible label.** Two annotators agree on Y-vs-not-Y
+  (0.95, kappa 0.82 over 83 rows) but on M-vs-N only kappa 0.42-0.52. Rules 9
+  and 10 of the rubric pin the boundary down, but the residual disagreements
+  flip both ways; the frozen dataset therefore trains the binary target and
+  keeps `M` as a descriptor.
+- Negatives are concentrated: google/flatbuffers is 57 of 324 negative rows.
 - The negative queue is dominated by `unsafe fn`/`unsafe impl` contract changes;
   these are `M`/`U`, not hard negatives.
-- A second independent spot-check is required before freezing.
+- Three corrections from the verification passes live in `corrections.jsonl` and
+  are replayed by every rebuild.
+- The earlier repo-alias split leakage is fixed: `repo_identity.py` keys splits
+  on `host/owner/repo` and the audit now reports 0 cross-split duplicates.

@@ -1,0 +1,122 @@
+{
+  "sample": {
+    "rows": 36,
+    "by_label": {
+      "M": 12,
+      "N": 12,
+      "Y": 12
+    },
+    "by_source": {
+      "cratesio": 12,
+      "cvefixes": 12,
+      "rust-for-linux": 1,
+      "rustsec": 11
+    }
+  },
+  "confusion_original_rows_new_cols": {
+    "Y": {
+      "Y": 11,
+      "M": 1,
+      "N": 0,
+      "U": 0
+    },
+    "M": {
+      "Y": 3,
+      "M": 7,
+      "N": 1,
+      "U": 1
+    },
+    "N": {
+      "Y": 0,
+      "M": 1,
+      "N": 11,
+      "U": 0
+    }
+  },
+  "raw_agreement": 0.806,
+  "kappa_3class": 0.742,
+  "per_class_agreement": {
+    "Y": 0.917,
+    "M": 0.583,
+    "N": 0.917
+  },
+  "disagreements": {
+    "hunk:1412:192f2fcdad:crates/wasmtime/src/runtime/func.rs:1495:0": {
+      "original": "M",
+      "second": "Y",
+      "disposition": "keep-original",
+      "reviewed_label": "M",
+      "reason": "contract cascade: block removed only because callees were re-declared safe elsewhere; not a local replacement"
+    },
+    "hunk:326:339efb90fd:rust/dbn/src/record/conv.rs:124:0": {
+      "original": "M",
+      "second": "Y",
+      "disposition": "keep-original",
+      "reviewed_label": "M",
+      "reason": "replacement still contains unsafe as_u8_slice cast"
+    },
+    "rfl:c15c5befd6d6:rust/kernel/scatterlist.rs:350:0": {
+      "original": "M",
+      "second": "N",
+      "disposition": "keep-original",
+      "reviewed_label": "M",
+      "reason": "fix adds a cap/guard while unsafe FFI remains"
+    },
+    "rustsec:RUSTSEC-2026-0300:src/ordered_skip_list/structural.rs:570:11": {
+      "original": "M",
+      "second": "Y",
+      "disposition": "keep-original",
+      "reviewed_label": "M",
+      "reason": "new snippet still dereferences the raw pointer"
+    },
+    "rustsec:RUSTSEC-2026-0300:src/skip_map/filter.rs:55:1": {
+      "original": "M",
+      "second": "U",
+      "disposition": "correct-to-U",
+      "reviewed_label": "U",
+      "reason": "snippets are clipped fragments; unsafe operation not visible"
+    },
+    "cratesio:RUSTSEC-2020-0045:actix-utils:1.0.6->2.0.0-beta.1:src/oneshot.rs:184:9": {
+      "original": "N",
+      "second": "M",
+      "disposition": "correct-to-M",
+      "reviewed_label": "M",
+      "reason": "borrow guard added but get_unchecked_mut remains"
+    },
+    "hunk:675:cee7cf03a9:src/unix.rs:452:8": {
+      "original": "Y",
+      "second": "M",
+      "disposition": "correct-to-M",
+      "reviewed_label": "M",
+      "reason": "ptr::write replaced but mremap/from_raw_parts unsafe remains"
+    }
+  },
+  "recommended_corrections": {
+    "rustsec:RUSTSEC-2026-0300:src/skip_map/filter.rs:55:1": "U",
+    "cratesio:RUSTSEC-2020-0045:actix-utils:1.0.6->2.0.0-beta.1:src/oneshot.rs:184:9": "M",
+    "hunk:675:cee7cf03a9:src/unix.rs:452:8": "M"
+  },
+  "second_annotator_errors": {
+    "hunk:1412:192f2fcdad:crates/wasmtime/src/runtime/func.rs:1495:0": [
+      "keep-original",
+      "M",
+      "contract cascade: block removed only because callees were re-declared safe elsewhere; not a local replacement"
+    ],
+    "hunk:326:339efb90fd:rust/dbn/src/record/conv.rs:124:0": [
+      "keep-original",
+      "M",
+      "replacement still contains unsafe as_u8_slice cast"
+    ],
+    "rfl:c15c5befd6d6:rust/kernel/scatterlist.rs:350:0": [
+      "keep-original",
+      "M",
+      "fix adds a cap/guard while unsafe FFI remains"
+    ],
+    "rustsec:RUSTSEC-2026-0300:src/ordered_skip_list/structural.rs:570:11": [
+      "keep-original",
+      "M",
+      "new snippet still dereferences the raw pointer"
+    ]
+  },
+  "verdict": "Y/N agree (11/12 each); the M boundary is weak (7/12). Do not freeze on this pass: run a focused M/N sample, apply corrections, rebuild, then freeze."
+}
