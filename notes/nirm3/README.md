@@ -41,9 +41,9 @@ The formal Definition of Done, with current status:
 
 Two additional readiness conditions are not in the original DoD:
 
-- **Frozen provenance.** `HEAD` is `dad7a34`, but 64 paths are still dirty; the
-  current results cannot be tied to a clean revision SHA until they are
-  committed. See [report.md](report.md).
+- **Frozen provenance.** `HEAD` is `303e12d` (NIRM 3/detector/data changes
+  committed); 42 paths remain dirty, almost all pre-existing
+  `research/transitions/` work. See [report.md](report.md).
 - **Safety invariant.** The current code produces `FP-on-N`; the archived v3
   claim of `0/27` is no longer true. See [results.md](results.md).
 
@@ -51,7 +51,7 @@ Two additional readiness conditions are not in the original DoD:
 
 | Phase | Work | Status |
 |---|---|---|
-| 0 | Environment repair, frozen split, LSP test | ✅ done 2026-10-19; RA pin restored 2026-11-18; commit pending |
+| 0 | Environment repair, frozen split, LSP test | ✅ done 2026-10-19; RA pin restored 2026-11-18; committed `303e12d` |
 | 1 | First detector runs on the frozen test split | ✅ done; numbers superseded |
 | 2 | Failure analysis and verdict-engine fixes | ✅ analysis done; archived v3 numbers stale |
 | 3 | Supervisor report | 🟡 draft written 2026-11-18; needs sign-off |
@@ -79,8 +79,9 @@ Two additional readiness conditions are not in the original DoD:
    precision/recall/F1, coverage, risk–coverage, and intervals instead.
 5. **The paper does not exist**, and `eval_protocol.py --retrieval-preds` has
    not been run. The report draft is written but not approved.
-6. **The repository is not clean.** `HEAD` is `dad7a34`, but 64 paths are
-   modified/untracked, so the current run is not tied to a frozen tree.
+6. **The repository is not fully clean.** `HEAD` is `303e12d`; 42 paths remain
+   dirty, mostly pre-existing `research/transitions/` work. The NIRM 3/detector/
+   data files are committed.
 
 ## Next actions
 

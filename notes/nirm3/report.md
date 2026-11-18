@@ -4,8 +4,9 @@
 >
 > Work window: `01.09.2026 – 08.11.2026`
 > Report window: `09.11.2026 – 22.11.2026`
-> Code under test: `dad7a34` plus the working-tree changes recorded in
-> [results.md](results.md); frozen split hashes are in
+> Code under test: `303e12d` (NIRM 3/detector/data changes committed);
+> 42 paths remain dirty, almost all pre-existing `research/transitions/`
+> work. Frozen split hashes are in
 > `research/synth/splits/eval_manifest.json`.
 >
 > This report supersedes the archived v1/v2/v3 notes. It reports the
@@ -271,9 +272,9 @@ Artifacts: [LSP raw JSON](../../research/detect/out/nirm3_eval_lsp.json),
 [LSP score](../../research/detect/out/nirm3_eval_lsp_score.txt),
 [no-LSP score](../../research/detect/out/nirm3_eval_nolsp_score.txt).
 
-The tree is still **uncommitted** (64 dirty paths at report time). The frozen
-split is stable, but a revision SHA for the current results requires a commit
-before submission.
+The NIRM 3/detector/data changes are committed at `303e12d`; 42 paths remain
+dirty, almost all pre-existing `research/transitions/` work. The frozen split
+is stable; re-run if those unrelated files are meant to be part of the result.
 
 ## 10. Limitations
 
