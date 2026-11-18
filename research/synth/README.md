@@ -17,8 +17,10 @@ python build.py                   # generate -> verify -> pair -> report
 python verify/validate_format.py  # format gate vs shipped train.csv
 python splits/make_splits.py      # FREEZE the real held-out split (idempotent)
 python splits/make_splits.py --check   # verify the freeze didn't drift
-python splits/make_eval.py        # build splits/{gallery.json,test_pairs.csv}
-python splits/eval_protocol.py    # audit: sizes, leakage, verdict coverage
+python splits/make_eval.py --split valid  # selection pairs (valid only)
+python splits/make_eval.py --split test   # report-once pairs (test only)
+python splits/check_train_leakage.py      # all training CSVs must print OK
+python splits/eval_protocol.py            # audit: sizes, leakage, verdict coverage
 ```
 
 Requires: `rustc`, cargo-built `tools/extract_ast` (`cargo build --release`
@@ -62,13 +64,21 @@ splits/                 FROZEN real held-out split + scorer (see below)
 |---|---|
 | `pairs_manifest.jsonl` | one row per snippet: source, api, pattern_id, replaceability (Y/M/N), verdict (replaceable/conditional/irreplaceable/encapsulatable), contract, variant, verification{compile,…}, ast_len, seq_sha256, ok/dropped |
 | `train_synth.csv` | synthetic-only within-API pairs (ablation: *synthetic only*) |
-| `train_mixed.csv` | real (KB+GitHub) + synthetic pairs — the *train on synthetic + real* formula |
+| `train_real.csv` | real (KB + train-split GitHub) within-API pairs — clean *real-only* ablation |
+| `train_mixed.csv` | real (KB + train-split GitHub) + synthetic pairs — the *train on synthetic + real* formula |
 | `train_hard.csv` | cross-API negatives, all label −1 (same pattern id across APIs = adversarial) |
 | `report.md` | statistics + evidence + evaluation protocol |
 
 All CSVs carry the byte-identical shipped header `,text1,text2,label` and the
 `converttrainset.py` label semantics (1 = same (api, pattern), else −1),
 balanced 50/50, shuffled with seed 1234.
+
+The training CSVs are built from `splits/train.txt` + the KB only; valid and
+test are never paired. Six train-split files whose normalized sequence is
+identical to a valid/test sequence are dropped, and
+`splits/check_train_leakage.py` must print `OK` for every CSV before training.
+The shipped `vendors/SafeNet/.../train.csv` is **not** clean: it contains 25
+test and 23 valid snippets, so it is a format reference, not a baseline.
 
 ## Label taxonomy (FP-reduction vector)
 
@@ -116,18 +126,25 @@ Pattern ids and Y/M/N assignments follow
 - Train on synthetic or mixed; **validate/test only on real, held-out data**.
 - The held-out real data is **frozen** in `splits/` (see `splits/README.md`):
   `testdata/` split 70/10/20 → train=288 / valid=69 / test=97 usable files,
-  stratified by (api, pattern), duplicate sequences never cross splits
-  (same-API leakage = 0). The knowledgebase stays a fixed retrieval gallery.
-- Ablations: real-only (`train.csv`) / synthetic-only (`train_synth.csv`) /
-  real+synthetic (`train_mixed.csv`) / +hard negatives (`train_hard.csv`),
-  all selected on `valid`, scored **once** on `test` via
-  `python splits/eval_protocol.py --pairs-preds <your.csv>` (pair metrics +
-  per-pattern recall) or `--retrieval-preds <json>` (gallery retrieval).
+  stratified by (api, pattern). Same-API leakage is 0; six cross-API duplicate
+  sequences are removed from the training CSVs at the sequence level.
+  The knowledgebase stays a fixed retrieval gallery.
+- Ablations: real-only (`train_real.csv`, **not** the shipped `train.csv`) /
+  synthetic-only (`train_synth.csv`) / real+synthetic (`train_mixed.csv`) /
+  +hard negatives (`train_hard.csv`). Select on `valid` with
+  `python splits/eval_protocol.py --split valid --pairs-preds <your.csv>`;
+  score `test` **once** with `--split test` (pair metrics + per-pattern recall)
+  or `--retrieval-preds <json>` (gallery retrieval).
+- The valid pair set is only **10 pairs (5 pos / 5 neg)** and has no both-N
+  pairs, so it is a weak selection signal and cannot estimate the safety FP
+  rate. Prefer grouped CV on train for tuning and report the valid/test sample
+  sizes with every number.
 - Report FP rate on `verdict=irreplaceable` (N) snippets separately —
   gold verdicts live in `splits/kb_verdicts.json`.
 - Never report a synthetic-measured number as a result.
 - Before any run: `python splits/make_splits.py --check` must print `OK`
-  three times (the freeze did not drift).
+  three times (the freeze did not drift), and
+  `python splits/check_train_leakage.py` must print `OK` for every training CSV.
 
 ## Limitations / phase 2
 

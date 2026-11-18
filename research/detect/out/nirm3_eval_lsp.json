@@ -35,19 +35,19 @@
           "evidence": {
             "recv_type": null,
             "arg_types": [
-              null
+              "*mut {unknown}"
             ],
             "ret_type": null,
             "lsp": true
           },
           "verdict": {
-            "v": "M",
-            "confidence": "low",
-            "reason": "from_raw* without type evidence: ownership source unknown; classify before claiming Y/N.",
+            "v": "N",
+            "confidence": "high",
+            "reason": "raw pointer arrives from outside this frame; no owner exists here to reconstruct ownership from (KB from_raw p1 -> N).",
             "safe_alternative": null,
             "encapsulate": true,
-            "pattern_hint": null,
-            "kb_gold": null,
+            "pattern_hint": 1,
+            "kb_gold": "N",
             "rules": [
               "Box__from_raw_1.yaml",
               "Box__from_raw_2.yaml",
@@ -203,7 +203,7 @@
             "arg_types": [
               "&mut {unknown}"
             ],
-            "ret_type": "&mut {unknown}",
+            "ret_type": "Box<{unknown}, Global>",
             "lsp": true
           },
           "verdict": {
@@ -262,7 +262,7 @@
           "evidence": {
             "recv_type": null,
             "arg_types": [
-              "*mut {unknown}",
+              null,
               null
             ],
             "ret_type": "{unknown}",
@@ -312,19 +312,19 @@
           "evidence": {
             "recv_type": null,
             "arg_types": [
-              null
+              "*mut {unknown}"
             ],
             "ret_type": null,
             "lsp": true
           },
           "verdict": {
-            "v": "M",
-            "confidence": "low",
-            "reason": "from_raw* without type evidence: ownership source unknown; classify before claiming Y/N.",
+            "v": "N",
+            "confidence": "high",
+            "reason": "raw pointer arrives from outside this frame; no owner exists here to reconstruct ownership from (KB from_raw p1 -> N).",
             "safe_alternative": null,
             "encapsulate": true,
-            "pattern_hint": null,
-            "kb_gold": null,
+            "pattern_hint": 1,
+            "kb_gold": "N",
             "rules": [
               "Box__from_raw_1.yaml",
               "Box__from_raw_2.yaml",
@@ -374,9 +374,9 @@
             "recv_type": null,
             "arg_types": [
               "*mut T",
-              "impl ?Sized"
+              "impl FnOnce(*mut T) -> T"
             ],
-            "ret_type": "{unknown}",
+            "ret_type": null,
             "lsp": true
           },
           "verdict": {
@@ -485,7 +485,7 @@
             "arg_types": [
               "*const {unknown}"
             ],
-            "ret_type": "*const {unknown}",
+            "ret_type": null,
             "lsp": true
           },
           "verdict": {
@@ -541,7 +541,7 @@
             "arg_types": [
               "*const {unknown}"
             ],
-            "ret_type": "*const {unknown}",
+            "ret_type": null,
             "lsp": true
           },
           "verdict": {
@@ -811,7 +811,7 @@
             "arg_types": [
               "*mut {unknown}"
             ],
-            "ret_type": "*mut {unknown}",
+            "ret_type": null,
             "lsp": true
           },
           "verdict": {
@@ -927,7 +927,7 @@
               "&mut {unknown}",
               "&mut {unknown}"
             ],
-            "ret_type": null,
+            "ret_type": "usize",
             "lsp": true
           },
           "verdict": {
@@ -1088,9 +1088,9 @@
           "evidence": {
             "recv_type": null,
             "arg_types": [
-              "{unknown}"
+              null
             ],
-            "ret_type": "{unknown}",
+            "ret_type": null,
             "lsp": true
           },
           "verdict": {
@@ -1145,19 +1145,19 @@
           "evidence": {
             "recv_type": null,
             "arg_types": [
-              null
+              "*const ()"
             ],
             "ret_type": null,
             "lsp": true
           },
           "verdict": {
-            "v": "M",
-            "confidence": "low",
-            "reason": "from_raw* without type evidence: ownership source unknown; classify before claiming Y/N.",
+            "v": "N",
+            "confidence": "high",
+            "reason": "raw pointer arrives from outside this frame; no owner exists here to reconstruct ownership from (KB from_raw p1 -> N).",
             "safe_alternative": null,
             "encapsulate": true,
-            "pattern_hint": null,
-            "kb_gold": null,
+            "pattern_hint": 1,
+            "kb_gold": "Y",
             "rules": []
           }
         }
@@ -1251,7 +1251,7 @@
           "evidence": {
             "recv_type": null,
             "arg_types": [
-              null
+              "&mut {unknown}"
             ],
             "ret_type": null,
             "lsp": true
@@ -1306,19 +1306,19 @@
           "evidence": {
             "recv_type": null,
             "arg_types": [
-              "*const {unknown}"
+              null
             ],
-            "ret_type": "*const {unknown}",
+            "ret_type": null,
             "lsp": true
           },
           "verdict": {
-            "v": "N",
-            "confidence": "high",
-            "reason": "raw pointer arrives from outside this frame; no owner exists here to reconstruct ownership from (KB from_raw p1 -> N).",
+            "v": "M",
+            "confidence": "low",
+            "reason": "from_raw* without type evidence: ownership source unknown; classify before claiming Y/N.",
             "safe_alternative": null,
             "encapsulate": true,
-            "pattern_hint": 1,
-            "kb_gold": "Y",
+            "pattern_hint": null,
+            "kb_gold": null,
             "rules": []
           }
         }
@@ -1361,7 +1361,7 @@
             "arg_types": [
               null
             ],
-            "ret_type": "{unknown}",
+            "ret_type": null,
             "lsp": true
           },
           "verdict": {
@@ -1414,7 +1414,7 @@
           "evidence": {
             "recv_type": null,
             "arg_types": [
-              "*mut u8",
+              null,
               "usize",
               "usize"
             ],
@@ -1422,13 +1422,13 @@
             "lsp": true
           },
           "verdict": {
-            "v": "N",
-            "confidence": "high",
-            "reason": "raw pointer arrives from outside this frame; no owner exists here to reconstruct ownership from (KB from_raw p1 -> N).",
+            "v": "M",
+            "confidence": "low",
+            "reason": "from_raw* without type evidence: ownership source unknown; classify before claiming Y/N.",
             "safe_alternative": null,
             "encapsulate": true,
-            "pattern_hint": 1,
-            "kb_gold": "N",
+            "pattern_hint": null,
+            "kb_gold": null,
             "rules": [
               "Vec__from_raw_parts_1.yaml",
               "Vec__from_raw_parts_4.yaml",
@@ -1593,21 +1593,21 @@
           "evidence": {
             "recv_type": null,
             "arg_types": [
-              "*mut {unknown}",
+              null,
               "&{unknown}",
               "&{unknown}"
             ],
-            "ret_type": "{unknown}",
+            "ret_type": null,
             "lsp": true
           },
           "verdict": {
-            "v": "N",
-            "confidence": "high",
-            "reason": "raw pointer arrives from outside this frame; no owner exists here to reconstruct ownership from (KB from_raw p1 -> N).",
+            "v": "M",
+            "confidence": "low",
+            "reason": "from_raw* without type evidence: ownership source unknown; classify before claiming Y/N.",
             "safe_alternative": null,
             "encapsulate": true,
-            "pattern_hint": 1,
-            "kb_gold": "N",
+            "pattern_hint": null,
+            "kb_gold": null,
             "rules": [
               "Vec__from_raw_parts_1.yaml",
               "Vec__from_raw_parts_4.yaml",
@@ -1697,21 +1697,21 @@
           "evidence": {
             "recv_type": null,
             "arg_types": [
-              null,
-              null,
+              "*mut {unknown}",
+              "usize",
               "usize"
             ],
-            "ret_type": null,
+            "ret_type": "usize",
             "lsp": true
           },
           "verdict": {
-            "v": "M",
-            "confidence": "low",
-            "reason": "from_raw* without type evidence: ownership source unknown; classify before claiming Y/N.",
+            "v": "N",
+            "confidence": "high",
+            "reason": "raw pointer arrives from outside this frame; no owner exists here to reconstruct ownership from (KB from_raw p1 -> N).",
             "safe_alternative": null,
             "encapsulate": true,
-            "pattern_hint": null,
-            "kb_gold": null,
+            "pattern_hint": 1,
+            "kb_gold": "N",
             "rules": [
               "Vec__from_raw_parts_1.yaml",
               "Vec__from_raw_parts_4.yaml",
@@ -1762,9 +1762,9 @@
             "arg_types": [
               "*mut u8",
               "usize",
-              "{unknown}"
+              "usize"
             ],
-            "ret_type": "{unknown}",
+            "ret_type": null,
             "lsp": true
           },
           "verdict": {
@@ -1827,7 +1827,7 @@
               "let mut vec: {unknown}",
               "let mut vec: {unknown}"
             ],
-            "ret_type": "{unknown}",
+            "ret_type": null,
             "lsp": true
           },
           "verdict": {
@@ -1886,7 +1886,7 @@
           "evidence": {
             "recv_type": null,
             "arg_types": [
-              "let mut vec: {unknown}",
+              null,
               "let mut vec: {unknown}",
               "let mut vec: {unknown}"
             ],
@@ -1989,7 +1989,7 @@
           "evidence": {
             "recv_type": null,
             "arg_types": [],
-            "ret_type": "{unknown}",
+            "ret_type": null,
             "lsp": true
           },
           "verdict": {
@@ -2145,7 +2145,7 @@
           "evidence": {
             "recv_type": null,
             "arg_types": [],
-            "ret_type": "[{unknown}; {const}]",
+            "ret_type": null,
             "lsp": true
           },
           "verdict": {
@@ -2251,7 +2251,7 @@
           "evidence": {
             "recv_type": null,
             "arg_types": [],
-            "ret_type": "{unknown}",
+            "ret_type": null,
             "lsp": true
           },
           "verdict": {
@@ -2405,7 +2405,7 @@
           "evidence": {
             "recv_type": null,
             "arg_types": [],
-            "ret_type": "{unknown}",
+            "ret_type": null,
             "lsp": true
           },
           "verdict": {
@@ -2459,9 +2459,9 @@
           "evidence": {
             "recv_type": null,
             "arg_types": [
-              "{unknown}"
+              "Box<{unknown}>"
             ],
-            "ret_type": "{unknown}",
+            "ret_type": null,
             "lsp": true
           },
           "verdict": {
@@ -2517,9 +2517,9 @@
           "evidence": {
             "recv_type": null,
             "arg_types": [
-              "{unknown}"
+              "Box<{unknown}>"
             ],
-            "ret_type": "{unknown}",
+            "ret_type": null,
             "lsp": true
           },
           "verdict": {
@@ -2575,7 +2575,7 @@
           "evidence": {
             "recv_type": null,
             "arg_types": [
-              "{unknown}"
+              null
             ],
             "ret_type": "{unknown}",
             "lsp": true
@@ -2646,7 +2646,7 @@
           "evidence": {
             "recv_type": null,
             "arg_types": [],
-            "ret_type": "[{unknown}; {const}]",
+            "ret_type": null,
             "lsp": true
           },
           "verdict": {
@@ -2700,7 +2700,7 @@
           "evidence": {
             "recv_type": null,
             "arg_types": [
-              "{unknown}"
+              null
             ],
             "ret_type": "{unknown}",
             "lsp": true
@@ -2753,9 +2753,9 @@
           "evidence": {
             "recv_type": null,
             "arg_types": [
-              "[u8; {const}]"
+              null
             ],
-            "ret_type": "[bool; {const}]",
+            "ret_type": "[bool; _]",
             "lsp": true
           },
           "verdict": {
@@ -2808,7 +2808,7 @@
             "arg_types": [
               null
             ],
-            "ret_type": "{unknown}",
+            "ret_type": null,
             "lsp": true
           },
           "verdict": {
@@ -2862,7 +2862,7 @@
             "arg_types": [
               "*mut R"
             ],
-            "ret_type": null,
+            "ret_type": "*mut {unknown}",
             "lsp": true
           },
           "verdict": {
@@ -2913,7 +2913,7 @@
           "evidence": {
             "recv_type": null,
             "arg_types": [
-              "&{unknown}"
+              null
             ],
             "ret_type": "&{unknown}",
             "lsp": true
@@ -3015,7 +3015,7 @@
           "evidence": {
             "recv_type": null,
             "arg_types": [],
-            "ret_type": "[u16; {const}]",
+            "ret_type": "[u16; _]",
             "lsp": true
           },
           "verdict": {
@@ -3122,7 +3122,7 @@
           "evidence": {
             "recv_type": null,
             "arg_types": [
-              "&{unknown}"
+              null
             ],
             "ret_type": "usize",
             "lsp": true
@@ -3182,7 +3182,7 @@
             "arg_types": [
               "*mut T"
             ],
-            "ret_type": "*mut T",
+            "ret_type": null,
             "lsp": true
           },
           "verdict": {
@@ -3236,9 +3236,9 @@
           "evidence": {
             "recv_type": null,
             "arg_types": [
-              "{unknown}"
+              null
             ],
-            "ret_type": "{unknown}",
+            "ret_type": null,
             "lsp": true
           },
           "verdict": {
@@ -3294,9 +3294,9 @@
           "evidence": {
             "recv_type": null,
             "arg_types": [
-              "{unknown}"
+              null
             ],
-            "ret_type": "{unknown}",
+            "ret_type": null,
             "lsp": true
           },
           "verdict": {
@@ -3410,7 +3410,7 @@
           "evidence": {
             "recv_type": null,
             "arg_types": [
-              "*const {unknown}",
+              null,
               "*mut u8",
               "usize"
             ],
@@ -3525,7 +3525,7 @@
           "evidence": {
             "recv_type": null,
             "arg_types": [
-              null
+              "&mut {unknown}"
             ],
             "ret_type": null,
             "lsp": true
@@ -3748,7 +3748,7 @@
           "evidence": {
             "recv_type": null,
             "arg_types": [],
-            "ret_type": "{unknown}",
+            "ret_type": null,
             "lsp": true
           },
           "verdict": {
@@ -3800,7 +3800,7 @@
             "recv_type": null,
             "arg_types": [
               null,
-              null,
+              "&mut [u8]",
               "let mut remaining: usize"
             ],
             "ret_type": "let mut remaining: usize",
@@ -3913,7 +3913,7 @@
           "evidence": {
             "recv_type": null,
             "arg_types": [],
-            "ret_type": "{unknown}",
+            "ret_type": null,
             "lsp": true
           },
           "verdict": {
@@ -3965,7 +3965,7 @@
             "recv_type": null,
             "arg_types": [
               null,
-              null,
+              "&mut [u8]",
               "let mut remaining: usize"
             ],
             "ret_type": "let mut remaining: usize",
@@ -4081,9 +4081,9 @@
           "evidence": {
             "recv_type": null,
             "arg_types": [
-              "{unknown}"
+              "usize"
             ],
-            "ret_type": "{unknown}",
+            "ret_type": null,
             "lsp": true
           },
           "verdict": {
@@ -4139,7 +4139,7 @@
             "arg_types": [
               "&mut {unknown}",
               "&mut {unknown}",
-              "{unknown}"
+              "usize"
             ],
             "ret_type": "{unknown}",
             "lsp": true
@@ -4316,11 +4316,11 @@
           "evidence": {
             "recv_type": null,
             "arg_types": [
-              "{unknown}",
-              "let mut dst: {unknown}",
+              "&[T]",
+              "let mut dst: *mut T",
               "usize"
             ],
-            "ret_type": "usize",
+            "ret_type": null,
             "lsp": true
           },
           "verdict": {
@@ -4370,9 +4370,9 @@
           "evidence": {
             "recv_type": null,
             "arg_types": [
-              null
+              "{unknown}"
             ],
-            "ret_type": null,
+            "ret_type": "{unknown}",
             "lsp": true
           },
           "verdict": {
@@ -4528,11 +4528,11 @@
           "evidence": {
             "recv_type": null,
             "arg_types": [
-              "{unknown}",
-              "{unknown}",
-              null
+              null,
+              "()",
+              ":cmp"
             ],
-            "ret_type": "{unknown}",
+            "ret_type": null,
             "lsp": true
           },
           "verdict": {
@@ -4590,11 +4590,11 @@
           "evidence": {
             "recv_type": null,
             "arg_types": [
-              "&mut {unknown}",
+              null,
               "let mut v: {unknown}",
               "&mut {unknown}"
             ],
-            "ret_type": "{unknown}",
+            "ret_type": null,
             "lsp": true
           },
           "verdict": {
@@ -4642,7 +4642,7 @@
           "evidence": {
             "recv_type": null,
             "arg_types": [],
-            "ret_type": "{unknown}",
+            "ret_type": "T",
             "lsp": true
           },
           "verdict": {
@@ -4704,7 +4704,7 @@
               "&mut [u8]",
               "&mut [u8]"
             ],
-            "ret_type": "{unknown}",
+            "ret_type": null,
             "lsp": true
           },
           "verdict": {
@@ -4760,11 +4760,11 @@
           "evidence": {
             "recv_type": null,
             "arg_types": [
-              "detect_target",
+              null,
               "let mut ptr: {unknown}",
               "usize"
             ],
-            "ret_type": "{unknown}",
+            "ret_type": null,
             "lsp": true
           },
           "verdict": {
@@ -4876,8 +4876,8 @@
           "evidence": {
             "recv_type": null,
             "arg_types": [
-              "{unknown}",
-              "{unknown}",
+              null,
+              null,
               null
             ],
             "ret_type": "{unknown}",
@@ -4936,11 +4936,11 @@
           "evidence": {
             "recv_type": null,
             "arg_types": [
-              "detect_target",
+              null,
               "let mut ptr: {unknown}",
               "usize"
             ],
-            "ret_type": "{unknown}",
+            "ret_type": null,
             "lsp": true
           },
           "verdict": {
@@ -5048,7 +5048,7 @@
           "evidence": {
             "recv_type": null,
             "arg_types": [
-              null
+              "{unknown}"
             ],
             "ret_type": null,
             "lsp": true
@@ -5166,7 +5166,7 @@
               "let mut v: {unknown}",
               "&mut {unknown}"
             ],
-            "ret_type": "{unknown}",
+            "ret_type": null,
             "lsp": true
           },
           "verdict": {
@@ -5214,7 +5214,7 @@
           "evidence": {
             "recv_type": null,
             "arg_types": [],
-            "ret_type": "{unknown}",
+            "ret_type": "T",
             "lsp": true
           },
           "verdict": {
@@ -5522,7 +5522,7 @@
           "evidence": {
             "recv_type": null,
             "arg_types": [
-              null
+              ":ops::deref::Deref"
             ],
             "ret_type": null,
             "lsp": true
@@ -5734,19 +5734,19 @@
           "evidence": {
             "recv_type": null,
             "arg_types": [
-              "*const {unknown}"
+              null
             ],
-            "ret_type": "*const {unknown}",
+            "ret_type": null,
             "lsp": true
           },
           "verdict": {
-            "v": "N",
-            "confidence": "high",
-            "reason": "C string pointer comes from FFI (parameter); the owner is not in this frame (KB from_ptr p1 -> N).",
+            "v": "M",
+            "confidence": "low",
+            "reason": "CStr::from_ptr without evidence: classify pattern.",
             "safe_alternative": null,
             "encapsulate": true,
-            "pattern_hint": 1,
-            "kb_gold": "N",
+            "pattern_hint": null,
+            "kb_gold": null,
             "rules": [
               "CStr__from_ptr_1.yaml",
               "CStr__from_ptr_4.yaml"
@@ -5792,7 +5792,7 @@
             "arg_types": [
               null
             ],
-            "ret_type": "{unknown}",
+            "ret_type": null,
             "lsp": true
           },
           "verdict": {
@@ -5900,9 +5900,9 @@
           "evidence": {
             "recv_type": null,
             "arg_types": [
-              null
+              "{unknown}"
             ],
-            "ret_type": null,
+            "ret_type": ":ops::index::Index",
             "lsp": true
           },
           "verdict": {
@@ -5956,9 +5956,9 @@
           "evidence": {
             "recv_type": null,
             "arg_types": [
-              "{unknown}"
+              null
             ],
-            "ret_type": "{unknown}",
+            "ret_type": null,
             "lsp": true
           },
           "verdict": {
@@ -6012,9 +6012,9 @@
           "evidence": {
             "recv_type": null,
             "arg_types": [
-              "{unknown}"
+              null
             ],
-            "ret_type": "{unknown}",
+            "ret_type": null,
             "lsp": true
           },
           "verdict": {
@@ -6075,9 +6075,9 @@
           "evidence": {
             "recv_type": null,
             "arg_types": [
-              "*const {unknown}"
+              null
             ],
-            "ret_type": "*const {unknown}",
+            "ret_type": null,
             "lsp": true
           },
           "verdict": {
@@ -6185,7 +6185,7 @@
           "evidence": {
             "recv_type": null,
             "arg_types": [
-              null
+              "{unknown}"
             ],
             "ret_type": null,
             "lsp": true
@@ -6292,10 +6292,10 @@
           "evidence": {
             "recv_type": null,
             "arg_types": [
-              "{unknown}",
+              null,
               null
             ],
-            "ret_type": "{unknown}",
+            "ret_type": null,
             "lsp": true
           },
           "verdict": {
@@ -6350,7 +6350,7 @@
             "arg_types": [
               "&mut T"
             ],
-            "ret_type": "&mut T",
+            "ret_type": null,
             "lsp": true
           },
           "verdict": {
@@ -6400,9 +6400,9 @@
             "recv_type": null,
             "arg_types": [
               "&mut T",
-              "{unknown}"
+              "T"
             ],
-            "ret_type": "{unknown}",
+            "ret_type": "T",
             "lsp": true
           },
           "verdict": {
@@ -6456,10 +6456,10 @@
           "evidence": {
             "recv_type": null,
             "arg_types": [
-              "let mut data: {unknown}",
+              null,
               "F"
             ],
-            "ret_type": "F",
+            "ret_type": null,
             "lsp": true
           },
           "verdict": {
@@ -6508,9 +6508,9 @@
             "recv_type": null,
             "arg_types": [
               "let mut data: {unknown}",
-              "{unknown}"
+              "Box<F>"
             ],
-            "ret_type": "{unknown}",
+            "ret_type": "Box<F>",
             "lsp": true
           },
           "verdict": {
@@ -6569,7 +6569,7 @@
             "recv_type": null,
             "arg_types": [
               null,
-              null
+              "{unknown}"
             ],
             "ret_type": null,
             "lsp": true
@@ -6625,10 +6625,10 @@
           "evidence": {
             "recv_type": null,
             "arg_types": [
-              "let mut data: {unknown}",
+              null,
               "F"
             ],
-            "ret_type": "F",
+            "ret_type": null,
             "lsp": true
           },
           "verdict": {
@@ -6677,9 +6677,9 @@
             "recv_type": null,
             "arg_types": [
               "let mut data: {unknown}",
-              "{unknown}"
+              "Box<F>"
             ],
-            "ret_type": "{unknown}",
+            "ret_type": "Box<F>",
             "lsp": true
           },
           "verdict": {
@@ -6734,7 +6734,7 @@
             "arg_types": [
               "*mut {unknown}"
             ],
-            "ret_type": "*mut {unknown}",
+            "ret_type": null,
             "lsp": true
           },
           "verdict": {
@@ -6848,7 +6848,7 @@
             "arg_types": [
               "*const {unknown}"
             ],
-            "ret_type": "*const {unknown}",
+            "ret_type": null,
             "lsp": true
           },
           "verdict": {
@@ -7020,11 +7020,11 @@
           "evidence": {
             "recv_type": null,
             "arg_types": [
-              "&mut {unknown}",
-              "i32",
+              null,
+              "u8",
               "&mut {unknown}"
             ],
-            "ret_type": "()",
+            "ret_type": null,
             "lsp": true
           },
           "verdict": {
@@ -7080,11 +7080,11 @@
           "evidence": {
             "recv_type": null,
             "arg_types": [
-              "{unknown}",
+              "()",
               "i32",
               "{unknown}"
             ],
-            "ret_type": "{unknown}",
+            "ret_type": null,
             "lsp": true
           },
           "verdict": {
@@ -7143,11 +7143,11 @@
           "evidence": {
             "recv_type": null,
             "arg_types": [
-              "*mut u8",
+              null,
               "u8",
               "usize"
             ],
-            "ret_type": "usize",
+            "ret_type": null,
             "lsp": true
           },
           "verdict": {
@@ -7205,7 +7205,7 @@
           "evidence": {
             "recv_type": null,
             "arg_types": [
-              null,
+              "*mut u8",
               "i32",
               "u32"
             ],
@@ -7261,7 +7261,7 @@
           "evidence": {
             "recv_type": null,
             "arg_types": [],
-            "ret_type": "{unknown}",
+            "ret_type": null,
             "lsp": true
           },
           "verdict": {
@@ -7319,9 +7319,9 @@
           "evidence": {
             "recv_type": null,
             "arg_types": [
-              "usize"
+              null
             ],
-            "ret_type": "usize",
+            "ret_type": null,
             "lsp": true
           },
           "verdict": {
@@ -7378,9 +7378,9 @@
           "evidence": {
             "recv_type": null,
             "arg_types": [
-              "{unknown}"
+              "usize"
             ],
-            "ret_type": "{unknown}",
+            "ret_type": null,
             "lsp": true
           },
           "verdict": {
@@ -7437,9 +7437,9 @@
           "evidence": {
             "recv_type": null,
             "arg_types": [
-              "{unknown}"
+              "usize"
             ],
-            "ret_type": "{unknown}",
+            "ret_type": null,
             "lsp": true
           },
           "verdict": {
@@ -7497,9 +7497,9 @@
           "evidence": {
             "recv_type": null,
             "arg_types": [
-              "let mut out: {unknown}"
+              null
             ],
-            "ret_type": "{unknown}",
+            "ret_type": null,
             "lsp": true
           },
           "verdict": {
@@ -7556,7 +7556,7 @@
             "arg_types": [
               "i32"
             ],
-            "ret_type": "i32",
+            "ret_type": null,
             "lsp": true
           },
           "verdict": {

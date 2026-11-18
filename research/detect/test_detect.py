@@ -123,7 +123,10 @@ def test_lsp_e2e() -> None:
         return
     db = spec_db.load_spec_db()
 
-    f = next(SNIPPETS.glob("ptr::read/*-unsafe.rs"))
+    # Sorted, and pinned to pattern 1: `glob` order is filesystem-dependent,
+    # and a pattern-2 field-access snippet correctly abstains (M) instead of
+    # producing the N this assertion is about.
+    f = sorted(SNIPPETS.glob("ptr::read/1-*-unsafe.rs"))[0]
     with detect.Analyzer() as an:
         an.open_file(f)
         rep = detect.analyze_file(f, db, an)
@@ -133,14 +136,14 @@ def test_lsp_e2e() -> None:
     # without concrete-type evidence the engine must abstain, never claim Y.
     assert s["verdict"]["v"] == "M", s["verdict"]
 
-    f = next(SNIPPETS.glob("Box::from_raw/*-unsafe.rs"))
+    f = sorted(SNIPPETS.glob("Box::from_raw/1-*-unsafe.rs"))[0]
     with detect.Analyzer() as an:
         an.open_file(f)
         rep = detect.analyze_file(f, db, an)
     s = rep["sinks"][0]
     assert s["verdict"]["v"] == "N" and s["verdict"]["kb_gold"] == "N"
 
-    f = next(SNIPPETS.glob("ptr::read/*-safe.rs"))
+    f = sorted(SNIPPETS.glob("ptr::read/1-*-safe.rs"))[0]
     with detect.Analyzer() as an:
         an.open_file(f)
         rep = detect.analyze_file(f, db, an)

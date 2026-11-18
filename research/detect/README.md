@@ -31,26 +31,49 @@ CULPA build.
 
 ## One-time setup
 
+The detector needs a stable `rust-analyzer` binary and a `rust-src` sysroot.
+This checkout pins the `2026-08-24` release; `.tools/` is gitignored.
+
 ```sh
-# rust-analyzer on PATH (already at ~/.local/bin/rust-analyzer)
-sh detect/setup_rust_src.sh   # rust-src shim; needed for hover/type evidence
+# from the repository root
+mkdir -p .tools/ra-bin .tools/ra-home
+curl -fsSL -o .tools/ra-bin/rust-analyzer.gz \
+  https://github.com/rust-lang/rust-analyzer/releases/download/2026-08-24/rust-analyzer-x86_64-unknown-linux-gnu.gz
+gunzip .tools/ra-bin/rust-analyzer.gz
+chmod +x .tools/ra-bin/rust-analyzer
+
+# Normal environment with a writable $HOME:
+sh detect/setup_rust_src.sh
+```
+
+If `$HOME` is read-only (this sandbox), point `HOME` at a writable workspace
+directory for both setup and runs, while keeping the real Rust toolchain homes:
+
+```sh
+export RUSTUP_HOME=/path/to/.rustup CARGO_HOME=/path/to/.cargo
+HOME="$PWD/.tools/ra-home" sh detect/setup_rust_src.sh
 ```
 
 `setup_rust_src.sh` downloads the `rust-src` component matching the local
 stable rustc (network: static.rust-lang.org), builds a symlink-farm sysroot in
-`~/.local/share/ra-detect/sysroot`, and installs a `rustc` shim that only
+`$HOME/.local/share/ra-detect/sysroot`, and installs a `rustc` shim that only
 redirects `--print sysroot`. The shim is prepended to PATH **only for the
 rust-analyzer child process** (`ra_client.ra_env`); nothing system-wide changes.
+`ra_env()` resolves the shim through `Path.home()`, so the `HOME` used to run
+`setup_rust_src.sh` must also be set when running the detector.
 
 ## Usage
 
 ```sh
 source ../.venv/bin/activate          # PyYAML only; python >= 3.10
+# when using the workspace-local setup above:
+export PATH="$PWD/.tools/ra-bin:$PATH"
+export HOME="$PWD/.tools/ra-home"
+python detect/test_detect.py          # 7-test suite (LSP e2e included)
 python detect/detect.py ../vendors/SafeNet/testdata/ptr::read \
     --json detect/out/report.json     # LSP mode (default)
 python detect/detect.py file.rs --no-lsp    # syntactic only, no rust-analyzer
 python detect/detect.py dir/ --json -       # JSON report to stdout
-python detect/test_detect.py          # 7-test suite (LSP e2e included)
 ```
 
 Example (synth `ptr::read` p1 snippet, LSP mode):

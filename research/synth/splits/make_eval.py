@@ -3,20 +3,28 @@
 Outputs (under splits/):
   gallery.json   fixed KB gallery: per-api list of {id, pattern_id, kind,
                  text} — what a query retrieves against. Never split.
-  test_pairs.csv shipped-format pairs over held-out test snippets ONLY
+  <split>_pairs.csv
+                 shipped-format pairs over held-out snippets ONLY
                  (`,text1,text2,label`; label 1 iff same (api, pattern),
                  balanced 50/50, shuffled seed 1234 — same rules as
                  gen/pairs.py so the CSV loads in SentencePairDataset as-is).
-  eval_manifest.json  per-row provenance for test_pairs.csv (api/pattern/
-                 verdict of both endpoints) + gallery ids + hash of the
-                 frozen split files (proves which split was evaluated).
+  eval_manifest.json / valid_eval_manifest.json
+                 per-row provenance for the pairs CSV (api/pattern/verdict of
+                 both endpoints) + gallery ids + hash of the frozen split files.
+                 `eval_manifest.json` stays the test artifact for backward
+                 compatibility; `--split valid` writes `valid_eval_manifest.json`.
 
-Both sequences come from the SAME cached pipeline (out/ast_json_real/{gh,kb})
-used to build train CSVs — format-faithful by construction.
+Use `--split valid` to select epochs/thresholds and `--split test` exactly once
+per model.  Both sequences come from the SAME cached pipeline
+(out/ast_json_real/{gh,kb}) used to build train CSVs — format-faithful by
+construction.
 
-Usage:  python splits/make_eval.py     (from research/synth/)
+Usage:  python splits/make_eval.py --split valid   (from research/synth/)
+        python splits/make_eval.py --split test
+        python splits/make_eval.py --split all
 """
 
+import argparse
 import csv
 import hashlib
 import json
@@ -138,23 +146,23 @@ def sha_file(path):
     return h.hexdigest()
 
 
-def main():
-    verdicts = load_verdicts()
-    gallery, gal_missing = load_gallery(verdicts)
-    split_name = "test"
+def build(split_name, verdicts, gallery, gal_missing):
     rows = load_split_rows(split_name, verdicts)
     if not rows:
-        raise SystemExit("no rows in split — run make_splits.py first")
+        raise SystemExit(f"no rows in {split_name} split — run make_splits.py first")
     pairs = make_pairs(rows, random.Random(SEED))
 
     with open(os.path.join(SPLITS_DIR, "gallery.json"), "w",
               encoding="utf-8") as f:
         json.dump({"source": "vendors/SafeNet/knowledgebase",
-                   "apis": gallery}, f, ensure_ascii=False)
+                   "apis": gallery}, f, ensure_ascii=False, sort_keys=True)
+        f.write("\n")
 
     csv_path = os.path.join(SPLITS_DIR, f"{split_name}_pairs.csv")
     write_pairs_csv(pairs, csv_path)
 
+    manifest_name = ("eval_manifest.json" if split_name == "test"
+                     else f"{split_name}_eval_manifest.json")
     manifest = {
         "split": split_name,
         "seed": SEED,
@@ -176,7 +184,7 @@ def main():
                    "v1": a["verdict"], "v2": b["verdict"], "label": l}
                   for i, (a, b, l) in enumerate(pairs)],
     }
-    with open(os.path.join(SPLITS_DIR, "eval_manifest.json"), "w",
+    with open(os.path.join(SPLITS_DIR, manifest_name), "w",
               encoding="utf-8") as f:
         json.dump(manifest, f, ensure_ascii=False)
 
@@ -186,6 +194,20 @@ def main():
           f"{len(gallery)} apis")
     if gal_missing:
         print(f"WARN gallery entries without cached sequence: {gal_missing}")
+    return manifest
+
+
+def main():
+    ap = argparse.ArgumentParser(description=__doc__)
+    ap.add_argument("--split", choices=("valid", "test", "all"), default="test",
+                    help="which frozen split to materialise (default: test)")
+    args = ap.parse_args()
+
+    verdicts = load_verdicts()
+    gallery, gal_missing = load_gallery(verdicts)
+    splits = ("valid", "test") if args.split == "all" else (args.split,)
+    for split_name in splits:
+        build(split_name, verdicts, gallery, gal_missing)
 
 
 if __name__ == "__main__":

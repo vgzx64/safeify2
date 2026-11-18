@@ -5,18 +5,18 @@ files=97 sinks=136 evaluated=105 unmatched_files=0 api_mismatch=31
 
 confusion (rows=gold, cols=pred):
  gold     Y     M     N
-    Y     2    65     2
+    Y     2    64     3
     M     0     9     0
     N     2    18     7
 
 accuracy: 0.1714 (18/105)
 FP-on-N (gold N -> pred Y): 2/27  recall_N=0.2593
 Y precision: 0.5000 (4 Y predictions)
-claim_rate: 0.1238  (M-rate 0.8762 — abstentions)
-pattern claims: 13/105 sinks, correct=6 (0.4615)
+claim_rate: 0.1333  (M-rate 0.8667 — abstentions)
+pattern claims: 14/105 sinks, correct=7 (0.5000)
+  wrong hint: Box::from_raw/3-1.rs Box::from_raw hint=p1 gold=p3
   wrong hint: Box::from_raw/4-1.rs Box::from_raw hint=p1 gold=p4
-  wrong hint: Rc::from_raw/3-1.rs Rc::from_raw hint=p1 gold=p3
-  wrong hint: Vec::from_raw_parts/3-1.rs Vec::from_raw_parts hint=p1 gold=p3
+  wrong hint: Vec::from_raw_parts/3-2.rs Vec::from_raw_parts hint=p1 gold=p3
   wrong hint: Vec::from_raw_parts/4-3.rs Vec::from_raw_parts hint=p1 gold=p4
   wrong hint: ptr::read/2-1.rs ptr::read hint=p1 gold=p2
   wrong hint: ptr::read/2-1.rs ptr::read hint=p1 gold=p2
@@ -33,11 +33,11 @@ per-family accuracy (correct/total):
   zeroed           0/2   0.000
 
 per-API accuracy (correct/total):
-  Box::from_raw              1/5   0.200
+  Box::from_raw              3/5   0.600
   CStr::from_ptr             3/6   0.500
   CString::from_raw          2/4   0.500
-  Rc::from_raw               2/5   0.400
-  Vec::from_raw_parts        3/7   0.429
+  Rc::from_raw               1/5   0.200
+  Vec::from_raw_parts        2/7   0.286
   as_ref                     0/4   0.000
   assume_init                1/5   0.200
   mem::transmute             0/3   0.000

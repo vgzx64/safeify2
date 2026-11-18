@@ -4,22 +4,23 @@ Modes
 -----
 (no args)                audit only: split sizes, leakage, verdict coverage,
                          pair/gallery stats — run before every experiment.
---pairs-preds FILE.csv   score a pair classifier on test_pairs.csv.
-                         FILE must contain a `label` column with one value
-                         per row (aligned positionally to test_pairs.csv).
-                         Reports accuracy / precision / recall / F1 (macro),
-                         per-(api,pattern) recall on gold-positive pairs, and
-                         FP rate on pairs whose BOTH endpoints have
-                         verdict=N (irreplaceable) — the FP-reduction target
-                         of notes/research/research-vectors.md.
+--pairs-preds FILE.csv   score a pair classifier on the selected split's pairs
+                         CSV (default: test_pairs.csv).  FILE must contain a
+                         `label` column with one value per row (aligned
+                         positionally).  Reports accuracy / precision / recall
+                         / F1 (macro), per-(api,pattern) recall on
+                         gold-positive pairs, and FP rate on pairs whose BOTH
+                         endpoints have verdict=N (irreplaceable) — the
+                         FP-reduction target of notes/research/research-vectors.md.
 --retrieval-preds FILE   score retrieval against the fixed KB gallery.
                          FILE: JSON list of {"id": "<testdata rel_path>",
                          "pattern_id": N}. Reports top-1 pattern accuracy,
                          macro per-API recall, and recall/miss on verdict=N
                          queries.
 
-Protocol (notes/research/synthetic-data-theory.md): tune on `valid`, report
-`test` ONCE per model, never report a synthetic-measured number.
+Use `--split valid` to select epochs/thresholds; `--split test` is the
+report-once evaluation.  Protocol (notes/research/synthetic-data-theory.md):
+tune on `valid`, report `test` ONCE per model, never report a synthetic number.
 """
 
 import argparse
@@ -49,9 +50,14 @@ def prf(tp, fp, fn):
     return p, r, f
 
 
-def audit():
+def manifest_name(split: str) -> str:
+    """Test keeps the historical eval_manifest.json; other splits are named."""
+    return "eval_manifest.json" if split == "test" else f"{split}_eval_manifest.json"
+
+
+def audit(split: str = "test"):
     stats = load_json("stats.json")
-    eval_m = load_json("eval_manifest.json")
+    eval_m = load_json(manifest_name(split))
 
     print("=== split audit (frozen) ===")
     print(f"testdata: {stats['n_total']} files, usable {stats['n_usable']}, "
@@ -79,13 +85,13 @@ def audit():
     n_pairs = [p for p in eval_m["pairs"]
                if p["v1"] == "N" and p["v2"] == "N"]
     n_rows = [r for r in eval_m["rows"] if r["verdict"] == "N"]
-    print(f"irreplaceable (verdict=N): {len(n_rows)} test snippets, "
+    print(f"irreplaceable (verdict=N): {len(n_rows)} {split} snippets, "
           f"{len(n_pairs)} pairs with both endpoints N")
     return stats, eval_m
 
 
-def score_pairs(pred_path):
-    _, eval_m = audit()
+def score_pairs(pred_path, split: str = "test"):
+    _, eval_m = audit(split)
     with open(pred_path, newline="", encoding="utf-8") as f:
         reader = csv.DictReader(f)
         if not reader.fieldnames or "label" not in reader.fieldnames:
@@ -94,7 +100,7 @@ def score_pairs(pred_path):
     gold = [p["label"] for p in eval_m["pairs"]]
     if len(preds) != len(gold):
         sys.exit(f"{pred_path}: {len(preds)} predictions for "
-                 f"{len(gold)} test pairs (row count must match)")
+                 f"{len(gold)} {split} pairs (row count must match)")
 
     tp = sum(1 for g, p in zip(gold, preds) if g == 1 and p == 1)
     tn = sum(1 for g, p in zip(gold, preds) if g == -1 and p == -1)
@@ -105,7 +111,7 @@ def score_pairs(pred_path):
     _, _, f0 = prf(tn, fn, fp)
     macro_f1 = (f1 + f0) / 2
 
-    print("\n=== pair metrics (test split ONLY) ===")
+    print(f"\n=== pair metrics ({split} split) ===")
     print(f"n={len(gold)}  accuracy={acc:.4f}  precision={p1:.4f} "
           f"recall={r1:.4f} f1={f1:.4f}  macro_f1={macro_f1:.4f}")
     print(f"confusion: tp={tp} fp={fp} fn={fn} tn={tn}")
@@ -145,8 +151,8 @@ def score_pairs(pred_path):
     return macro_f1
 
 
-def score_retrieval(pred_path):
-    _, eval_m = audit()
+def score_retrieval(pred_path, split: str = "test"):
+    _, eval_m = audit(split)
     with open(pred_path, encoding="utf-8") as f:
         raw = json.load(f)
     pred_map = {r["id"]: int(r["pattern_id"]) for r in raw}
@@ -168,7 +174,7 @@ def score_retrieval(pred_path):
     acc = safe_div(hits, len(rows))
     macro = safe_div(sum(safe_div(h, t) for h, t in per_api.values()),
                      len(per_api))
-    print("\n=== retrieval metrics (test queries vs fixed KB gallery) ===")
+    print(f"\n=== retrieval metrics ({split} queries vs fixed KB gallery) ===")
     print(f"queries={len(rows)}  top-1 pattern accuracy={acc:.4f}  "
           f"macro per-API recall={macro:.4f}")
     print(f"recall on verdict=N (irreplaceable) queries: "
@@ -183,17 +189,19 @@ def score_retrieval(pred_path):
 def main():
     ap = argparse.ArgumentParser(
         description="Frozen-split scorer; see module docstring.")
+    ap.add_argument("--split", choices=("valid", "test"), default="test",
+                    help="which frozen split to score (default: test)")
     ap.add_argument("--pairs-preds",
-                    help="CSV with a 'label' column aligned to test_pairs.csv")
+                    help="CSV with a 'label' column aligned to <split>_pairs.csv")
     ap.add_argument("--retrieval-preds",
                     help="JSON list of {id, pattern_id} predictions")
     args = ap.parse_args()
     if args.pairs_preds:
-        score_pairs(args.pairs_preds)
+        score_pairs(args.pairs_preds, args.split)
     elif args.retrieval_preds:
-        score_retrieval(args.retrieval_preds)
+        score_retrieval(args.retrieval_preds, args.split)
     else:
-        audit()
+        audit(args.split)
 
 
 if __name__ == "__main__":

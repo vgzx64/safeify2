@@ -31,7 +31,7 @@ transitions from `CVEfixes.db` and the cloned repositories.
 
 - Entry point: [transitions/README.md](transitions/README.md)
 - Pilot results: [notes/research/transition-dataset-pilot.md](../notes/research/transition-dataset-pilot.md)
-- **Status:** v0.2 draft; 435 rows, 110 Y families, 325 negative families; all five gates pass; not frozen.
+- **Status:** v0.2 **frozen** (2026-11-08); 433 rows, 109 Y / 193 N / 131 M; 8 gates pass; split leakage 0; binary label target verified by two blind spot-checks (Y-vs-not-Y kappa 0.82; M-vs-N not reproducible). No trained model yet: one-sided snippet training does not transfer (valid AUC 0.665). Next: pair classifier on the rebuilt, leakage-gated `research/synth` data (8,580 clean pairs; run `splits/check_train_leakage.py` first).
 
 ### `gnn/` — GNN-Coder prototype
 

@@ -41,11 +41,31 @@ verify an untouched checkout: `python splits/make_splits.py --check`.
 
 ## Sizes
 
-| split | usable .rs | target |
-|---|---|---|
-| train | 288 | 70% |
-| valid | 69 | 10% |
-| test  | 97 | 20% |
+| split | usable .rs | pairs | target |
+|---|---|---|---|
+| train | 288 | — | 70% |
+| valid | 69 | 10 (5 pos / 5 neg) | 10% |
+| test  | 97 | 76 (38 pos / 38 neg) | 20% |
+
+## Training-data integrity
+
+The pair CSVs are built from `train.txt` + the KB only. File membership is not
+enough because the corpus has cross-API identical sequences: six train-split
+files carry a sequence that also occurs in valid/test, so `gen/pairs.py` drops
+them before pairing. Before any training run:
+
+```bash
+python splits/check_train_leakage.py
+# out/train_synth.csv: valid=0/69 test=0/97 -> OK
+# out/train_real.csv:  valid=0/69 test=0/97 -> OK
+# out/train_mixed.csv: valid=0/69 test=0/97 -> OK
+# out/train_hard.csv:  valid=0/69 test=0/97 -> OK
+```
+
+The shipped `vendors/SafeNet/src/model/data/baaaa/train.csv` is **not** clean:
+it contains 25 test and 23 valid snippets. Use the rebuilt `train_real.csv`
+for the real-only ablation and never train on the shipped CSV for a held-out
+claim.
 
 ## Leakage audit (exact sequence sha256 across splits)
 
@@ -140,11 +160,21 @@ verify an untouched checkout: `python splits/make_splits.py --check`.
 
 ## Evaluation protocol (enforced by `splits/eval_protocol.py`)
 
-1. **Train** on shipped `train.csv` / `train_synth.csv` / `train_mixed.csv`
-   (+`train_hard.csv`).
-2. **Select** epochs/threshold on `valid` only.
-3. **Report once** on `test`: pair metrics + per-pattern recall + FP rate on
-   `verdict=N` (irreplaceable) — `python splits/eval_protocol.py --preds ...`
+1. **Train** on `out/train_real.csv`, `out/train_synth.csv`, or
+   `out/train_mixed.csv` (+`out/train_hard.csv`). All four must pass
+   `splits/check_train_leakage.py`; do not use the shipped SafeNet `train.csv`.
+2. **Select** epochs/threshold on `valid` only:
+   `python splits/make_eval.py --split valid`, then
+   `python splits/eval_protocol.py --split valid --pairs-preds <preds.csv>`.
+   The valid set is only 10 pairs (5 pos / 5 neg) and has no both-N pairs, so
+   it is a weak selection signal; prefer grouped CV on train and report the
+   limitation.
+3. **Report once** on `test`:
+   `python splits/make_eval.py --split test`, then
+   `python splits/eval_protocol.py --split test --pairs-preds <preds.csv>`.
+   Pair metrics + per-pattern recall + FP rate on `verdict=N`; the test pair
+   set has 38 pos / 38 neg and only 3 both-N pairs, so the safety FP estimate
+   is coarse.
 4. Never report a synthetic-measured number as a result
    (`notes/research/synthetic-data-theory.md`).
 

@@ -15,12 +15,13 @@ Working notes for the dissertation and the SafeNet experiments.
 | Note | Status | Scope |
 |---|---|---|
 | [nirm3/README.md](nirm3/README.md) | Active | NIRM 3 scope, Definition of Done, readiness blockers, next actions |
-| [nirm3/results.md](nirm3/results.md) | Provisional | Frozen-split protocol, current rerun, superseded history, limitations |
+| [nirm3/report.md](nirm3/report.md) | Draft | Supervisor report: scope, protocol, 2026-11-18 results, safety claim, NIRM 4 handoff |
+| [nirm3/results.md](nirm3/results.md) | Provisional | Frozen-split protocol, 2026-10-24 rerun, superseded history, limitations |
 | [research/research-vectors.md](research/research-vectors.md) | Active | Research directions beyond the SafeNet baseline |
 | [research/synthetic-data-theory.md](research/synthetic-data-theory.md) | Active | Why and how to build synthetic data without a circular evaluation |
 | [research/gnn-coder-evaluation.md](research/gnn-coder-evaluation.md) | Historical | 2026-09-22 evaluation of GNN-Coder as a research candidate |
 | [research/transition-dataset.md](research/transition-dataset.md) | Draft | Classification/retrieval dataset: labels, splits, gates |
-| [research/transition-dataset-pilot.md](research/transition-dataset-pilot.md) | Draft | v0.2 draft: 435 rows; 607 adjudicated; 110 positive / 325 negative families; all five gates pass; not frozen |
+| [research/transition-dataset-pilot.md](research/transition-dataset-pilot.md) | Frozen | v0.2 frozen: 433 rows; 8 gates pass; leakage 0; binary target verified (kappa 0.82); M/N not reproducible; one-sided model does not transfer |
 
 ## Archive
 

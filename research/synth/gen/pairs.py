@@ -2,10 +2,19 @@
 
 Outputs (all with the shipped header `,text1,text2,label`):
   out/train_synth.csv  — within-API pairs among synthetic snippets only
-  out/train_mixed.csv  — within-API pairs over real (KB+GitHub) x real/synth
-                          (the 'train on synthetic + real' formula)
+  out/train_real.csv   — within-API pairs over real (KB + train-split GitHub)
+                          only (the 'real-only' ablation, clean replacement for
+                          the shipped vendors/SafeNet train.csv)
+  out/train_mixed.csv  — within-API pairs over real (KB + train-split GitHub)
+                          x real/synth (the 'train on synthetic + real' formula)
   out/train_hard.csv   — cross-API pairs, always label -1 (adversarial +
                           easy negatives; at least one side synthetic)
+
+Real GitHub rows are restricted to splits/train.txt.  The valid and test
+splits are never paired here, and the build refuses to write any CSV that
+contains a holdout snippet (`splits/check_train_leakage.py` enforces the same
+invariant independently).  Before 2026-11-18 this file walked all of
+`testdata/`, which leaked every valid/test snippet into the training CSVs.
 
 Label rule (matches converttrainset.py semantics, extended with the API): 1 iff
 same (api, pattern_id), else -1. Rows are shuffled (seed 1234, the baseline
@@ -25,7 +34,9 @@ import pandas as pd
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "pipe"))
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "splits"))
 from common import SYNTH_ROOT  # noqa: E402
+from holdout import check_csvs, holdout_sequences, load_split  # noqa: E402
 import preprocess  # noqa: E402
 import syn_parser  # noqa: E402
 
@@ -46,7 +57,12 @@ def pattern_of(filename):
 
 
 def process_real():
-    """Extract + preprocess KB and testdata; returns row dicts."""
+    """Extract + preprocess the KB and the train slice of testdata.
+
+    The frozen split is read from `splits/train.txt`; files outside it are
+    skipped before their sequence is cached or paired.
+    """
+    train_gh = set(load_split("train"))
     rows = []
     for corpus, root in (("kb", os.path.join(REPO_SAFE, "knowledgebase")),
                          ("gh", os.path.join(REPO_SAFE, "testdata"))):
@@ -57,7 +73,11 @@ def process_real():
             for fname in sorted(files):
                 if not fname.endswith(".rs"):
                     continue
-                rel_dir = os.path.relpath(dirpath, root)
+                rel_path = os.path.relpath(os.path.join(dirpath, fname), root)
+                rel_path = rel_path.replace(os.sep, "/")
+                if corpus == "gh" and rel_path not in train_gh:
+                    continue
+                rel_dir = os.path.dirname(rel_path)
                 stem = fname[:-3]
                 pattern = pattern_of(stem)
                 if pattern is None:
@@ -69,7 +89,7 @@ def process_real():
                 try:
                     seq = preprocess.ast_file_to_json(ast_path, json_path)
                 except Exception as e:
-                    print(f"real pipeline fail {corpus}/{rel_dir}/{fname}: {e}")
+                    print(f"real pipeline fail {corpus}/{rel_path}: {e}")
                     continue
                 if not seq.split():
                     continue
@@ -78,6 +98,7 @@ def process_real():
                     "pattern_id": pattern,
                     "kind": "safe" if "-safe" in stem else "unsafe",
                     "source": "real_" + corpus,
+                    "rel_path": rel_path,
                     "text": seq,
                 })
     return rows
@@ -151,25 +172,97 @@ def write_csv(pairs, path):
     return df
 
 
+def drop_holdout_rows(rows, holdout, label):
+    """Drop rows whose normalized sequence also occurs in valid/test.
+
+    File membership is not sufficient: the corpus has cross-API identical
+    sequences, so a train-split file can still carry a holdout sequence.  The
+    frozen split's own audit reports these duplicate groups; this filter makes
+    the training data sequence-disjoint from both holdouts.
+    """
+    texts = {seq for seqs in holdout.values() for seq in seqs.values()}
+    kept, dropped = [], []
+    for row in rows:
+        (dropped if row["text"] in texts else kept).append(row)
+    if dropped:
+        print(f"{label}: dropped {len(dropped)} row(s) duplicating a holdout sequence")
+        for row in dropped:
+            where = row.get("rel_path") or row.get("source", "?")
+            print(f"  {where} (source={row['source']})")
+    return kept
+
+
+def assert_no_holdout_leakage(named_pairs, names=("valid", "test"), holdout=None):
+    """Fail before writing if any pair text comes from a holdout split.
+
+    This is the in-memory half of the gate; `check_csvs` re-checks the written
+    files so a future refactor cannot silently reintroduce the leak.
+    """
+    holdout = holdout or holdout_sequences(names)
+    reverse = {name: {seq: rel for rel, seq in seqs.items()}
+               for name, seqs in holdout.items()}
+    failed = False
+    for label, pairs in named_pairs.items():
+        texts = set()
+        for text1, text2, _ in pairs:
+            texts.add(text1)
+            texts.add(text2)
+        parts, leaked = [], False
+        for name, seqs in holdout.items():
+            hits = texts & set(seqs.values())
+            parts.append(f"{name}={len(hits)}/{len(seqs)}")
+            leaked = leaked or bool(hits)
+            if hits:
+                failed = True
+                for seq in sorted(hits)[:3]:
+                    print(f"  {label} leaks {name}: {reverse[name][seq]}")
+        print(f"{label}: {' '.join(parts)} -> {'LEAK' if leaked else 'OK'}")
+    if failed:
+        raise SystemExit(
+            "refusing to write pair CSVs that contain valid/test snippets")
+
+
 def main():
     rng = random.Random(SEED)
-    real = process_real()
-    synth = synth_rows()
-    print(f"rows: real={len(real)} synth_kept={len(synth)}")
+    holdout = holdout_sequences(("valid", "test"))
+    real = drop_holdout_rows(process_real(), holdout, "real")
+    synth = drop_holdout_rows(synth_rows(), holdout, "synth")
+    n_kb = sum(1 for r in real if r["source"] == "real_kb")
+    print(f"rows: real_kb={n_kb} real_gh_train={len(real) - n_kb} "
+          f"synth_kept={len(synth)}")
 
-    d_synth = write_csv(pairs_within(synth, rng),
-                        os.path.join(SYNTH_ROOT, "out", "train_synth.csv"))
-    d_mixed = write_csv(pairs_within(real + synth, rng),
-                        os.path.join(SYNTH_ROOT, "out", "train_mixed.csv"))
+    synth_pairs = pairs_within(synth, rng)
+    real_pairs = pairs_within(real, rng)
+    mixed_pairs = pairs_within(real + synth, rng)
     hard, easy = pairs_cross_api(synth + real, rng)
-    d_hard = write_csv(hard + easy, os.path.join(SYNTH_ROOT, "out", "train_hard.csv"))
+    assert_no_holdout_leakage({
+        "train_synth": synth_pairs,
+        "train_real": real_pairs,
+        "train_mixed": mixed_pairs,
+        "train_hard": hard + easy,
+    }, holdout=holdout)
 
-    for name, df in (("train_synth", d_synth), ("train_mixed", d_mixed),
-                     ("train_hard", d_hard)):
+    d_synth = write_csv(synth_pairs,
+                        os.path.join(SYNTH_ROOT, "out", "train_synth.csv"))
+    d_real = write_csv(real_pairs,
+                       os.path.join(SYNTH_ROOT, "out", "train_real.csv"))
+    d_mixed = write_csv(mixed_pairs,
+                        os.path.join(SYNTH_ROOT, "out", "train_mixed.csv"))
+    d_hard = write_csv(hard + easy,
+                       os.path.join(SYNTH_ROOT, "out", "train_hard.csv"))
+
+    for name, df in (("train_synth", d_synth), ("train_real", d_real),
+                     ("train_mixed", d_mixed), ("train_hard", d_hard)):
         vc = df["label"].value_counts().to_dict()
         lens = df["text1"].str.split().str.len()
         print(f"{name}: {len(df)} pairs labels={vc} "
               f"len_p50={int(lens.median())} max={int(lens.max())}")
+
+    rc = check_csvs([os.path.join(SYNTH_ROOT, "out", name)
+                     for name in ("train_synth.csv", "train_real.csv",
+                                  "train_mixed.csv", "train_hard.csv")])
+    if rc:
+        raise SystemExit("written pair CSVs failed the holdout gate")
 
 
 if __name__ == "__main__":

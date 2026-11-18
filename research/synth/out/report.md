@@ -131,15 +131,24 @@ wrappers (`mod synth_m1 {...}`) are what create genuinely distinct rows.
 | file | pairs | label 1 | label -1 | len p50 | len max |
 |---|---|---|---|---|---|
 | train_synth | 2628 | 1314 | 1314 | 50 | 175 |
-| train_mixed | 12456 | 6228 | 6228 | 69 | 1156 |
-| train_hard | 1000 | 0 | 1000 | 52 | 175 |
+| train_real | 2688 | 1344 | 1344 | 70 | 979 |
+| train_mixed | 8580 | 4290 | 4290 | 64 | 1156 |
+| train_hard | 1000 | 0 | 1000 | 51 | 175 |
 
 - `train_synth.csv` — synthetic-only pairs (ablation: *synthetic only*).
-- `train_mixed.csv` — real (KB+GitHub) + synthetic within-API pairs (the
-  theory note's *train on synthetic + real* formula).
+- `train_real.csv` — real (KB + train-split GitHub) within-API pairs (the
+  clean *real-only* ablation; the shipped `vendors/SafeNet/.../train.csv`
+  contains test/valid snippets and must not be used for a held-out result).
+- `train_mixed.csv` — real (KB + train-split GitHub) + synthetic within-API
+  pairs (the theory note's *train on synthetic + real* formula).
 - `train_hard.csv` — cross-API negatives only (same pattern id across APIs =
   adversarial; others = easy). All label -1; combine with a positive file for
   a hard-negative curriculum.
+
+All four files are built from `splits/train.txt` + KB only. Six train-split
+files whose normalized sequence is byte-identical to a valid/test sequence are
+dropped, and `splits/check_train_leakage.py` must print `OK` for every file
+before training. `valid`/`test` are evaluation-only.
 
 ## 3. Pipeline identity vs the shipped baseline
 
@@ -160,33 +169,34 @@ Real-corpus syn parse failures (19) are pre-existing sources;
 they are skipped, not repaired:
 
 ```
-parse "/mnt/debian/home/dev2/Code/safeify2/research/synth/../../vendors/SafeNet/testdata/ptr::deref/1-3.rs": lex error
-parse "/mnt/debian/home/dev2/Code/safeify2/research/synth/../../vendors/SafeNet/testdata/assume_init /3-4.rs": lex error
-parse "/mnt/debian/home/dev2/Code/safeify2/research/synth/../../vendors/SafeNet/testdata/assume_init /1-13.rs": lex error
-parse "/mnt/debian/home/dev2/Code/safeify2/research/synth/../../vendors/SafeNet/testdata/offset_from/5-1.rs": expected identifier
-parse "/mnt/debian/home/dev2/Code/safeify2/research/synth/../../vendors/SafeNet/testdata/ptr::write/4-14.rs": expected `;`
-parse "/mnt/debian/home/dev2/Code/safeify2/research/synth/../../vendors/SafeNet/testdata/ptr::write/4-10.rs": expected `;`
-parse "/mnt/debian/home/dev2/Code/safeify2/research/synth/../../vendors/SafeNet/testdata/ptr::write_bytes/2-1.rs": lex error
-parse "/mnt/debian/home/dev2/Code/safeify2/research/synth/../../vendors/SafeNet/testdata/ptr::write_bytes/5-2.rs": expected one of: `for`, parentheses, `fn`, `unsafe`, `extern`, identifier, `::`, `<`, square brackets, `*`, `&`, `!`, `impl`, `_`, lifetime
-parse "/mnt/debian/home/dev2/Code/safeify2/research/synth/../../vendors/SafeNet/testdata/mem::zeroed/1-2.rs": lex error
-parse "/mnt/debian/home/dev2/Code/safeify2/research/synth/../../vendors/SafeNet/testdata/set_len/1-5.rs": lex error
-parse "/mnt/debian/home/dev2/Code/safeify2/research/synth/../../vendors/SafeNet/testdata/set_len/1-12.rs": lex error
-parse "/mnt/debian/home/dev2/Code/safeify2/research/synth/../../vendors/SafeNet/testdata/set_len/2-9.rs": lex error
-parse "/mnt/debian/home/dev2/Code/safeify2/research/synth/../../vendors/SafeNet/testdata/set_len/3-6.rs": lex error
-parse "/mnt/debian/home/dev2/Code/safeify2/research/synth/../../vendors/SafeNet/testdata/set_len/2-6.rs": lex error
-parse "/mnt/debian/home/dev2/Code/safeify2/research/synth/../../vendors/SafeNet/testdata/ptr::copy_nonoverlapping/3-5.rs": lex error
-parse "/mnt/debian/home/dev2/Code/safeify2/research/synth/../../vendors/SafeNet/testdata/CStr::from_ptr/1-5.rs": expected `;`
-parse "/mnt/debian/home/dev2/Code/safeify2/research/synth/../../vendors/SafeNet/testdata/CStr::from_ptr/1-1 .rs": expected `;`
-parse "/mnt/debian/home/dev2/Code/safeify2/research/synth/../../vendors/SafeNet/testdata/Vec::from_raw_parts/2-1.rs": expected one of: `for`, parentheses, `fn`, `unsafe`, `extern`, identifier, `::`, `<`, square brackets, `*`, `&`, `!`, `impl`, `_`, lifetime
-parse "/mnt/debian/home/dev2/Code/safeify2/research/synth/../../vendors/SafeNet/testdata/Box::from_raw/1-9.rs": lex error
+parse "/home/user/Code/safeify2/research/synth/../../vendors/SafeNet/testdata/Vec::from_raw_parts/2-1.rs": expected one of: `for`, parentheses, `fn`, `unsafe`, `extern`, identifier, `::`, `<`, square brackets, `*`, `&`, `!`, `impl`, `_`, lifetime
+parse "/home/user/Code/safeify2/research/synth/../../vendors/SafeNet/testdata/CStr::from_ptr/1-5.rs": expected `;`
+parse "/home/user/Code/safeify2/research/synth/../../vendors/SafeNet/testdata/CStr::from_ptr/1-1 .rs": expected `;`
+parse "/home/user/Code/safeify2/research/synth/../../vendors/SafeNet/testdata/ptr::write_bytes/2-1.rs": lex error
+parse "/home/user/Code/safeify2/research/synth/../../vendors/SafeNet/testdata/ptr::write_bytes/5-2.rs": expected one of: `for`, parentheses, `fn`, `unsafe`, `extern`, identifier, `::`, `<`, square brackets, `*`, `&`, `!`, `impl`, `_`, lifetime
+parse "/home/user/Code/safeify2/research/synth/../../vendors/SafeNet/testdata/ptr::copy_nonoverlapping/3-5.rs": lex error
+parse "/home/user/Code/safeify2/research/synth/../../vendors/SafeNet/testdata/offset_from/5-1.rs": expected identifier
+parse "/home/user/Code/safeify2/research/synth/../../vendors/SafeNet/testdata/assume_init /3-4.rs": lex error
+parse "/home/user/Code/safeify2/research/synth/../../vendors/SafeNet/testdata/assume_init /1-13.rs": lex error
+parse "/home/user/Code/safeify2/research/synth/../../vendors/SafeNet/testdata/Box::from_raw/1-9.rs": lex error
+parse "/home/user/Code/safeify2/research/synth/../../vendors/SafeNet/testdata/set_len/1-5.rs": lex error
+parse "/home/user/Code/safeify2/research/synth/../../vendors/SafeNet/testdata/set_len/2-6.rs": lex error
+parse "/home/user/Code/safeify2/research/synth/../../vendors/SafeNet/testdata/set_len/1-12.rs": lex error
+parse "/home/user/Code/safeify2/research/synth/../../vendors/SafeNet/testdata/set_len/3-6.rs": lex error
+parse "/home/user/Code/safeify2/research/synth/../../vendors/SafeNet/testdata/set_len/2-9.rs": lex error
+parse "/home/user/Code/safeify2/research/synth/../../vendors/SafeNet/testdata/ptr::deref/1-3.rs": lex error
+parse "/home/user/Code/safeify2/research/synth/../../vendors/SafeNet/testdata/mem::zeroed/1-2.rs": lex error
+parse "/home/user/Code/safeify2/research/synth/../../vendors/SafeNet/testdata/ptr::write/4-14.rs": expected `;`
+parse "/home/user/Code/safeify2/research/synth/../../vendors/SafeNet/testdata/ptr::write/4-10.rs": expected `;`
 ```
 
 ## 4. Evaluation protocol (do NOT benchmark on synthetic)
 
 Per `notes/research/synthetic-data-theory.md`:
 
-1. **Real-only baseline**: train on shipped `train.csv`, test on held-out real
-   snippets (project-wise split of `testdata/`).
+1. **Real-only baseline**: train on `train_real.csv`, test on held-out real
+   snippets (project-wise split of `testdata/`). Do not train on the shipped
+   `vendors/SafeNet/.../train.csv`: it contains 25 test and 23 valid snippets.
 2. **Synthetic-only**: train on `train_synth.csv`, test on the *same* real
    hold-out (diagnostic: synthetic alone must not win).
 3. **Real + synthetic**: train on `train_mixed.csv`, test on the same hold-out.
@@ -194,7 +204,9 @@ Per `notes/research/synthetic-data-theory.md`:
 5. Report per-pattern recall and the FP rate on `verdict=irreplaceable`
    snippets — the FP-reduction target of `notes/research/research-vectors.md`.
 
-Never report a number measured on synthetic data as a result.
+Never report a number measured on synthetic data as a result. The valid pair
+set is 10 pairs (5 pos / 5 neg), so it is a weak selection signal; record that
+limitation explicitly and prefer grouped CV on train for tuning.
 
 ## 5. Provenance
 

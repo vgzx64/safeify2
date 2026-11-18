@@ -34,15 +34,16 @@ The formal Definition of Done, with current status:
 | # | Requirement | Status |
 |---|---|---|
 | 1 | `make_splits.py --check` → `OK` three times | ✅ pass |
-| 2 | `test_detect.py` → `7/7` | ✅ pass |
+| 2 | `test_detect.py` → `7/7` | ✅ pass 2026-11-18 with pinned RA 0.3.3025 (LSP path timing-sensitive; see [report §7](report.md#7-failure-analysis)) |
 | 3 | `eval_protocol.py --retrieval-preds` run on the 97-file test, table in report | ❌ not run; detector emits `pattern_hint`, not retrieval predictions |
-| 4 | `notes/nirm3/report.md` exists | ❌ not started |
+| 4 | `notes/nirm3/report.md` exists | ✅ draft exists 2026-11-18 |
 | 5 | Preliminary paper outline exists | ❌ not started |
 
 Two additional readiness conditions are not in the original DoD:
 
-- **Frozen provenance.** The repository has no commits yet; the current tree
-  cannot be tied to a revision SHA.
+- **Frozen provenance.** `HEAD` is `dad7a34`, but 64 paths are still dirty; the
+  current results cannot be tied to a clean revision SHA until they are
+  committed. See [report.md](report.md).
 - **Safety invariant.** The current code produces `FP-on-N`; the archived v3
   claim of `0/27` is no longer true. See [results.md](results.md).
 
@@ -50,18 +51,20 @@ Two additional readiness conditions are not in the original DoD:
 
 | Phase | Work | Status |
 |---|---|---|
-| 0 | Environment repair, frozen split, LSP test | ✅ done 2026-10-19; commit still pending |
+| 0 | Environment repair, frozen split, LSP test | ✅ done 2026-10-19; RA pin restored 2026-11-18; commit pending |
 | 1 | First detector runs on the frozen test split | ✅ done; numbers superseded |
 | 2 | Failure analysis and verdict-engine fixes | ✅ analysis done; archived v3 numbers stale |
-| 3 | Supervisor report | ❌ not started |
+| 3 | Supervisor report | 🟡 draft written 2026-11-18; needs sign-off |
 | 4 | Preliminary paper | ❌ not started |
 
 ## Readiness blockers
 
 1. **Documented numbers do not reproduce.** The archived v3 note reports
-   accuracy `0.162`, `FP-on-N 0/27`, `recall_N 0.296`; the 2026-10-24 rerun gives
-   `0.171`, `2/27`, and `0.259`. `verdict.py` was modified after the note was
-   written, and the raw report files are gone.
+   accuracy `0.162`, `FP-on-N 0/27`, `recall_N 0.296`; the 2026-10-24 rerun gave
+   `0.171`, `2/27`, and `0.259`. The 2026-11-18 rerun in
+   [report.md](report.md) is now the authoritative result; the archived v1/v2/v3
+   numbers are superseded. `verdict.py` changed after the archived note was
+   written, and the old raw files are gone.
 2. **The safety claim is currently false.** Both LSP and no-LSP modes flag
    `std::ptr::read(&self.entries[i])` in
    [ptr::read/2-1.rs](../../vendors/SafeNet/testdata/ptr::read/2-1.rs) as `Y`
@@ -72,42 +75,51 @@ Two additional readiness conditions are not in the original DoD:
    are not accurate. Either create a fresh holdout or disclose the reuse and do
    selection on `valid`.
 4. **The headline metric is misleading.** 3-way accuracy is below a constant-`Y`
-   predictor; `87.6%` of sinks are abstentions. Report per-class
+   predictor; `86.7%` of sinks are abstentions. Report per-class
    precision/recall/F1, coverage, risk–coverage, and intervals instead.
-5. **The report and paper do not exist**, and `eval_protocol.py
-   --retrieval-preds` has not been run.
-6. **The repository is uncommitted.** `dev` has no commits; all work is
-   untracked.
+5. **The paper does not exist**, and `eval_protocol.py --retrieval-preds` has
+   not been run. The report draft is written but not approved.
+6. **The repository is not clean.** `HEAD` is `dad7a34`, but 64 paths are
+   modified/untracked, so the current run is not tied to a frozen tree.
 
 ## Next actions
 
-1. Freeze the tree: commit on `dev`, pin Python/rust-analyzer versions, keep raw
-   reports under the repo, record the split/result hashes.
+1. Freeze the tree: commit the detector, report, data fixes, and generated
+   artifacts; record the clean revision SHA and the split/result hashes.
 2. Fix the `ptr::read` `owner_shaped` false positive using `valid` only; add a
    regression test for the `ptr::read/2-1.rs` shape.
-3. Run the test split once, cleanly; score per-class metrics and baselines; mark
-   the archived v1/v2/v3 numbers as superseded.
+3. ~~Run the test split once, cleanly~~ — done 2026-11-18; the archived v1/v2/v3
+   numbers are marked superseded. Re-run only after the FP fix, and disclose the
+   reuse.
 4. Decide explicitly whether to carve a fresh holdout or disclose test reuse.
-5. Write `notes/nirm3/report.md`, including the AST/MIR re-scope and the MIR
-   ownership plan; get supervisor sign-off.
+5. Get supervisor sign-off on the report and the AST/MIR re-scope in
+   [report.md § 2](report.md#2-scope-decision-requires-supervisor-approval).
 6. Produce the 4-page paper outline for the 25.11 venue slot.
+7. NIRM 4: choose a BERT checkpoint/tokenizer recipe and a CPU-feasible
+   frozen-BERT path; the pair-training CSVs are now leakage-gated.
 
 ## Commands
 
-Sanity checks before any run:
+Sanity checks before any run (workspace-pinned RA; see
+[detect/README.md](../../research/detect/README.md)):
 
 ```bash
-export PATH="$HOME/.local/bin:$PATH"
+export PATH="$PWD/../.tools/ra-bin:$PATH"      # from research/
+export HOME="$PWD/../.tools/ra-home"
+export RUSTUP_HOME=/home/user/.rustup CARGO_HOME=/home/user/.cargo
 cd research && source ../.venv/bin/activate
-python detect/test_detect.py
-python synth/splits/make_splits.py --check
+python detect/test_detect.py                  # 7/7
+python synth/splits/make_splits.py --check    # OK
+python synth/splits/check_train_leakage.py    # OK
 ```
 
 Full frozen-test and scoring commands are kept in one place:
+[report.md § 9](report.md#9-reproducibility) and
 [results.md § Reproduce](results.md#reproduce).
 
 ## Documentation
 
+- [Supervisor report (current)](report.md)
 - [Results and protocol](results.md)
 - [Archived NIRM 3 notes](../archive/README.md)
 - [Research vectors](../research/research-vectors.md)

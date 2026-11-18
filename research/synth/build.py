@@ -23,6 +23,7 @@ def main():
     run("gen/derive_contexts.py")
     run("verify/check.py")
     run("gen/pairs.py")
+    run("splits/check_train_leakage.py")
     run("verify/report.py")
     print("\nbuild complete -> out/train_*.csv, out/pairs_manifest.jsonl, out/report.md")
 

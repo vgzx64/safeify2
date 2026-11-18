@@ -51,7 +51,7 @@ def collect():
         by_api_kind[k] = by_api_kind.get(k, 0) + 1
 
     csv_rows = []
-    for name in ("train_synth", "train_mixed", "train_hard"):
+    for name in ("train_synth", "train_real", "train_mixed", "train_hard"):
         df = pd.read_csv(os.path.join(SYNTH_ROOT, "out", f"{name}.csv"))
         vc = df["label"].value_counts()
         lens_t = df["text1"].str.split().str.len()
@@ -128,11 +128,19 @@ wrappers (`mod synth_m1 {{...}}`) are what create genuinely distinct rows.
 {table(csv_rows, ["file", "pairs", "label 1", "label -1", "len p50", "len max"])}
 
 - `train_synth.csv` — synthetic-only pairs (ablation: *synthetic only*).
-- `train_mixed.csv` — real (KB+GitHub) + synthetic within-API pairs (the
-  theory note's *train on synthetic + real* formula).
+- `train_real.csv` — real (KB + train-split GitHub) within-API pairs (the
+  clean *real-only* ablation; the shipped `vendors/SafeNet/.../train.csv`
+  contains test/valid snippets and must not be used for a held-out result).
+- `train_mixed.csv` — real (KB + train-split GitHub) + synthetic within-API
+  pairs (the theory note's *train on synthetic + real* formula).
 - `train_hard.csv` — cross-API negatives only (same pattern id across APIs =
   adversarial; others = easy). All label -1; combine with a positive file for
   a hard-negative curriculum.
+
+All four files are built from `splits/train.txt` + KB only. Six train-split
+files whose normalized sequence is byte-identical to a valid/test sequence are
+dropped, and `splits/check_train_leakage.py` must print `OK` for every file
+before training. `valid`/`test` are evaluation-only.
 
 ## 3. Pipeline identity vs the shipped baseline
 
@@ -160,8 +168,9 @@ they are skipped, not repaired:
 
 Per `notes/research/synthetic-data-theory.md`:
 
-1. **Real-only baseline**: train on shipped `train.csv`, test on held-out real
-   snippets (project-wise split of `testdata/`).
+1. **Real-only baseline**: train on `train_real.csv`, test on held-out real
+   snippets (project-wise split of `testdata/`). Do not train on the shipped
+   `vendors/SafeNet/.../train.csv`: it contains 25 test and 23 valid snippets.
 2. **Synthetic-only**: train on `train_synth.csv`, test on the *same* real
    hold-out (diagnostic: synthetic alone must not win).
 3. **Real + synthetic**: train on `train_mixed.csv`, test on the same hold-out.
@@ -169,7 +178,9 @@ Per `notes/research/synthetic-data-theory.md`:
 5. Report per-pattern recall and the FP rate on `verdict=irreplaceable`
    snippets — the FP-reduction target of `notes/research/research-vectors.md`.
 
-Never report a number measured on synthetic data as a result.
+Never report a number measured on synthetic data as a result. The valid pair
+set is 10 pairs (5 pos / 5 neg), so it is a weak selection signal; record that
+limitation explicitly and prefer grouped CV on train for tuning.
 
 ## 5. Provenance
 
