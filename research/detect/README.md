@@ -70,7 +70,12 @@ source ../.venv/bin/activate          # PyYAML only; python >= 3.10
 # when using the workspace-local setup above:
 export PATH="$PWD/.tools/ra-bin:$PATH"
 export HOME="$PWD/.tools/ra-home"
-python detect/test_detect.py          # 7-test suite (LSP e2e included)
+python detect/test_detect.py          # 8-test suite (LSP e2e included)
+python detect/score_frozen.py --report detect/out/report.json \
+    --split test                      # confusion, per-class P/R/F1, risk-coverage,
+                                      # file-clustered 95% CIs
+python detect/export_retrieval.py detect/out/report.json \
+    --out detect/out/retrieval.json   # pattern hints -> eval_protocol --retrieval-preds
 python detect/detect.py ../vendors/SafeNet/testdata/ptr::read \
     --json detect/out/report.json     # LSP mode (default)
 python detect/detect.py file.rs --no-lsp    # syntactic only, no rust-analyzer
@@ -78,8 +83,11 @@ python detect/detect.py dir/ --json -       # JSON report to stdout
 ```
 
 The LSP e2e test is timing-sensitive: one run in the 2026-11-18 audit failed
-transiently and three consecutive reruns passed. If it fails, rerun and record
-both outcomes; see [report.md §7](../../notes/nirm3/report.md#7-failure-analysis).
+transiently and three consecutive reruns passed. The same timeouts affect
+verdicts: six `from_raw`/`CStr` sinks changed between two full test-split runs
+with no code change, and a three-times re-run of the affected files produced
+one flip. Treat a single LSP run as non-deterministic by a few sinks; see
+[report.md §7.6](../../notes/nirm3/report.md#7-failure-analysis).
 
 Example (synth `ptr::read` p1 snippet, LSP mode):
 
@@ -95,7 +103,7 @@ synth/out/snippets/ptr::read/1-synth-1295-unsafe.rs: 1 sink(s), 1 unsafe region(
 | unchecked\* | **Y** high | always (KB: unchecked family is uniformly replaceable) |
 | unchecked arith | **Y** high | use `+`/`checked_*` |
 | transmute | M low | Y when hover shows primitive->primitive types |
-| ptr::read | M low | Y when arg hover is `&T` (KB p1, owner in frame) |
+| ptr::read | M low | Y only for a **local** owner (KB p1/p5: `&s`, `&this.inner`, `&v[i]` with local `v`); a `&`-borrow rooted at a parameter or `self` (`&self.entries[i]`, `&v[0]` with `v: &mut [T]`) is **N** high (KB p2); `_param_names()` supplies the parameter list, `&a as *const _` casts stay raw evidence |
 | ptr::deref / as_ref | M low | Y when signature has owner/ref (KB p1) |
 | from_raw\* / from_ptr | M low | N when arg hover is `*mut/*const` (KB p1, owner outside) |
 | set_len / copy / zeroed / offset_from | M low | guarded M variants; encapsulate hint |
@@ -133,6 +141,9 @@ reason, safe_alternative, encapsulate, pattern_hint, kb_gold, rules}`
 - One rust-analyzer process per file (~2.6–9.4 s each): fine for targeted
   files, slow for whole-repo sweeps (batching = reuse one server with multiple
   didOpens, future work).
+- Verdicts are not fully reproducible: `ra_client` timeouts (15 s request, 45 s
+  readiness) can drop hover evidence to `{unknown}` and turn an `N` into `M`.
+  Evidence caching or a loud readiness failure is the planned fix.
 - Never fabricates metrics; no evaluation numbers are produced here — scoring
   stays in `research/synth/splits/eval_protocol.py` and
   `research/detect/score_frozen.py` against the frozen splits.

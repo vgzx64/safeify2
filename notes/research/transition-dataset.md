@@ -38,8 +38,9 @@ The current evidence base cannot support either task as-is:
 - 36/80 extracted pair texts have no safe snippet; 2/80 "safe" snippets still
   contain `unsafe`.
 - SafeNet's 97-file test split has already been reused across detector versions.
-- The current detector abstains on ~86.7% of sinks (LSP, 2026-11-18) and has
-  `FP-on-N 2/27`; it cannot be used as an automatic labeler.
+- The current detector abstains on ~83.8% of sinks (LSP, 2026-11-18 post-fix)
+  and has `FP-on-N 0/27` with `recall_N 0.37`; it cannot be used as an automatic
+  labeler.
 
 The dataset therefore needs **block-level alignment, explicit negatives, and a
 fresh holdout** before any model is trained.

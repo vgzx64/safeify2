@@ -1,6 +1,7 @@
 # NIRM 3 (НИРМ 3) — status and plan
 
-> **Status: active · Updated: 2026-11-18 · Readiness: not ready for sign-off**
+> **Status: active · Updated: 2026-11-18 (post-fix) · Readiness: report ready
+> pending sign-off; paper not started**
 >
 > Work window: `01.09.2026 – 08.11.2026`
 > Report to supervisor: `09.11.2026 – 22.11.2026`
@@ -34,18 +35,20 @@ The formal Definition of Done, with current status:
 | # | Requirement | Status |
 |---|---|---|
 | 1 | `make_splits.py --check` → `OK` three times | ✅ pass |
-| 2 | `test_detect.py` → `7/7` | ✅ pass 2026-11-18 with pinned RA 0.3.3025 (LSP path timing-sensitive; see [report §7](report.md#7-failure-analysis)) |
-| 3 | `eval_protocol.py --retrieval-preds` run on the 97-file test, table in report | ❌ not run; detector emits `pattern_hint`, not retrieval predictions |
-| 4 | `notes/nirm3/report.md` exists | ✅ draft exists 2026-11-18 |
+| 2 | `test_detect.py` → `7/7` | ✅ pass **8/8** 2026-11-18 with pinned RA 0.3.3025; the extra test pins the `ptr::read` p2 rule (LSP path timing-sensitive; see [report §7](report.md#7-failure-analysis)) |
+| 3 | `eval_protocol.py --retrieval-preds` run on the 97-file test, table in report | ✅ run 2026-11-18 via exported `pattern_hint` (top-1 0.0928); substitution, not a retrieval model — see [report §5.3](report.md#53-dod-3-retrieval-on-the-frozen-test-split) |
+| 4 | `notes/nirm3/report.md` exists | ✅ post-fix draft 2026-11-18 |
 | 5 | Preliminary paper outline exists | ❌ not started |
 
 Two additional readiness conditions are not in the original DoD:
 
-- **Frozen provenance.** The NIRM 3/detector/data changes are committed at
-  `303e12d`; later documentation commits follow. Unrelated pre-existing
-  `research/transitions/` work remains dirty. See [report.md](report.md).
-- **Safety invariant.** The current code produces `FP-on-N`; the archived v3
-  claim of `0/27` is no longer true. See [results.md](results.md).
+- **Frozen provenance.** The detector fix and evaluation artifacts are
+  committed at `00f83e9`; the earlier data/report snapshot is `303e12d`; the
+  unrelated transitions work is committed at `66e8dcf`. The tree is clean.
+  See [report.md](report.md).
+- **Safety invariant.** `FP-on-N` is now `0/27` in both modes on this run, but
+  the claim is scoped to the frozen split, run and pinned toolchain — not to
+  unseen code. See [results.md](results.md) and [report §8](report.md#8-safety-claim).
 
 ## Phase status
 
@@ -54,49 +57,53 @@ Two additional readiness conditions are not in the original DoD:
 | 0 | Environment repair, frozen split, LSP test | ✅ done 2026-10-19; RA pin restored 2026-11-18; committed `303e12d` |
 | 1 | First detector runs on the frozen test split | ✅ done; numbers superseded |
 | 2 | Failure analysis and verdict-engine fixes | ✅ analysis done; archived v3 numbers stale |
-| 3 | Supervisor report | 🟡 draft written 2026-11-18; needs sign-off |
-| 4 | Preliminary paper | ❌ not started |
+| 3 | Supervisor report | 🟡 post-fix draft 2026-11-18; needs sign-off |
+| 4 | Preliminary paper | ❌ not started (outline due for the 25.11 slot) |
 
 ## Readiness blockers
 
-1. **Documented numbers do not reproduce.** The archived v3 note reports
-   accuracy `0.162`, `FP-on-N 0/27`, `recall_N 0.296`; the 2026-10-24 rerun gave
-   `0.171`, `2/27`, and `0.259`. The 2026-11-18 rerun in
-   [report.md](report.md) is now the authoritative result; the archived v1/v2/v3
-   numbers are superseded. `verdict.py` changed after the archived note was
-   written, and the old raw files are gone.
-2. **The safety claim is currently false.** Both LSP and no-LSP modes flag
-   `std::ptr::read(&self.entries[i])` in
-   [ptr::read/2-1.rs](../../vendors/SafeNet/testdata/ptr::read/2-1.rs) as `Y`
-   although gold is p2 `N`. This is two sink-level false positives in one file
-   (1/23 N files).
-3. **The test split has been reused.** v1 → v2 → v3 bug fixes were chosen after
+1. **The test split has been reused.** v1 → v2 → v3 bug fixes were chosen after
    inspecting test outcomes, so “report test once” and “nothing tuned on test”
    are not accurate. Either create a fresh holdout or disclose the reuse and do
-   selection on `valid`.
-4. **The headline metric is misleading.** 3-way accuracy is below a constant-`Y`
-   predictor; `86.7%` of sinks are abstentions. Report per-class
-   precision/recall/F1, coverage, risk–coverage, and intervals instead.
-5. **The paper does not exist**, and `eval_protocol.py --retrieval-preds` has
-   not been run. The report draft is written but not approved.
-6. **The repository is not fully clean.** Unrelated pre-existing
-   `research/transitions/` work remains dirty; the NIRM 3/detector/data files are
-   committed at `303e12d`.
+   selection on `valid`. The report discloses it; the disclosure is not yet
+   accepted.
+2. **The headline metric is misleading.** 3-way accuracy (`0.2000`) is below a
+   constant-`Y` predictor (`0.657`) and `83.81%` of sinks are abstentions. The
+   per-class/coverage/risk–coverage/intervals are now in
+   [results.md](results.md); do not headline accuracy.
+3. **Verdicts move between runs.** Six `from_raw`/`CStr` sinks changed between
+   the `303e12d` and `00f83e9` runs with no code change; the cause is
+   `rust-analyzer` hover/readiness timeouts, and the effect is confined to the
+   raw-pointer-evidence family (±6 sinks). See [report §7.6](report.md#7-failure-analysis).
+   Evidence caching, or failing loudly on a readiness timeout, is the fix.
+4. **The paper does not exist.** The outline is due for the 25.11 venue slot.
+5. **DoD #3 is a substitution.** `--retrieval-preds` is fed the detector's
+   `pattern_hint`, not a retrieval model; the supervisor must accept that or
+   move retrieval to NIRM 4.
+6. **The AST/MIR scope is unapproved.** The re-scope is documented in
+   [report.md § 2](report.md#2-scope-decision-requires-supervisor-approval) but
+   not accepted, and MIR still has no owning milestone.
+
+~~The `ptr::read` `owner_shaped` false positive~~ is fixed at `00f83e9`
+(`FP-on-N` 2/27 → 0/27 in both modes, regression test added).
 
 ## Next actions
 
-1. Freeze the tree: commit the detector, report, data fixes, and generated
-   artifacts; record the clean revision SHA and the split/result hashes.
-2. Fix the `ptr::read` `owner_shaped` false positive using `valid` only; add a
-   regression test for the `ptr::read/2-1.rs` shape.
-3. ~~Run the test split once, cleanly~~ — done 2026-11-18; the archived v1/v2/v3
-   numbers are marked superseded. Re-run only after the FP fix, and disclose the
-   reuse.
-4. Decide explicitly whether to carve a fresh holdout or disclose test reuse.
-5. Get supervisor sign-off on the report and the AST/MIR re-scope in
-   [report.md § 2](report.md#2-scope-decision-requires-supervisor-approval).
-6. Produce the 4-page paper outline for the 25.11 venue slot.
-7. NIRM 4: choose a BERT checkpoint/tokenizer recipe and execute the
+1. ~~Freeze the tree and record the revision SHA~~ — done: detector/artifacts at
+   `00f83e9`, data snapshot at `303e12d`, transitions at `66e8dcf`; tree clean.
+2. ~~Fix the `ptr::read` `owner_shaped` false positive using `valid` only, with a
+   regression test~~ — done 2026-11-18.
+3. ~~Re-run the frozen test split after the fix and score it~~ — done
+   2026-11-18; numbers in [report.md](report.md) and [results.md](results.md).
+4. ~~Run DoD #3 (`--retrieval-preds`)~~ — done via
+   `detect/export_retrieval.py`; table in [report §5.3](report.md#53-dod-3-retrieval-on-the-frozen-test-split).
+5. Decide explicitly whether to carve a fresh holdout or accept the disclosed
+   test reuse.
+6. Get supervisor sign-off on the report, the AST/MIR re-scope, and the DoD #3
+   substitution; the request is drafted in
+   [signoff-request.md](signoff-request.md).
+7. Produce the 4-page paper outline for the 25.11 venue slot.
+8. NIRM 4: choose a BERT checkpoint/tokenizer recipe and execute the
    frozen-BERT cache + pair-head baseline; see
    [bert-pair-model.md](../research/bert-pair-model.md). The pair-training CSVs
    are leakage-gated.
@@ -111,7 +118,7 @@ export PATH="$PWD/../.tools/ra-bin:$PATH"      # from research/
 export HOME="$PWD/../.tools/ra-home"
 export RUSTUP_HOME=/home/user/.rustup CARGO_HOME=/home/user/.cargo
 cd research && source ../.venv/bin/activate
-python detect/test_detect.py                  # 7/7
+python detect/test_detect.py                  # 8/8
 python synth/splits/make_splits.py --check    # OK
 python synth/splits/check_train_leakage.py    # OK
 ```

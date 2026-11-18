@@ -33,12 +33,14 @@ portable across checkouts.
 
 ## Current status
 
-**NIRM 3 has a working detector and a report draft, but is not ready for
+**NIRM 3 has a working detector and a post-fix report draft awaiting
 supervisor sign-off.** The 2026-11-18 frozen rerun is the current baseline
-(7/7 suite with a pinned rust-analyzer; LSP accuracy 0.1714; `FP-on-N` 2/27;
-14 decisive claims, 9 correct). Remaining blockers are the `ptr::read` false
-positive, reuse of the test split, approval of the AST/MIR re-scope, and the
-missing publication. See [notes/nirm3/report.md](notes/nirm3/report.md).
+(8/8 suite with a pinned rust-analyzer; LSP accuracy 0.2000; `FP-on-N` 0/27;
+17 decisive claims, 12 correct; 83.81% abstentions). Remaining blockers are
+the disclosed reuse of the test split, acceptance of the DoD #3 substitution,
+approval of the AST/MIR re-scope, rust-analyzer verdict variance, and the
+missing publication. See [notes/nirm3/report.md](notes/nirm3/report.md) and
+[the sign-off request](notes/nirm3/signoff-request.md).
 
 The BERT/SafeNet-style pair classifier is **NIRM 4**, not NIRM 3, and no model
 has been trained. Its training data was rebuilt on 2026-11-18 so valid/test are

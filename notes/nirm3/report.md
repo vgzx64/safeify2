@@ -4,13 +4,13 @@
 >
 > Work window: `01.09.2026 – 08.11.2026`
 > Report window: `09.11.2026 – 22.11.2026`
-> Code under test: `303e12d` (NIRM 3/detector/data changes committed);
-> later documentation commits follow. Unrelated pre-existing
-> `research/transitions/` work remains dirty. Frozen split hashes are in
+> Code under test: `00f83e9` (detector fix + evaluation artifacts); the
+> earlier data/report snapshot is `303e12d`. Unrelated `research/transitions/`
+> work is committed separately at `66e8dcf`. Frozen split hashes are in
 > `research/synth/splits/eval_manifest.json`.
 >
 > This report supersedes the archived v1/v2/v3 notes. It reports the
-> 2026-11-18 rerun, not the non-reproducible v3 table.
+> 2026-11-18 rerun after the `ptr::read` fix, not the non-reproducible v3 table.
 
 ## Summary
 
@@ -22,18 +22,19 @@ sinks from 68 `(api, pattern)` cells.
 
 The current LSP run is:
 
-- accuracy **0.1714** (18/105);
-- `FP-on-N` **2/27** — gold-irreplaceable sinks predicted `Y` (the
-  dangerous direction);
-- `recall_N` **0.2593 (7/27)**; `Y` precision **0.5000** (4 Y predictions);
-- **14** decisive claims, **9** with the right
-  verdict and **7** with the right pattern;
-- abstention rate **0.8667 (86.67%)**.
+- accuracy **0.2000** (21/105);
+- `FP-on-N` **0/27** — no gold-irreplaceable sink is predicted `Y` on this
+  run (it was 2/27 before the fix; see §7.5);
+- `recall_N` **0.3704 (10/27)**; `Y` precision **1.0000** (2 Y predictions);
+- **17** decisive claims (coverage 0.1619), **12** with the right verdict and
+  **10** with the right pattern; risk among claims **0.2941**;
+- abstention rate **0.8381 (83.81%)**.
 
-Two sink-level false positives remain, both in
-`vendors/SafeNet/testdata/ptr::read/2-1.rs`, so the earlier “no dangerous false
-positives” claim is **not true**. The test split has also been reused across
-bug-fix iterations. These are reportable limitations, not footnotes.
+Two limitations remain reportable: the test split has been reused across
+bug-fix iterations, and `rust-analyzer` evidence is timing-sensitive, so a
+handful of verdicts move between runs (§7.6). DoD #3 is now scored by exporting
+detector pattern hints as retrieval predictions; that number is a lower bound,
+not a retrieval model (§5.3).
 
 ## 1. Formal task
 
@@ -85,9 +86,17 @@ Do not present the re-scope as settled until it is accepted in writing.
 Outputs are per-sink `Y/M/N` verdicts, not patches. `safe_alternative` is a
 suggestion string. `--no-lsp` runs the same engine without hover evidence.
 
-The suite is **7/7** on 2026-11-18. The LSP end-to-end test was made
-deterministic (it previously used `next(glob(...))`, whose filesystem order
-changed between runs and selected a pattern-2 snippet that correctly abstains).
+The suite is **8/8** on 2026-11-18 (7/7 before the `ptr::read` regression test
+was added). The LSP end-to-end test was made deterministic (it previously used
+`next(glob(...))`, whose filesystem order changed between runs and selected a
+pattern-2 snippet that correctly abstains).
+
+`verdict.py` now separates a **local owner** (KB p1/p5 `Y` shapes:
+`let this = ManuallyDrop::new(self); ptr::read(&this.inner)`) from a
+**`&`-borrow rooted at a parameter or `self`** (KB p2 `N` shape:
+`ptr::read(&self.entries[i])`). `_param_names()` recovers parameter names from
+the syntactic signature; a `&a as *const _` cast is still treated as raw-pointer
+evidence and is not turned into `N`.
 
 ## 4. Data and evaluation protocol
 
@@ -111,97 +120,128 @@ changed between runs and selected a pattern-2 snippet that correctly abstains).
   run is exploratory until a fresh holdout is carved or the reuse is formally
   disclosed.
 
-## 5. Current results (2026-11-18)
+## 5. Current results (2026-11-18, post-fix)
 
-### LSP mode
+Run `00f83e9` on the frozen test split (97 files, 136 detected sinks, 105
+evaluated). Relative to the previous report (`303e12d`) two `ptr::read` sink
+verdicts changed because of the fix; six `from_raw`/`CStr` verdicts also differ
+between the two reports, but those are `rust-analyzer` run variance, not code
+changes (quantified in §7.6).
+
+### 5.1 LSP mode
 
 | Metric | Value |
 |---|---:|
-| Accuracy | 0.1714 (18/105) |
-| `FP-on-N` (gold N -> pred Y) | **2/27** |
-| `recall_N` | 0.2593 (7/27) |
-| Y predictions / precision | 4 / 0.5000 |
-| Decisive claims | 14/105 |
-| Pattern claims / correct | 14/105, 7 correct (0.5000) |
-| Abstention (`M`) rate | 0.8667 (86.67%) |
+| Accuracy | 0.2000 (21/105) |
+| `FP-on-N` (gold N -> pred Y) | **0/27** |
+| `recall_N` | 0.3704 (10/27) |
+| Y predictions / precision | 2 / 1.0000 |
+| Decisive claims (coverage) | 17/105 (0.1619) |
+| Errors among claims (risk) | 5 / 0.2941 |
+| Pattern claims / correct | 17/105, 10 correct (0.5882) |
+| Abstention (`M`) rate | 0.8381 (83.81%) |
 
 Per class:
 
 | Gold | Support | Precision | Recall | F1 |
 |---|---:|---:|---:|---:|
-| Y | 69 | 0.5000 | 0.0290 | 0.0548 |
-| M | 9 | 0.0989 | 1.0000 | 0.1800 |
-| N | 27 | 0.7000 | 0.2593 | 0.3784 |
+| Y | 69 | 1.0000 | 0.0290 | 0.0563 |
+| M | 9 | 0.1023 | 1.0000 | 0.1856 |
+| N | 27 | 0.6667 | 0.3704 | 0.4762 |
 
-Macro-F1: **0.2044**.
+Macro-F1 **0.2394**.
 
-### No-LSP mode
+File-clustered bootstrap 95% intervals (2,000 resamples of *files*, not sinks):
+accuracy **[0.1238, 0.2925]**, `recall_N` **[0.1724, 0.6000]**, macro-F1
+**[0.1583, 0.3923]**. `FP-on-N` is 0/27 in every resample, which is a property
+of this run, not a guarantee on unseen code (§8).
+
+**Risk–coverage.** All 17 claims are emitted with `high` confidence, so the
+curve degenerates to one operating point: coverage 0.1619, risk 0.2941. Split
+by predicted class, the two `Y` claims are both correct (risk 0.0000) and the
+15 `N` claims carry all five errors (risk 0.3333). Confidence is binary, so
+there is no real coverage/risk knob yet; graded scores are NIRM 4 work.
+
+### 5.2 No-LSP mode
 
 | Metric | Value |
 |---|---:|
-| Accuracy | 0.1048 (11/105) |
-| `FP-on-N` | **2/27** |
-| `recall_N` | 0.0000 |
-| Y predictions / precision | 4 / 0.5000 |
-| Decisive claims | 4/105 |
-| Pattern claims / correct | 4/105, 1 correct (0.2500) |
+| Accuracy | 0.1238 (13/105) |
+| `FP-on-N` | **0/27** |
+| `recall_N` | 0.0741 (2/27) |
+| Y predictions / precision | 2 / 1.0000 |
+| Decisive claims (coverage) | 4/105 (0.0381) |
+| Errors among claims (risk) | 0 / 0.0000 |
+| Pattern claims / correct | 4/105, 3 correct (0.7500) |
+| Abstention (`M`) rate | 0.9619 (96.19%) |
 
-### Baselines on the same 105 sinks
+Macro-F1 **0.1193**; 95% intervals: accuracy **[0.0588, 0.2020]**,
+`recall_N` **[0.0000, 0.2400]**, macro-F1 **[0.0700, 0.2413]**. No-LSP makes
+only four claims, so its zero risk is close to vacuous.
+
+### 5.3 DoD #3: retrieval on the frozen test split
+
+`eval_protocol.py --retrieval-preds` expects `{id, pattern_id}` per test file.
+The detector has no retrieval model, so `detect/export_retrieval.py` exports the
+**modal sink `pattern_hint`** per file (files without a hint get `0`, counted as
+a miss). This is a documented substitution and a **lower bound**, not a
+retrieval result.
+
+| Mode | Queries | Files with a claim | Top-1 pattern accuracy | Macro per-API recall | Recall on `N` queries |
+|---|---:|---:|---:|---:|---:|
+| LSP | 97 | 22 (0.227) | 0.0928 | 0.0988 | 5/23 = 0.2174 |
+| No-LSP | 97 | 7 (0.072) | 0.0206 | 0.0159 | 1/23 = 0.0435 |
+
+Note the denominator change: retrieval is scored per **file/snippet** (23
+`verdict=N` snippets), while §5.1 counts **sinks** (27 `verdict=N` sinks).
+
+### 5.4 Baselines on the same 105 sinks
 
 Constant-`Y` gives accuracy **0.657** and macro-F1 **0.265**, but 27
 `FP-on-N` — it is not a usable detector. Constant-`M` gives accuracy **0.086**.
-The headline accuracy is therefore not evidence of useful classification; the
-operative result is selective: 14 claims, 9
-correct verdicts, 7 correct patterns.
+The headline accuracy (0.2000) is still below the constant-`Y` baseline, so it
+is not evidence of usefulness; the operative result is the selective one: 17
+claims, 12 correct verdicts, 10 correct patterns, 0 dangerous-direction errors.
 
-### The false positives
+### 5.5 Pattern hints
 
-Both current `FP-on-N` cases are the same file and expression:
+17 hints are claimed, 10 correct (0.5882). The seven wrong hints are all p1
+over-claims: `Box::from_raw/3-1` (p1 vs p3), `Box::from_raw/4-1` (p1 vs p4),
+`CString::from_raw/3-4` (p1 vs p3), `CString::from_raw/4-4` (p1 vs p4),
+`Vec::from_raw_parts/3-2` (p1 vs p3), `Vec::from_raw_parts/4-3` (p1 vs p4), and
+`ptr::read/5-3` (p1 vs p5). Pattern classification beyond p1 needs dataflow;
+NIRM 3 does not attempt it.
 
-```rust
-// vendors/SafeNet/testdata/ptr::read/2-1.rs, lines 26 and 52
-self.entries[j] = std::ptr::read(&self.entries[i]);
-```
-
-Gold is `ptr::read` **p2 = N**. The `owner_shaped` branch in
-`research/detect/verdict.py` treats the dotted/indexed argument as an in-frame
-owner and emits `Y/high` without concrete type evidence. This affects both LSP
-and no-LSP modes and directly contradicts the earlier safety claim. At file
-level it is 1/23 N files; at sink level it is 2/27.
-
-A separate p1-only assumption in the reconstruction (`from_raw*`) rule produces
-false `N` in LSP mode on three gold-Y files (`Box::from_raw/4-1.rs`,
-`Rc::from_raw/1-1.rs`, `Vec::from_raw_parts/4-3.rs`): it assumes p1 whenever it
-sees a raw pointer. These are conservative in direction but still wrong verdicts.
-
-### Pattern hints
-
-Only 14 pattern hints are claimed (7 correct, 0.5000), and several are p1-biased:
-`Box::from_raw/3-1` (p1 vs p3), `Box::from_raw/4-1` (p1 vs p4),
-`Vec::from_raw_parts/3-2` (p1 vs p3), `Vec::from_raw_parts/4-3` (p1 vs p4),
-`ptr::read/2-1` (p1 vs p2, twice), and `ptr::read/5-3` (p1 vs p5). Pattern
-classification beyond p1 needs dataflow; NIRM 3 does not attempt it.
+Five claims are `N` where gold is `Y` (conservative direction, not dangerous):
+`Box::from_raw/4-1`, `CString::from_raw/4-4`, `Rc::from_raw/1-1`,
+`Rc::from_raw/1-3`, `Vec::from_raw_parts/4-3`. All come from the p1-only
+assumption in the reconstruction (`from_raw*`) rule, which reads any raw
+pointer argument as pattern 1.
 
 ## 6. Why the headline accuracy is misleading
 
-- 3-way accuracy is below the constant-`Y` baseline (0.657), so accuracy alone
-  cannot support a usefulness claim.
-- 0.8667 (86.67%) of sinks are `M` abstentions; the detector is silent on most
+- 3-way accuracy (0.2000) is still below the constant-`Y` baseline (0.657), so
+  accuracy alone cannot support a usefulness claim.
+- 0.8381 (83.81%) of sinks are `M` abstentions; the detector is silent on most
   of the corpus.
-- The useful quantity is the **selective** one: decisive claims, their
-  precision, and the dangerous-direction FP rate.
-- There are no confidence intervals or clustered bootstrap estimates. With 105
-  sinks and 14 decisive claims, the uncertainty is large.
+- The useful quantity is the **selective** one: 17 decisive claims, 12 correct,
+  precision 0.7059 among claims, and 0 dangerous-direction errors.
+- File-clustered intervals are now reported (§5.1); with 105 sinks and 17
+  claims the uncertainty is wide (accuracy CI spans 0.12–0.29), and resampling
+  *sinks* would understate it because 105 sinks come from 97 files.
 - The test split has been reused, so even these exploratory numbers are
-  optimistic relative to a truly unseen corpus.
+  optimistic relative to a truly unseen corpus; they are not a held-out result.
+- `rust-analyzer` verdict noise adds a run-to-run component that the statistical
+  interval does not capture (§7.6).
 
 ## 7. Failure analysis
 
-1. **Gold-Y remains mostly `M`:** 65/69 gold-Y sinks are predicted `M`. The
-   classifier is p1-shaped; patterns needing inter-procedural dataflow are
-   deliberately left for NIRM 4. This is a design limitation, not a bug.
-2. **Gold-N recall is low:** 18/27 gold-N sinks remain `M`; the detector is
-   conservative. The correct N claims concentrate in `CStr::from_ptr`,
+1. **Gold-Y remains mostly `M`:** 62/69 gold-Y sinks are predicted `M` and 5
+   are `N`. The classifier is p1-shaped; patterns needing inter-procedural
+   dataflow are deliberately left for NIRM 4. This is a design limitation, not
+   a bug.
+2. **Gold-N recall is low:** 17/27 gold-N sinks remain `M`; the detector is
+   conservative. The 10 correct N claims concentrate in `CStr::from_ptr`,
    `CString::from_raw`, `Rc::from_raw`, and `Vec::from_raw_parts`, where usable
    pointer evidence exists at the reconstruction site.
 3. **Evidence quality is compilability-bound:** many SafeNet testdata files are
@@ -210,27 +250,48 @@ classification beyond p1 needs dataflow; NIRM 3 does not attempt it.
 4. **Corpus defects:** 20 excluded files, 14 label-conflict duplicate groups,
    6 cross-API identical sequences, 31 `api_mismatch` sinks. No sensitivity
    analysis has been done for the excluded sinks.
-5. **No intervals:** no confidence intervals or clustered bootstrap estimates.
-6. **The LSP e2e test was order-dependent** until 2026-11-18; the fix selects
-   sorted pattern-1 snippets. This does not change detector behavior, but it
-   explains why the earlier “7/7” claim could not be trusted as pinned. One
-   further run in the same session failed transiently without a reproducible
-   snippet-level difference; three consecutive reruns and six snippet-level
-   repetitions passed. Treat the RA path as timing-sensitive and rerun before
-   quoting `7/7`.
+5. **The `ptr::read/2-1.rs` false positive is fixed.** `owner_shaped` used to
+   claim `Y` for `std::ptr::read(&self.entries[i])` because the indexed
+   expression looked in-frame; the borrow is rooted at `&mut self`, so the
+   owner is outside the frame and KB p2 applies (`N`). The rule now requires a
+   *local* owner binding, so the p5 shapes `ptr::read(&v[i])`,
+   `ptr::read(&this.inner)` and `ptr::read(&me.buf)` still return `Y`. Covered
+   by `test_ptr_read_borrowed_param_n`; `FP-on-N` went 2/27 -> 0/27 in both
+   modes.
+6. **Verdicts are not fully reproducible run-to-run.** The previous report
+   (`303e12d`) and this one differ on six `from_raw`/`CStr` sinks that the fix
+   does not touch: `CStr::from_ptr/1-12` (`N` -> `M`),
+   `CString::from_raw/3-4`, `CString::from_raw/4-4`, `Rc::from_raw/1-3`,
+   `Vec::from_raw_parts/1-3`, `ptr::deref/4-8` (`M` -> `N`). Re-running three
+   of those files three times produced one flip (`ptr::deref/4-8`) with no code
+   change; the mechanism is `ra_client` hover/diagnostics timeouts (15 s
+   request, 45 s readiness) leaving `{unknown}` evidence on a slow start. The
+   effect is confined to the raw-pointer-evidence family and is bounded by
+   ±6 sinks here, but it means a single run is not a stable measurement.
+   Recommended follow-up: cache hover evidence per file, or fail the run when
+   readiness times out instead of silently degrading to `M`.
+7. **The LSP e2e test was order-dependent** until 2026-11-18; the fix selects
+   sorted pattern-1 snippets. One further run in the same session failed
+   transiently without a reproducible snippet-level difference; three
+   consecutive reruns and six snippet-level repetitions passed. Treat the RA
+   path as timing-sensitive and rerun before quoting `8/8`.
 
 ## 8. Safety claim
 
-The earlier statement “no dangerous false positives” is **false on the current
-tree**. Two sink-level `FP-on-N` cases remain, in both LSP and no-LSP modes.
-The correct claim is:
+After the fix, both LSP and no-LSP modes have **`FP-on-N` 0/27** on this frozen
+run, so the dangerous-direction claim is now true *for this run*. It is still
+not a safety oracle:
 
-> The detector abstains on most sinks, and its decisive `N`/`M` claims are
-> conservative, but it can emit `Y` on irreplaceable `ptr::read` field/index
-> arguments. It is not a safety oracle.
+> On the frozen test split the detector abstains on 83.81% of sinks and makes
+> 17 decisive claims, none of them a `Y` on a gold-irreplaceable sink. Five
+> claims are `N` where gold is `Y` (over-conservative, not dangerous), and
+> `rust-analyzer` timing can move a few verdicts between runs.
 
-Publishing a “zero FP” claim without fixing `owner_shaped` would be
-misrepresentation.
+A claim of the form "no dangerous false positives" must therefore be scoped to
+the split, the run and the pinned toolchain, and must be repeated after any
+verdict-engine change. It must not be presented as a property of the analyzer
+on unseen code; recall is 0.3704, so most irreplaceable sinks are never
+flagged.
 
 ## 9. Reproducibility
 
@@ -252,7 +313,7 @@ export PATH="$PWD/../.tools/ra-bin:$PATH"
 export HOME="$PWD/../.tools/ra-home"
 export RUSTUP_HOME=/home/user/.rustup CARGO_HOME=/home/user/.cargo
 source ../.venv/bin/activate
-python detect/test_detect.py                 # 7/7
+python detect/test_detect.py                 # 8/8
 python synth/splits/make_splits.py --check   # OK, three times
 python synth/splits/check_train_leakage.py   # OK (NIRM 4 data gate)
 
@@ -262,32 +323,49 @@ sed "s|^|../vendors/SafeNet/testdata/|" "$T" | tr '\n' '\0' \
 sed "s|^|../vendors/SafeNet/testdata/|" "$T" | tr '\n' '\0' \
   | xargs -0 python -u detect/detect.py --no-lsp --json detect/out/nirm3_eval_nolsp.json
 
+# per-mode scores (also written by the combined score below)
+python detect/score_frozen.py --report detect/out/nirm3_eval_lsp.json \
+  | tee detect/out/nirm3_eval_lsp_score.txt
+python detect/score_frozen.py --report detect/out/nirm3_eval_nolsp.json \
+  | tee detect/out/nirm3_eval_nolsp_score.txt
 python detect/score_frozen.py --report detect/out/nirm3_eval_lsp.json \
   --report2 detect/out/nirm3_eval_nolsp.json \
   | tee detect/out/nirm3_eval_score.txt
+
+# DoD #3: detector pattern hints as retrieval predictions (lower bound)
+python detect/export_retrieval.py detect/out/nirm3_eval_lsp.json \
+  --out detect/out/nirm3_retrieval_lsp.json
+python synth/splits/eval_protocol.py --retrieval-preds \
+  detect/out/nirm3_retrieval_lsp.json | tee detect/out/nirm3_retrieval_score.txt
 ```
 
 Artifacts: [LSP raw JSON](../../research/detect/out/nirm3_eval_lsp.json),
 [no-LSP raw JSON](../../research/detect/out/nirm3_eval_nolsp.json),
+[combined score](../../research/detect/out/nirm3_eval_score.txt),
 [LSP score](../../research/detect/out/nirm3_eval_lsp_score.txt),
-[no-LSP score](../../research/detect/out/nirm3_eval_nolsp_score.txt).
+[no-LSP score](../../research/detect/out/nirm3_eval_nolsp_score.txt),
+[LSP retrieval preds](../../research/detect/out/nirm3_retrieval_lsp.json),
+[retrieval score](../../research/detect/out/nirm3_retrieval_score.txt).
 
-The NIRM 3/detector/data changes are committed at `303e12d`; later
-documentation commits follow. Unrelated pre-existing `research/transitions/`
-work remains dirty. The frozen split is stable; re-run if those unrelated files
-are meant to be part of the result.
+The detector fix and these artifacts are committed at `00f83e9`; the earlier
+data/report snapshot is `303e12d`. `research/transitions/` work is committed
+separately at `66e8dcf` and is not part of this result. The frozen split is
+stable; re-run if the pinned rust-analyzer or the split changes.
 
 ## 10. Limitations
 
 - No AST traversal and no MIR/borrowck; hover/type evidence only.
 - No inter-procedural dataflow; pattern classification beyond p1 is not
   attempted.
-- `M/low` is the default, so the tool abstains on most sinks.
+- `M/low` is the default, so the tool abstains on most sinks (83.81%).
 - LSP evidence depends on the file compiling in a detectable crate context; one
   rust-analyzer process per file (~10 s/file here), no repo-scale batching.
+- `rust-analyzer` timeouts make a few verdicts run-dependent (§7.6); a single
+  run is not a stable measurement.
 - `safe_alternative` is a suggestion string, not an automated patch.
 - MIR/borrowck is not implemented and currently has no owning milestone.
-- Results are verdict-level, not pattern-retrieval results.
+- Results are verdict-level; retrieval is a `pattern_hint` export, not a
+  retrieval model.
 - Test reuse and 3 both-N pairs limit any safety-FP conclusion.
 
 ## 11. NIRM 4 handoff: BERT pair-model data readiness
@@ -325,21 +403,32 @@ decisions, and gates. No model has been trained.
 
 ## 12. Conclusion and next actions
 
-NIRM 3 has a working detector, a frozen protocol, a passing suite, and an
-honest preliminary evaluation. It does **not** yet support a safety claim, and
-the AST/MIR scope deviation requires supervisor approval.
+NIRM 3 has a working detector, a frozen protocol, a passing suite (8/8), and an
+honest preliminary evaluation with per-class metrics and clustered intervals.
+It does **not** support a general safety claim, and the AST/MIR scope deviation
+requires supervisor approval.
 
-Before sign-off:
+Done before this draft:
 
-1. Fix the `owner_shaped` `ptr::read` false positive using `valid` only; add a
-   regression test for `ptr::read/2-1.rs`.
-2. Either carve a fresh holdout or disclose test reuse in every table.
-3. Add per-class precision/recall/F1, coverage, risk–coverage, and clustered
-   intervals; do not headline 3-way accuracy.
-4. ~~Record a clean commit and pin Python/rust-analyzer versions~~ — done:
-   code/data committed at `303e12d`; `rust-analyzer 0.3.3025` pinned.
+1. ~~Fix the `owner_shaped` `ptr::read` false positive~~ — done at `00f83e9`
+   (`FP-on-N` 2/27 -> 0/27 in both modes), with a regression test.
+2. ~~Add per-class precision/recall/F1, coverage, risk–coverage, clustered
+   intervals~~ — done in `score_frozen.py` and §5.
+3. ~~Run DoD #3 retrieval scoring~~ — done as a `pattern_hint` export (§5.3).
+
+Still required for sign-off:
+
+4. Decide explicitly whether to carve a fresh holdout or disclose test reuse.
+   This report discloses it; the disclosure must be accepted in writing.
 5. Produce the 4-page paper outline for the 25.11 venue slot.
 6. Get written approval for the AST/MIR re-scope, or add a MIR milestone.
+7. Accept the DoD #3 substitution (`pattern_hint` export, not retrieval) or
+   request a retrieval model, which moves the item to NIRM 4.
+8. Decide whether `rust-analyzer` verdict variance is acceptable for the
+   reported numbers or whether evidence caching must land first.
+
+The three decisions are drafted for sending in
+[signoff-request.md](signoff-request.md).
 
 The BERT pair model remains NIRM 4 work; the data gate and valid-split path
 are in place, and the frozen-BERT cache plan is in

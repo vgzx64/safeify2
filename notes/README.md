@@ -16,8 +16,9 @@ Working notes for the dissertation and the SafeNet experiments.
 | Note | Status | Scope |
 |---|---|---|
 | [nirm3/README.md](nirm3/README.md) | Active | NIRM 3 scope, Definition of Done, readiness blockers, next actions |
-| [nirm3/report.md](nirm3/report.md) | Draft | Supervisor report: scope, protocol, 2026-11-18 results, safety claim, NIRM 4 handoff |
-| [nirm3/results.md](nirm3/results.md) | Provisional | Frozen-split protocol, 2026-11-18 rerun, superseded history, limitations |
+| [nirm3/report.md](nirm3/report.md) | Draft | Supervisor report: scope, protocol, 2026-11-18 post-fix results, safety claim, NIRM 4 handoff |
+| [nirm3/signoff-request.md](nirm3/signoff-request.md) | Draft | Three decisions requested from the supervisor (re-scope, test reuse, DoD #3 substitution) |
+| [nirm3/results.md](nirm3/results.md) | Provisional | Frozen-split protocol, 2026-11-18 post-fix rerun, per-class/CIs, superseded history, limitations |
 | [research/bert-pair-model.md](research/bert-pair-model.md) | Planned | NIRM 4 BERT pair model: current state, frozen-BERT cache plan, gates |
 | [research/research-vectors.md](research/research-vectors.md) | Active | Research directions beyond the SafeNet baseline |
 | [research/synthetic-data-theory.md](research/synthetic-data-theory.md) | Active | Why and how to build synthetic data without a circular evaluation |
