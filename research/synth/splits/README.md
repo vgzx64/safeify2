@@ -180,3 +180,6 @@ claim.
 
 Gold verdicts per (api, pattern) live in `kb_verdicts.json`, transcribed from
 `vendors/SafeNet/knowledgebase/README.md`.
+
+The pair-model plan and current blockers are in
+[notes/research/bert-pair-model.md](../../../notes/research/bert-pair-model.md).

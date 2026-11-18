@@ -31,7 +31,18 @@ transitions from `CVEfixes.db` and the cloned repositories.
 
 - Entry point: [transitions/README.md](transitions/README.md)
 - Pilot results: [notes/research/transition-dataset-pilot.md](../notes/research/transition-dataset-pilot.md)
-- **Status:** v0.2 **frozen** (2026-11-08); 433 rows, 109 Y / 193 N / 131 M; 8 gates pass; split leakage 0; binary label target verified by two blind spot-checks (Y-vs-not-Y kappa 0.82; M-vs-N not reproducible). No trained model yet: one-sided snippet training does not transfer (valid AUC 0.665). Next: pair classifier on the rebuilt, leakage-gated `research/synth` data (8,580 clean pairs; run `splits/check_train_leakage.py` first).
+- **Status:** v0.2 **frozen** (2026-11-08); 433 rows, 109 Y / 193 N / 131 M; 8 gates pass; split leakage 0; binary label target verified by two blind spot-checks (Y-vs-not-Y kappa 0.82; M-vs-N not reproducible). No trained model yet: one-sided snippet training does not transfer (valid AUC 0.665). Next: pair classifier on the rebuilt, leakage-gated `research/synth` data (8,580 clean pairs; run `splits/check_train_leakage.py` first). See the [pair-model plan](../notes/research/bert-pair-model.md).
+
+### Pair model (NIRM 4) — planned
+
+The SafeNet-style BERT/SNN pair classifier has **no trained model** yet. Its
+training data was cleaned on 2026-11-18: `train_mixed.csv` is 8,580 pairs built
+from the train split + KB only; valid/test are excluded and gated. The first
+planned approach is a frozen-BERT embedding cache plus a small pair head.
+
+- Plan and current state: [notes/research/bert-pair-model.md](../notes/research/bert-pair-model.md)
+- Data: [synth/README.md](synth/README.md)
+- **Status:** data ready; checkpoint/tokenizer and training pipeline not ready.
 
 ### `gnn/` — GNN-Coder prototype
 

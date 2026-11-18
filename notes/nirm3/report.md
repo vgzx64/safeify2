@@ -5,8 +5,8 @@
 > Work window: `01.09.2026 – 08.11.2026`
 > Report window: `09.11.2026 – 22.11.2026`
 > Code under test: `303e12d` (NIRM 3/detector/data changes committed);
-> 42 paths remain dirty, almost all pre-existing `research/transitions/`
-> work. Frozen split hashes are in
+> later documentation commits follow. Unrelated pre-existing
+> `research/transitions/` work remains dirty. Frozen split hashes are in
 > `research/synth/splits/eval_manifest.json`.
 >
 > This report supersedes the archived v1/v2/v3 notes. It reports the
@@ -272,9 +272,10 @@ Artifacts: [LSP raw JSON](../../research/detect/out/nirm3_eval_lsp.json),
 [LSP score](../../research/detect/out/nirm3_eval_lsp_score.txt),
 [no-LSP score](../../research/detect/out/nirm3_eval_nolsp_score.txt).
 
-The NIRM 3/detector/data changes are committed at `303e12d`; 42 paths remain
-dirty, almost all pre-existing `research/transitions/` work. The frozen split
-is stable; re-run if those unrelated files are meant to be part of the result.
+The NIRM 3/detector/data changes are committed at `303e12d`; later
+documentation commits follow. Unrelated pre-existing `research/transitions/`
+work remains dirty. The frozen split is stable; re-run if those unrelated files
+are meant to be part of the result.
 
 ## 10. Limitations
 
@@ -312,9 +313,15 @@ Remaining NIRM 4 blockers: valid pair set is only 10 pairs (5 pos / 5 neg); the
 test pair set is 76 pairs with 3 both-N pairs; no BERT training pipeline runs
 out of the box (vendor `train.sh` references a missing `main.py`, removed
 `transformers.AdamW`/`pad_to_max_length`, and an absent `bert_wwm_mlm`
-checkpoint); no GPU (CPU-only, ~10 s per BERT-base forward at batch 16 x 100
-tokens in a synthetic benchmark). The pair model is not ready to train until a
-checkpoint/tokenizer recipe and a CPU-feasible frozen-BERT path are chosen.
+checkpoint); no GPU (CPU-only, ~62.7 s per BERT-base forward at batch 16 x 100
+tokens in a synthetic benchmark).
+
+The chosen first path is a **frozen-BERT embedding cache + pair head**: BERT
+encodes each unique snippet once, the vectors are cached, and only a small
+comparator is trained. It is CPU-feasible and gives a clean baseline, but it
+does not fine-tune BERT. See
+[bert-pair-model.md](../research/bert-pair-model.md) for the plan, open
+decisions, and gates. No model has been trained.
 
 ## 12. Conclusion and next actions
 
@@ -329,9 +336,11 @@ Before sign-off:
 2. Either carve a fresh holdout or disclose test reuse in every table.
 3. Add per-class precision/recall/F1, coverage, risk–coverage, and clustered
    intervals; do not headline 3-way accuracy.
-4. Record a clean commit and pin Python/rust-analyzer versions.
+4. ~~Record a clean commit and pin Python/rust-analyzer versions~~ — done:
+   code/data committed at `303e12d`; `rust-analyzer 0.3.3025` pinned.
 5. Produce the 4-page paper outline for the 25.11 venue slot.
 6. Get written approval for the AST/MIR re-scope, or add a MIR milestone.
 
-The BERT pair model remains NIRM 4 work; the data gate and valid-split path are
-now in place for it.
+The BERT pair model remains NIRM 4 work; the data gate and valid-split path
+are in place, and the frozen-BERT cache plan is in
+[bert-pair-model.md](../research/bert-pair-model.md). No model has been trained.

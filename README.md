@@ -10,7 +10,9 @@ real-data evaluation split.
 |---|---|---|
 | Documentation index | [notes/README.md](notes/README.md) | Active notes, research background, archive policy |
 | Current milestone | [notes/nirm3/README.md](notes/nirm3/README.md) | NIRM 3 status, scope, Definition of Done, blockers |
-| Current results | [notes/nirm3/results.md](notes/nirm3/results.md) | Frozen-split protocol, reproducible numbers, limitations |
+| Current report | [notes/nirm3/report.md](notes/nirm3/report.md) | NIRM 3 supervisor report: scope, protocol, 2026-11-18 results, disclosures |
+| Current results | [notes/nirm3/results.md](notes/nirm3/results.md) | Frozen-split protocol, current numbers, limitations |
+| Pair-model plan | [notes/research/bert-pair-model.md](notes/research/bert-pair-model.md) | NIRM 4 BERT pair model: current state, frozen-BERT cache plan, gates |
 | Dataset plan | [notes/research/transition-dataset.md](notes/research/transition-dataset.md) | Classification/retrieval labels, splits, quality gates |
 | Experiments | [research/README.md](research/README.md) | `detect/`, `gnn/`, `synth/` and their READMEs |
 | Dissertation plan | [papers/my_dissertation_plan.md](papers/my_dissertation_plan.md) | Formal NIRM milestones and deadlines |
@@ -31,13 +33,18 @@ portable across checkouts.
 
 ## Current status
 
-**NIRM 3 is in progress and is not ready for supervisor sign-off.** The
-detector runs end-to-end and its test suite passes, but the documented v3
-results do not reproduce on the current tree, the current run has a nonzero
-`FP-on-N`, the test split has been reused, and the report/publication
-deliverables do not exist yet. See
-[notes/nirm3/README.md](notes/nirm3/README.md) for the blocker list and next
-actions.
+**NIRM 3 has a working detector and a report draft, but is not ready for
+supervisor sign-off.** The 2026-11-18 frozen rerun is the current baseline
+(7/7 suite with a pinned rust-analyzer; LSP accuracy 0.1714; `FP-on-N` 2/27;
+14 decisive claims, 9 correct). Remaining blockers are the `ptr::read` false
+positive, reuse of the test split, approval of the AST/MIR re-scope, and the
+missing publication. See [notes/nirm3/report.md](notes/nirm3/report.md).
+
+The BERT/SafeNet-style pair classifier is **NIRM 4**, not NIRM 3, and no model
+has been trained. Its training data was rebuilt on 2026-11-18 so valid/test are
+excluded and gated; the first planned approach is a frozen-BERT embedding cache
+plus a pair head. See
+[notes/research/bert-pair-model.md](notes/research/bert-pair-model.md).
 
 ## Ground rules
 

@@ -1,5 +1,11 @@
 # research/synth — deterministic synthetic dataset for SafeNet-style BERT/SNN training
 
+> **Status: data ready · Updated: 2026-11-18 · no model trained**
+>
+> Training data is leakage-gated against valid/test. The pair-model plan and
+> remaining blockers are in
+> [notes/research/bert-pair-model.md](../../notes/research/bert-pair-model.md).
+
 Implements strategies **A (counterfactual injection)** and **B (template/rule
 generation)** from `notes/research/synthetic-data-theory.md`. No LLM is used:
 everything is deterministic, rustc-verified, and re-runnable on consumer
@@ -142,6 +148,8 @@ Pattern ids and Y/M/N assignments follow
 - Report FP rate on `verdict=irreplaceable` (N) snippets separately —
   gold verdicts live in `splits/kb_verdicts.json`.
 - Never report a synthetic-measured number as a result.
+- Pair-model plan and current blockers:
+  [notes/research/bert-pair-model.md](../../notes/research/bert-pair-model.md).
 - Before any run: `python splits/make_splits.py --check` must print `OK`
   three times (the freeze did not drift), and
   `python splits/check_train_leakage.py` must print `OK` for every training CSV.

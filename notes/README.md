@@ -9,6 +9,7 @@ Working notes for the dissertation and the SafeNet experiments.
 - **Provisional** — produced before a freeze/commit; must be re-run before being
   treated as a result.
 - **Draft** — a proposed design; not a protocol until its freeze gates are met.
+- **Planned** — an agreed next step or approach; no implementation/results yet.
 
 ## Notes index
 
@@ -16,11 +17,12 @@ Working notes for the dissertation and the SafeNet experiments.
 |---|---|---|
 | [nirm3/README.md](nirm3/README.md) | Active | NIRM 3 scope, Definition of Done, readiness blockers, next actions |
 | [nirm3/report.md](nirm3/report.md) | Draft | Supervisor report: scope, protocol, 2026-11-18 results, safety claim, NIRM 4 handoff |
-| [nirm3/results.md](nirm3/results.md) | Provisional | Frozen-split protocol, 2026-10-24 rerun, superseded history, limitations |
+| [nirm3/results.md](nirm3/results.md) | Provisional | Frozen-split protocol, 2026-11-18 rerun, superseded history, limitations |
+| [research/bert-pair-model.md](research/bert-pair-model.md) | Planned | NIRM 4 BERT pair model: current state, frozen-BERT cache plan, gates |
 | [research/research-vectors.md](research/research-vectors.md) | Active | Research directions beyond the SafeNet baseline |
 | [research/synthetic-data-theory.md](research/synthetic-data-theory.md) | Active | Why and how to build synthetic data without a circular evaluation |
 | [research/gnn-coder-evaluation.md](research/gnn-coder-evaluation.md) | Historical | 2026-09-22 evaluation of GNN-Coder as a research candidate |
-| [research/transition-dataset.md](research/transition-dataset.md) | Draft | Classification/retrieval dataset: labels, splits, gates |
+| [research/transition-dataset.md](research/transition-dataset.md) | Active | Classification/retrieval dataset plan; `transitions-core` v0.2 frozen |
 | [research/transition-dataset-pilot.md](research/transition-dataset-pilot.md) | Frozen | v0.2 frozen: 433 rows; 8 gates pass; leakage 0; binary target verified (kappa 0.82); M/N not reproducible; one-sided model does not transfer |
 
 ## Archive

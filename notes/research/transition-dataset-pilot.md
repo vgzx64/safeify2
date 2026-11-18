@@ -1,9 +1,10 @@
 # Transition dataset pilot — results
 
-> **Status: v0.2 draft · 2026-11-07 · all five gates pass; not frozen**
+> **Status: v0.2 FROZEN · 2026-11-08 · 433 rows; split leakage 0; blind spot-checks pass on the binary target; M/N retained as descriptors only**
 >
 > Design: [transition dataset plan](transition-dataset.md)
 > Pipeline: [research/transitions/README.md](../../research/transitions/README.md)
+> Pair model: [bert-pair-model.md](bert-pair-model.md)
 
 ## Question
 
@@ -329,69 +330,240 @@ Result: **607 reviewed rows** (+331), 76 vetoed. Labels: 104 `Y`, 166 `M`,
 259 `N`, 78 `U`. The negative core grew to 425 rows (259 `N` / 166 `M`); the
 positive union is 120 rows / 110 families.
 
-## v0.2 draft and gate report
+## v0.2: draft, label verification, freeze
 
-Family-level collapse (`out/transitions_core_v0.2_draft.jsonl`):
+The draft collapsed families to 435 rows (110 Y / 194 N / 131 M) across 154
+canonical repositories, split 218 train / 87 valid / 130 test.
 
-- **435 rows**: 110 Y, 194 N, 131 M.
-- **189 repositories**; split 225 train / 83 valid / 127 test
-  (51.7 / 19.1 / 29.2).
-- Test: 30 Y + 33 N + 64 M.
+Verification then changed two labels and dropped one row (below), giving the
+frozen core `out/transitions_core_v0.2.jsonl`:
 
-All five gates pass in `out/transitions_core_v0.2_quality.json`:
+- **433 rows**: 109 Y, 193 N, 131 M; 109 positive families.
+- **154 canonical repositories**; split 216 train / 87 valid / 130 test
+  (49.9 / 20.1 / 30.0), positives 54 / 22 / 33 (50/20/30).
+- Valid: 22 Y + 36 N + 29 M; test: 33 Y + 39 N + 58 M.
+- Binary target for training: `safe_replaceable` (Y = 1, M/N = 0);
+  109 positive / 324 negative rows.
 
-- positive families >= 100: **true** (110)
-- negative rows >= 300: **true** (325)
-- test rows >= 50: **true** (127)
+All eight gates pass in `out/transitions_core_v0.2_quality.json`:
+
+- positive families >= 100: **true** (109)
+- negative rows >= 300: **true** (324)
+- test rows >= 50: **true** (130)
 - queue coverage >= 80%: **true** (367/458 = 80.1%)
 - manual/LLM tracks reconciled: **true**
+- split leakage zero: **true**
+- blind spot-check binary agreement >= 85%: **true** (95.2% over 83 rows)
+- blind spot-check binary kappa >= 0.60: **true** (0.818)
 
-Status: **v0.2 draft; all gates pass; not frozen** (freeze still requires NIRM 3
-sign-off and a second spot-check).
+### Second and third spot-checks (2026-11-08)
+
+An independent annotator relabeled a blind 36-row sample (12 Y / 12 M / 12 N,
+all sources) against `RUBRIC.md`. After the corrections below it agrees on
+31/35 decidable rows (88.6%), kappa 0.83 three-class, 91.4% binary.
+
+That pass exposed the `M` boundary: 7/12 `M` agreed, and every disagreement was
+the same failure (the second annotator read a retained unsafe call as `N`, or a
+`Y` where unsafe remained). A focused, fresh 24-row `M`/`N` sample followed.
+Pass A agreed on all 12 `M` rows but only 5/12 `N` rows: 70.8% raw, kappa 0.42.
+Every disagreement was the "guard/restructuring vs keep" line -- adding
+`T: Send` bounds, turning a function into `unsafe fn`, threading an alignment
+field into the same `from_raw_parts`.
+
+Rules 9 and 10 were added to the rubric (M needs a quotable check or enforced
+precondition; when torn, choose N) and the same 24 rows were relabeled blind by
+a fresh annotator: 75% raw, kappa 0.52. The residual disagreements flipped both
+ways (`memoffset` `field_check!` added, `rusqlite` length-bounded
+`from_raw_parts`), so the boundary is genuinely fuzzy, not just under-specified.
+
+Conclusion: **Y vs not-Y is reproducible (95.2% binary agreement, kappa 0.818
+over 83 rows); M vs N is not (kappa 0.42-0.52).** The dataset therefore trains
+and evaluates a binary target, `safe_replaceable` (Y vs M+N). `M` stays in the
+schema as a descriptor of "guard or restructuring required" and must not be
+used as a training class or reported as a three-class accuracy.
+
+### Corrections applied
+
+`adjudication/corrections.jsonl`, applied by `rebuild_v01.py` and
+`build_family_core.py`:
+
+| Row | Change | Reason |
+|---|---|---|
+| `rustsec:RUSTSEC-2026-0300:src/skip_map/filter.rs` | `M` -> drop (`U`) | clipped to a bare `unsafe {` and an argument fragment |
+| `cratesio:RUSTSEC-2020-0045:actix-utils:...:src/oneshot.rs` | `N` -> `M` | borrow/length guard added, `get_unchecked_mut` remains |
+| `hunk:675:...:src/unix.rs` | `Y` -> `M` | `ptr::write` replaced but `mremap`/`from_raw_parts` remain |
+
+### Canonical identity and split leakage (2026-11-07)
+
+The previous split key was `repo_name`, which differs per source: CVEfixes stores
+`owner_repo`, crates.io stores a package name, RustSec stores a fix URL. The
+same repository could therefore land on both sides of the split.
+
+`repo_identity.py` now resolves every row to `host/owner/repo`, trying in order:
+CVEfixes `repo_url`; RustSec fix/issue URL; current crates.io `repository`
+metadata (cached in `out/repo_identity.json`); the historical `Cargo.toml` in
+the mined version tarball; then a `pkg:`/`name:` fallback. Current crates.io
+metadata is what follows repository moves such as
+`jgallagher/rusqlite` -> `rusqlite/rusqlite` and
+`rust-lang-nursery/futures-rs` -> `rust-lang/futures-rs`.
+
+Result:
+
+- 189 source-level names collapse to **154 canonical repositories**; 30 alias
+  groups merge, including `servo_rust-smallvec`/`smallvec`,
+  `image-rs_image`/`image`, `Amanieu_parking_lot`/`lock_api`,
+  `google_flatbuffers`/`flatbuffers`.
+- `check_split_leakage.py` reports **0 cross-split duplicate groups** and
+  **0 repo/commit/CVE overlap** on every split pair
+  (`out/split_leakage.json`).
+- 3 rows keep a fallback identity (`torvalds_linux`, `abox`, `atom`); none
+  collide across sources.
+- Splits were regenerated on canonical keys with whole repositories as the
+  unit. Repos are placed positive-first into the split with the largest
+  positive deficit that still has row capacity, so both rows and positives land
+  near 50/20/30 (218/87/130 rows, 55/22/33 Y). The split is not
+  source-stratified: every split contains CVEfixes, crates.io and RustSec rows,
+  but the source mix is not forced.
+- `train_model.py` (2026-11-07) is the training harness; `research/synth`
+  remains the synthetic pretraining corpus and `research/gnn` is still an
+  unwired prototype.
+
+### Baseline smoke test (2026-11-07)
+
+`baseline_tfidf.py` trains a char TF-IDF + logistic-regression classifier on
+`old_snippet` only (binary `Y` vs `{N,M}`) and evaluates `valid`; the test split
+is untouched.
+
+| Metric | Value |
+|---|---:|
+| Train rows / positives | 218 / 55 |
+| Valid rows / positives | 87 / 22 |
+| Accuracy | 0.759 |
+| Majority accuracy | 0.747 |
+| Precision (Y) | 0.538 |
+| Recall (Y) | 0.318 |
+| F1 (Y) | 0.400 |
+| ROC AUC | 0.665 |
+| Confusion (tn/fp/fn/tp) | 59 / 6 / 15 / 7 |
+
+Reading: a snippet-only linear model is marginally above the majority class
+(+1.2 pp) with weak ranking (AUC 0.67), so the labels carry little signal in the
+raw hunk text alone. That is a real result, not a bug: deciding whether unsafe
+code is replaceable needs API/safety-contract context, which is exactly the
+retriever+classifier design. It is a smoke test on 87 rows, not a model-quality
+claim. Test is reported only after freeze.
+
+### First training run (2026-11-07)
+
+`train_model.py` is the first supervised training harness. It compares two
+inputs on the same model (char TF-IDF + logistic regression), with grouped
+5-fold CV on `train` (groups = canonical repository) and then a held-out check
+on `valid`. The context input is a 60-line window of the pre-fix file around the
+hunk, recovered from the repo mirrors / crate tarballs (400/435 rows of the
+pre-freeze draft; all crates.io rows, 247/253 CVEfixes; RustSec has no snapshot
+and falls back to the snippet). The cache predates the freeze and is named after
+the frozen version only for convenience.
+
+| Input | CV pooled AUC | CV F1 (Y) | Valid AUC | Valid F1 (Y) |
+|---|---:|---:|---:|---:|
+| old snippet | 0.831 | 0.714 | 0.665 | 0.400 |
+| snippet + 60-line context | 0.780 | 0.558 | 0.388 | 0.176 |
+
+Valid AUC by source (snippet model): CVEfixes 0.635 (46 rows / 16 Y), crates.io
+0.911 (33 / 3), RustSec 0.333 (8 / 3). The crates.io and RustSec numbers rest on
+3 positives each and are not interpretable.
+
+Reading: grouped CV says 0.83 AUC, but the same model drops to 0.665 on repos it
+has not seen. The context window makes it worse (0.39), so raw neighbouring code
+is mostly repository-specific noise at this sample size. A shallow snippet
+signal survives, but it is not enough for a model claim: 55 training positives
+across 43 repositories set the ceiling. Training is not the bottleneck yet;
+labels and positives are. The test split was not evaluated.
 
 ## Critical assessment
 
-1. **Positives pass but are small.** 110 families, 120 rows: 72 manual + 48
+1. **Positives pass but are small.** 109 families, 109 rows: 68 manual + 41
    LLM-only. Duplicates remain in id-map/diesel/smallvec/crates.io.
-2. **Negatives pass but are concentrated.** 325 families across 153 repos, but
-   google/flatbuffers alone is 57 families (17.5%) because its `fn` -> `unsafe
-   fn` lint refactor produced many near-identical `N` rows.
+2. **Negatives pass but are concentrated.** 324 rows across 128 canonical
+   repos, but google/flatbuffers alone is 57 rows (17.6%) because its
+   `fn` -> `unsafe fn` lint refactor produced many near-identical `N` rows.
 3. **Queue coverage is 80.1%**, one row over the line; 91 CVEfixes queue rows
    remain unlabeled.
-4. **Split proportions are close to target** (51.7 / 19.1 / 29.2 vs 50/20/30),
-   but the split is by repository, so a hunk-heavy repo can still dominate.
-5. **Labels are semantic LLM decisions**, spot-checked (1 demotion this round,
-   2 in the earlier reconciliation), with no compile/test/Miri gate by design.
-6. **crates.io remains low-yield**: 200 advisories -> 23 `Y`; the 170 new rows
+4. **Split leakage is fixed.** Canonical `host/owner/repo` keys merge 30 alias
+   groups and collapse 189 names to 154 repositories; the audit reports 0
+   cross-split duplicate groups and 0 repo/commit/CVE overlap.
+5. **Split proportions match the target** (218/87/130 rows = 50.1/20.0/29.9;
+   positives 55/22/33 = 50/20/30). The split is by whole repository, so a
+   hunk-heavy repo can still dominate (flatbuffers is 18.2% of negatives).
+   It is label-stratified, not source-stratified; every split has all sources
+   but the mix is not forced.
+6. **Labels are semantic LLM decisions**, verified by two independent blind
+   spot-checks and one focused re-label (5 corrections in total, 3 this round),
+   with no compile/test/Miri gate by design. Y vs not-Y reproduces; M vs N does
+   not, so only the binary target is used.
+7. **crates.io remains low-yield**: 200 advisories -> 23 `Y`; the 170 new rows
    came from version-pair retained hunks, not new positives.
-7. **RustSec/OSV/GHSA aliases** are covered by CVEfixes/RustSec; there is no
+8. **RustSec/OSV/GHSA aliases** are covered by CVEfixes/RustSec; there is no
    separate artifact.
-8. **No date cutoff** was applied; dates are used only for evaluation holdouts.
+9. **No date cutoff** was applied; dates are used only for evaluation holdouts.
+10. **Training transfer gap.** Grouped CV reaches 0.831 AUC but held-out repos
+    drop to 0.665; a raw 60-line context window drops further to 0.388. With 54
+    training positives spread over 22 of the 42 training repositories, no
+    one-sided trained model is trustworthy yet; that is why the next model trains on synthetic pairs and
+    treats this core as external validation.
 
 ## Implication
 
-v0.2 is the first draft that clears every stated gate. It is still a **draft**:
-usable to train a NIRM 4 prototype, not a frozen benchmark. Before freezing, run
-a second independent spot-check (Y precision and the N/M boundary), cap the
-flatbuffers family influence, and finish the last 91 queue rows.
+v0.2 is frozen: 433 rows, 154 repositories, zero split leakage across eight
+gates, and a label target that two independent annotators can reproduce. The
+first training run showed the real bottleneck is data, not code: grouped CV
+overstates transfer (0.831 -> 0.665 AUC), a raw surrounding-code window makes it
+worse (0.388), and 54 training positives cannot support a neural encoder or a
+credible one-sided claim.
+
+The verification also changed the target. A three-class scheme (Y/M/N) is not
+reproducible, because the M/N boundary is a judgment about how much
+restructuring counts; the binary "is there a safe replacement" question is. The
+dataset now trains that binary question, which is also the decision NIRM 4
+actually needs.
 
 ## Next
 
-1. Freeze only after NIRM 3 sign-off and a second spot-check sample.
-2. Cap per-repo family weight (flatbuffers) for a balanced v0.3.
-3. Finish the 91 remaining CVEfixes queue rows (optional; coverage passes).
-4. Adjudicate more docs contracts/examples for the downstream retriever.
-5. Keep evaluation holdout dates separate from training collection.
+1. **Train the pair classifier** on `research/synth/out/train_mixed.csv`
+   (8,580 clean SafeNet-style pairs after the 2026-11-18 rebuild; valid/test
+   excluded, `splits/check_train_leakage.py` passes), using this frozen core as
+   external validation on `(old, fix)` pairs. This is the next milestone; see
+   the [pair-model plan](bert-pair-model.md).
+2. Evaluate the pair model on the frozen valid split (22 Y / 36 N / 29 M) and
+   report binary metrics only; keep the test split sealed. Note that the synth
+   pair valid set is only 10 pairs (5 pos / 5 neg), so it is a weak selection
+   signal; use grouped CV on train for tuning.
+3. Build API/contract retrieval features (docs `# Safety` clauses, mechanism
+   class) for the retrieval half; the raw context window failed the transfer
+   check.
+4. Cap per-repo family weight (flatbuffers is 17.6% of negatives) for a
+   balanced v0.3.
+5. Grow the positive pool: 109 rows is enough to validate, not to train.
+6. Finish the 91 remaining CVEfixes queue rows (optional; coverage passes).
+7. Keep evaluation holdout dates separate from training collection.
 
 ## Artifacts
 
-- [Positive union: 120](../../research/transitions/out/positive_union.jsonl)
+- [Positive union: 119](../../research/transitions/out/positive_union.jsonl)
 - [Negative core: 425](../../research/transitions/out/negative_core.jsonl)
-- [v0.2 family core: 435](../../research/transitions/out/transitions_core_v0.2_draft.jsonl)
-- [Quality gates](../../research/transitions/out/transitions_core_v0.2_quality.json)
+- [v0.2 frozen core: 433](../../research/transitions/out/transitions_core_v0.2.jsonl)
+- [Quality gates and label verification](../../research/transitions/out/transitions_core_v0.2_quality.json)
+- [Freeze manifest (sha256)](../../research/transitions/out/manifest_v0.2.json)
+- [Label reliability report](../../research/transitions/out/label_reliability.json)
+- [Reviewer corrections](../../research/transitions/adjudication/corrections.jsonl)
 - [Splits](../../research/transitions/out/splits_v0.2.json)
 - [Batch manifest](../../research/transitions/adjudication/gate_batches.json)
 - [Spot-check corrections](../../research/transitions/out/spotcheck_gate.json)
+- [Split leakage audit](../../research/transitions/out/split_leakage.json)
+- [Canonical identity cache](../../research/transitions/out/repo_identity.json)
+- [Valid-split baseline](../../research/transitions/out/baseline_valid.json)
+- [Context feature cache](../../research/transitions/out/context_v0.2.jsonl)
+- [First training run](../../research/transitions/out/train_v0.2.json)
 - [crates.io candidates](../../research/transitions/out/cratesio_candidates.jsonl)
 - [Public docs contracts](../../research/transitions/out/docs_public_safety.jsonl)
 - [Rust-for-Linux sample](../../research/transitions/out/rust_for_linux_hunks.jsonl)

@@ -1,6 +1,6 @@
 # Research vectors
 
-> **Status: active · Updated: 2026-10-24**
+> **Status: active · Updated: 2026-11-18**
 
 Directions for improving on the SafeNet baseline (Dong et al.).
 
@@ -8,6 +8,11 @@ Directions for improving on the SafeNet baseline (Dong et al.).
 
 Should be more modern than BERT (2024–2027). Must be similarly lightweight on
 training and inference.
+
+Current state: the SafeNet-style BERT pair model is not trained yet; the first
+baseline is a frozen-BERT cache + pair head
+([plan](bert-pair-model.md)). Treat “replace BERT” as a post-baseline direction,
+not a change to make before the baseline exists.
 
 ## Integrate GNN for AST Structure Learning
 

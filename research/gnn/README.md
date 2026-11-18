@@ -1,10 +1,15 @@
 # GNN-Coder prototype for SafeNet
 
-> **Status: experimental · Updated: 2026-10-24**
+> **Status: experimental · Updated: 2026-11-18**
 >
 > This is a standalone prototype. It is **not integrated** into SafeNet's
 > training pipeline, has no measured improvement, and should not be described as
 > a drop-in replacement until that integration is done and evaluated.
+>
+> It is a **post-baseline** augmentation: the first pair-model baseline is the
+> frozen-BERT cache + pair head in
+> [notes/research/bert-pair-model.md](../../notes/research/bert-pair-model.md).
+> Do not use the GNN prototype to skip that baseline.
 
 ## Overview
 

@@ -1,12 +1,14 @@
 # Unsafe-to-safe transition dataset — plan
 
-> **Status: plan v1 · 2026-11-07 · v0.2 draft; all five gates pass; not frozen**
+> **Status: plan v1 · 2026-11-08 · `transitions-core` v0.2 FROZEN (433 rows); 8 gates pass; split leakage 0; binary label target verified by two blind spot-checks; no trained model yet**
 >
 > Scope: **classification and retrieval** for NIRM 4. Patch generation is
 > intentionally delegated to an LLM downstream and is not trained here.
 >
 > This plan is not final until the pilot audit in §10 is complete. Do not cite
 > it as a protocol before the freeze date.
+>
+> Pair-model first path: [bert-pair-model.md](bert-pair-model.md).
 
 ## 1. Decision
 
@@ -14,7 +16,7 @@ We will build one dataset with two tasks:
 
 | Task | Input | Output | Why |
 |---|---|---|---|
-| **Classification** | unsafe region + function/file context | replaceability (`Y/M/N/U`) and action (`replace/guard/encapsulate/keep`) | NIRM 4's required ML deliverable |
+| **Classification** | unsafe region + function/file context | “is there a safe replacement” (binary; `Y` vs `M`/`N`), with `M`/`N` and `action` (`replace/guard/encapsulate/keep`) as descriptors | NIRM 4's required ML deliverable; the binary target is the only reproducible one |
 | **Retrieval** | unsafe region | ranked candidate safe snippets | Supports the LLM patch stage without training a generator |
 
 The LLM patch stage consumes the retrieved candidates and the classification
@@ -36,8 +38,8 @@ The current evidence base cannot support either task as-is:
 - 36/80 extracted pair texts have no safe snippet; 2/80 "safe" snippets still
   contain `unsafe`.
 - SafeNet's 97-file test split has already been reused across detector versions.
-- The current detector abstains on ~87.6% of sinks and has `FP-on-N 2/27`; it
-  cannot be used as an automatic labeler.
+- The current detector abstains on ~86.7% of sinks (LSP, 2026-11-18) and has
+  `FP-on-N 2/27`; it cannot be used as an automatic labeler.
 
 The dataset therefore needs **block-level alignment, explicit negatives, and a
 fresh holdout** before any model is trained.
@@ -321,11 +323,43 @@ The pilot was executed against `CVEfixes.db` and the cloned repositories:
   The reconciled positive union is 120 rows / 110 families.
 - The 2026-11-07 gate-closing run added 331 rows (161 CVEfixes queue rows +
   170 crates.io/RustSec families) and produced the v0.2 draft: 435 family rows,
-  110 positives, 325 negatives, 127 test rows, queue coverage 367/458 (80.1%).
+  110 positives, 325 negatives, 130 test rows, queue coverage 367/458 (80.1%).
 
-All five gates now pass, but the artifact is **not frozen**: it needs NIRM 3
-sign-off and a second spot-check. Full results:
-[transition dataset pilot](transition-dataset-pilot.md).
+Verification then froze the artifact: two blind spot-checks plus a focused M/N
+re-label changed two labels and dropped one row, and they showed that the
+three-class Y/M/N target is not reproducible (M/N kappa 0.42-0.52) while the
+binary Y-vs-not-Y target is (0.95 agreement, kappa 0.82 over 83 rows). The
+frozen core therefore carries a binary `target` (`safe_replaceable`, Y = 1) and
+keeps `M` only as a descriptor. Eight gates pass:
+
+- 433 rows: 109 Y / 193 N / 131 M; 154 canonical repositories.
+- Splits regenerated on canonical keys: 216 train / 87 valid / 130 test
+  (positives 54 / 22 / 33); 0 cross-split duplicate groups, 0 repo/commit/CVE
+  overlap.
+- Queue coverage 367/458 = 80.1%; freeze manifest with sha256 in
+  `out/manifest_v0.2.json`.
+
+Supporting results:
+
+- `repo_identity.py` resolves every row to `host/owner/repo` (repo URL, fix URL,
+  current crates.io metadata, then historical `Cargo.toml`); the 189 source-level
+  names collapse to 154 repositories, and `check_split_leakage.py` reports 0
+  cross-split duplicate groups and 0 repo/commit/CVE overlap.
+- A smoke-test baseline (`baseline_tfidf.py`, TF-IDF + logistic regression on
+  `old_snippet` only) scores 0.759 accuracy / 0.400 F1(Y) / 0.665 AUC on
+  `valid`, only 1.2 pp above the 0.747 majority class. Snippet text alone barely
+  carries signal; the model needs API/contract context. The test split was not
+  touched.
+- `train_model.py` is the first supervised training harness (snippet vs
+  pre-fix 60-line context, char TF-IDF + logistic regression). Grouped CV on
+  `train` reaches 0.831 AUC, but held-out `valid` gets 0.665; the context window
+  gets 0.388. No model transfers yet.
+- Labels were verified by two independent blind spot-checks; the M/N boundary
+  remains an explicitly non-trainable descriptor.
+- `research/synth` remains the synthetic pretraining corpus; `research/gnn` is
+  still an unwired prototype.
+
+Full results: [transition dataset pilot](transition-dataset-pilot.md).
 
 ## 11. Capacity and stop conditions
 
@@ -376,9 +410,12 @@ accuracy is below a constant-`Y` baseline, so accuracy alone is misleading.
 | 2026-10-25–27 | 30-row pilot; estimate yield |
 | 2026-10-28 | v0.1 exploratory: 109 positive families; negative/queue gates blocked |
 | 2026-11-07 | Gate-closing run: +331 rows; v0.2 draft passes all five gates |
+| 2026-11-07 | Canonical repo identity: leakage 0; splits 218/87/130; valid-split baseline run |
+| 2026-11-07 | First training run: grouped CV 0.831 AUC, valid 0.665; raw context 0.388 |
+| 2026-11-08 | Second + focused M/N spot-checks; 3 corrections; M/N shown non-reproducible; **v0.2 frozen** (433 rows, binary target) |
 | 2026-10-29–11-08 | NIRM 3 report is the priority; do not start the full build |
-| after NIRM 3 sign-off | Second spot-check; cap flatbuffers family weight; freeze `transitions-core` v0.2 |
-| NIRM 4 | Run zero-shot baseline; train classifier only if the gate is met |
+| 2026-11-08 | Freeze `transitions-core` v0.2 |
+| NIRM 4 | Train the SafeNet-style pair classifier on `research/synth/out/train_mixed.csv` (8,580 clean pairs after the 2026-11-18 rebuild; `splits/check_train_leakage.py` must pass); evaluate on the frozen core as external validation. First path: frozen-BERT cache + pair head, see [bert-pair-model.md](bert-pair-model.md) |
 
 The dataset build must not delay the NIRM 3 report. The pilot is enough to
 validate the plan; the full build belongs to NIRM 4.

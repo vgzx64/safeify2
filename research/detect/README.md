@@ -1,8 +1,9 @@
 # detect — stable-only replaceable-unsafe detector
 
-> **Status: experimental (NIRM 3) · Updated: 2026-10-24**
+> **Status: experimental (NIRM 3) · Updated: 2026-11-18**
 >
 > Evaluation protocol and current caveats:
+> [notes/nirm3/report.md](../../notes/nirm3/report.md) and
 > [notes/nirm3/results.md](../../notes/nirm3/results.md). This README documents
 > the detector itself; it does not claim a final result.
 
@@ -75,6 +76,10 @@ python detect/detect.py ../vendors/SafeNet/testdata/ptr::read \
 python detect/detect.py file.rs --no-lsp    # syntactic only, no rust-analyzer
 python detect/detect.py dir/ --json -       # JSON report to stdout
 ```
+
+The LSP e2e test is timing-sensitive: one run in the 2026-11-18 audit failed
+transiently and three consecutive reruns passed. If it fails, rerun and record
+both outcomes; see [report.md §7](../../notes/nirm3/report.md#7-failure-analysis).
 
 Example (synth `ptr::read` p1 snippet, LSP mode):
 

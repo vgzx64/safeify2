@@ -1,6 +1,6 @@
 # NIRM 3 (НИРМ 3) — status and plan
 
-> **Status: active · Updated: 2026-10-24 · Readiness: not ready for sign-off**
+> **Status: active · Updated: 2026-11-18 · Readiness: not ready for sign-off**
 >
 > Work window: `01.09.2026 – 08.11.2026`
 > Report to supervisor: `09.11.2026 – 22.11.2026`
@@ -22,10 +22,10 @@ direct AST traversal and no MIR.
 
 The internal decision was to treat `research/detect/` as an accepted
 `rust-analyzer`-based alternative and defer full MIR/borrowck to NIRM 4. That
-decision is **not yet documented in the report or approved by the supervisor**,
-and NIRM 4's formal scope is ML models, not MIR. MIR currently has no owning
-milestone. Do not present the re-scope as settled until it is accepted in
-writing.
+decision is documented in [report.md §2](report.md#2-scope-decision-requires-supervisor-approval)
+but is **not yet approved by the supervisor**, and NIRM 4's formal scope is ML
+models, not MIR. MIR currently has no owning milestone. Do not present the
+re-scope as settled until it is accepted in writing.
 
 ## Deliverables and Definition of Done
 
@@ -41,9 +41,9 @@ The formal Definition of Done, with current status:
 
 Two additional readiness conditions are not in the original DoD:
 
-- **Frozen provenance.** `HEAD` is `303e12d` (NIRM 3/detector/data changes
-  committed); 42 paths remain dirty, almost all pre-existing
-  `research/transitions/` work. See [report.md](report.md).
+- **Frozen provenance.** The NIRM 3/detector/data changes are committed at
+  `303e12d`; later documentation commits follow. Unrelated pre-existing
+  `research/transitions/` work remains dirty. See [report.md](report.md).
 - **Safety invariant.** The current code produces `FP-on-N`; the archived v3
   claim of `0/27` is no longer true. See [results.md](results.md).
 
@@ -79,9 +79,9 @@ Two additional readiness conditions are not in the original DoD:
    precision/recall/F1, coverage, risk–coverage, and intervals instead.
 5. **The paper does not exist**, and `eval_protocol.py --retrieval-preds` has
    not been run. The report draft is written but not approved.
-6. **The repository is not fully clean.** `HEAD` is `303e12d`; 42 paths remain
-   dirty, mostly pre-existing `research/transitions/` work. The NIRM 3/detector/
-   data files are committed.
+6. **The repository is not fully clean.** Unrelated pre-existing
+   `research/transitions/` work remains dirty; the NIRM 3/detector/data files are
+   committed at `303e12d`.
 
 ## Next actions
 
@@ -96,8 +96,10 @@ Two additional readiness conditions are not in the original DoD:
 5. Get supervisor sign-off on the report and the AST/MIR re-scope in
    [report.md § 2](report.md#2-scope-decision-requires-supervisor-approval).
 6. Produce the 4-page paper outline for the 25.11 venue slot.
-7. NIRM 4: choose a BERT checkpoint/tokenizer recipe and a CPU-feasible
-   frozen-BERT path; the pair-training CSVs are now leakage-gated.
+7. NIRM 4: choose a BERT checkpoint/tokenizer recipe and execute the
+   frozen-BERT cache + pair-head baseline; see
+   [bert-pair-model.md](../research/bert-pair-model.md). The pair-training CSVs
+   are leakage-gated.
 
 ## Commands
 
