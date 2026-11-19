@@ -1,3 +1,6 @@
 [submodule "vendors/SafeNet"]
 	path = vendors/SafeNet
 	url = https://github.com/Artisan-Lab/SafeNet
+[submodule "vendors/rust-analyzer"]
+	path = vendors/rust-analyzer
+	url = https://github.com/rust-lang/rust-analyzer

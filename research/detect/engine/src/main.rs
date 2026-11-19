@@ -1,45 +1,34 @@
-//! safeify-lint — semantic fact collection for the Counterexamples-in-Safe-Rust
-//! lints, on top of a rust-analyzer database.
+//! safeify-lint — semantic analysis of the Counterexamples-in-Safe-Rust
+//! patterns (filesystem, command execution, build-time effects, environment),
+//! computed over rust-analyzer's resolved model.
 //!
-//! Milestone 0/1: prove that a corpus crate loads into the RA database with
-//! full name resolution, and report coverage numbers. Rules land next; see
-//! notes/research/engine.md for the migration plan.
+//! Usage: `safeify-lint --crate <DIR> [--out findings.json]`
 
 mod load;
 mod paths;
+mod prov;
+mod rules;
+mod sink;
 
 use std::path::PathBuf;
-use std::time::Instant;
 
-use anyhow::{bail, Result};
-use hir::{CallableKind, Semantics};
-use syntax::{ast, AstNode};
+use anyhow::{bail, Context, Result};
+use hir::Semantics;
+use rules::{Ctx, Scanner};
+use syntax::ast::{self, HasVisibility};
+use syntax::AstNode;
 use vfs::VfsPath;
-
-#[derive(Default)]
-struct Counts {
-    files: usize,
-    files_in_graph: usize,
-    fns: usize,
-    fns_resolved: usize,
-    calls: usize,
-    calls_resolved: usize,
-    method_calls: usize,
-    method_calls_resolved: usize,
-}
 
 fn main() -> Result<()> {
     let mut crate_dir: Option<PathBuf> = None;
-    let mut dump_limit: usize = 0;
+    let mut out_file: Option<PathBuf> = None;
     let mut args = std::env::args().skip(1);
     while let Some(arg) = args.next() {
         match arg.as_str() {
             "--crate" | "-c" => crate_dir = args.next().map(PathBuf::from),
-            "--dump-calls" => {
-                dump_limit = args.next().and_then(|n| n.parse().ok()).unwrap_or(20)
-            }
+            "--out" | "-o" => out_file = args.next().map(PathBuf::from),
             "--help" | "-h" => {
-                println!("usage: safeify-lint --crate <DIR>");
+                println!("usage: safeify-lint --crate <DIR> [--out <FILE>]");
                 return Ok(());
             }
             other => bail!("unknown argument: {other}"),
@@ -49,33 +38,15 @@ fn main() -> Result<()> {
         bail!("--crate <DIR> is required (a Cargo package directory)")
     };
 
-    let started = Instant::now();
+    let cwd = std::env::current_dir()?;
     let loaded = load::load_crate(&dir)?;
-    let load_ms = started.elapsed().as_millis() as u64;
     let sema = Semantics::new(&loaded.db);
-    let mut counts = Counts::default();
-    let mut dumped: Vec<serde_json::Value> = Vec::new();
+    let eval = prov::Eval { sema: &sema, db: &loaded.db };
+    let mut findings: Vec<rules::Finding> = Vec::new();
+    let mut files_scanned = 0usize;
 
-    let record = |dumped: &mut Vec<serde_json::Value>, path: &std::path::Path, source_file: &ast::SourceFile, offset: syntax::TextSize, call: String, item: String| {
-        if dumped.len() >= dump_limit {
-            return;
-        }
-        let text = source_file.syntax().text().to_string();
-        let off = u32::from(offset) as usize;
-        let line = text[..off.min(text.len())].matches('\n').count() + 1;
-        dumped.push(serde_json::json!({
-            "file": path.display().to_string(),
-            "line": line,
-            "call": call,
-            "item": item,
-        }));
-    };
-
-    // hir-ty's next-solver keeps a thread-local database pointer; every entry
-    // point that resolves or types an expression must run inside attach_db.
     hir::attach_db(&loaded.db, || {
         for path in load::collect_rs_files(&loaded.root) {
-            counts.files += 1;
             let vpath = VfsPath::new_real_path(path.to_string_lossy().into_owned());
             let Some((file_id, excluded)) = loaded.vfs.file_id(&vpath) else {
                 continue;
@@ -83,73 +54,63 @@ fn main() -> Result<()> {
             if excluded == vfs::FileExcluded::Yes {
                 continue;
             }
-            counts.files_in_graph += 1;
+            let Ok(source) = std::fs::read_to_string(&path) else {
+                continue;
+            };
             let source_file = sema.parse_guess_edition(file_id);
-            for f in source_file.syntax().descendants().filter_map(ast::Fn::cast) {
-                counts.fns += 1;
-                if sema.to_fn_def(&f).is_some() {
-                    counts.fns_resolved += 1;
-                }
+            let display = path.strip_prefix(&cwd).unwrap_or(&path).display().to_string();
+            let is_build = path
+                .file_name()
+                .is_some_and(|name| name == "build.rs");
+            for fn_ast in item_functions(&source_file) {
+                let ctx = Ctx {
+                    file: display.clone(),
+                    source: &source,
+                    is_pub: fn_ast.visibility().is_some(),
+                    is_build,
+                };
+                let scanner = Scanner { eval: &eval, ctx: &ctx };
+                scanner.scan_fn(&fn_ast, &mut findings);
             }
-            for call in source_file
-                .syntax()
-                .descendants()
-                .filter_map(ast::CallExpr::cast)
-            {
-                counts.calls += 1;
-                if let Some(callee) = call.expr() {
-                    if let Some(callable) = sema.resolve_expr_as_callable(&callee) {
-                        counts.calls_resolved += 1;
-                        if let CallableKind::Function(f) = callable.kind() {
-                            let item = paths::qualified_path(&loaded.db, f);
-                            record(
-                                &mut dumped,
-                                &path,
-                                &source_file,
-                                call.syntax().text_range().start(),
-                                call.syntax().text().to_string(),
-                                item,
-                            );
-                        }
-                    }
-                }
-            }
-            for call in source_file
-                .syntax()
-                .descendants()
-                .filter_map(ast::MethodCallExpr::cast)
-            {
-                counts.method_calls += 1;
-                if let Some(f) = sema.resolve_method_call(&call) {
-                    counts.method_calls_resolved += 1;
-                    let item = paths::qualified_path(&loaded.db, f);
-                    record(
-                        &mut dumped,
-                        &path,
-                        &source_file,
-                        call.syntax().text_range().start(),
-                        call.syntax().text().to_string(),
-                        item,
-                    );
-                }
-            }
+            files_scanned += 1;
         }
     });
 
-    let out = serde_json::json!({
-        "crate": dir.display().to_string(),
-        "files": counts.files,
-        "files_in_graph": counts.files_in_graph,
-        "fns": counts.fns,
-        "fns_resolved": counts.fns_resolved,
-        "calls": counts.calls,
-        "calls_resolved": counts.calls_resolved,
-        "method_calls": counts.method_calls,
-        "method_calls_resolved": counts.method_calls_resolved,
-        "load_ms": load_ms,
-        "total_ms": started.elapsed().as_millis() as u64,
-        "dump": dumped,
+    findings.sort_by(|a, b| {
+        (a.path.as_str(), a.line, a.col, a.rule.as_str())
+            .cmp(&(b.path.as_str(), b.line, b.col, b.rule.as_str()))
     });
-    println!("{}", serde_json::to_string_pretty(&out)?);
+    findings.dedup_by(|a, b| {
+        a.path == b.path && a.line == b.line && a.rule == b.rule && a.message == b.message
+    });
+
+    let json = serde_json::to_string_pretty(&findings)?;
+    match out_file {
+        Some(file) => std::fs::write(&file, json)
+            .with_context(|| format!("cannot write {}", file.display()))?,
+        None => println!("{json}"),
+    }
+    eprintln!(
+        "safeify-lint: {} files, {} findings",
+        files_scanned,
+        findings.len()
+    );
     Ok(())
+}
+
+/// Item-level functions: module items and associated functions, not nested
+/// `fn` inside bodies (those are scanned as part of their owner).
+fn item_functions(source_file: &ast::SourceFile) -> Vec<ast::Fn> {
+    source_file
+        .syntax()
+        .descendants()
+        .filter_map(ast::Fn::cast)
+        .filter(|f| {
+            f.syntax().parent().is_some_and(|parent| {
+                parent.kind() == syntax::SyntaxKind::SOURCE_FILE
+                    || ast::ItemList::can_cast(parent.kind())
+                    || ast::AssocItemList::can_cast(parent.kind())
+            })
+        })
+        .collect()
 }

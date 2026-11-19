@@ -1,6 +1,6 @@
 # Semantic engine — replacing the regex front end
 
-> **Status: milestone 1 (loader + resolution validated, rules not yet ported) ·
+> **Status: milestone 2 (rules ported, differential harness running) ·
 > 2026-11-19**
 >
 > Code: [`research/detect/engine/`](../../research/detect/engine/).
@@ -134,7 +134,7 @@ JSON schema stays identical, and every rule is ported behind a differential
 check:
 
 ```
-safeify-lint --parity  old=lint_safe.py --corpus <dir>
+python3 detect/compare_engines.py <crate-dir>...
   for each rule: site set (rule, file, line) old vs new
   → identical      : rule is ported, text implementation deleted
   → additions      : inspect; either a bug in the new engine or a real
@@ -179,6 +179,37 @@ not an assertion:
 | audit precision on the 25-site census | 24/25 = 0.96 | — |
 | corpus findings / `warn` | 251 / 31 | — |
 | wall time, 147 crates | ~2.5–4 min | — |
+
+Differential status on 10 corpus crates (2026-11-19), old text engine vs
+`safeify-lint`, keyed on `(rule, file, line)`:
+
+| Rule | old | new | common | old-only | new-only |
+|---|---|---|---|---|---|
+| `exec_basename` | 18 | 15 | 15 | 3 | 0 |
+| `exec_tainted_cmd` | 1 | 1 | 1 | 0 | 0 |
+| `build_outside_out_dir` | 2 | 1 | 1 | 1 | 0 |
+| `fs_tainted_path` | 43 | 53 | 42 | 1 | 11 |
+
+Every remaining difference has a named cause:
+
+- **old-only, `#[cfg(windows)]`** (arrayfire `build.rs` 206/210/222/230):
+  rust-analyzer only resolves the active configuration, so code compiled for a
+  different target is invisible. The text engine lints it; it does not build
+  here. Recorded as a coverage limit, not a bug.
+- **new-only, binding resolution** (mdbook `init.rs`, 9 sites): the text engine
+  gave up on `themedir.join("css")` because `themedir` was re-bound (its cycle
+  detection is name-based); the semantic engine resolves the actual `let`. The
+  extra findings are the same class as the 21 it already reported — an
+  under-reporting bug in the old engine, now fixed.
+- **new-only, missing field summary** (openssl-src `lib.rs`, 2 sites):
+  `self.out_dir` is initialised from `env::var("OUT_DIR")` in the build script,
+  so the write is legitimate; without a field summary the engine sees only
+  "field of self = caller-controlled". This is the false-positive class the
+  interprocedural field summary is designed to remove.
+- **`RwLock` guard receivers**: `self.write().join(file)` where `write()`
+  returns `RwLockWriteGuard<'_, &Path>` does not resolve in `no_deps` mode. The
+  engine keeps provenance through path-composition methods (`join`,
+  `with_file_name`, …) instead of dropping it; documented in `prov.rs`.
 
 First measurements (2026-11-19), from the loader milestone:
 
