@@ -1,6 +1,6 @@
 # detect — stable-only replaceable-unsafe detector
 
-> **Status: experimental (NIRM 3) · Updated: 2026-11-18**
+> **Status: experimental (NIRM 3) · Updated: 2026-11-19**
 >
 > Evaluation protocol and current caveats:
 > [notes/nirm3/report.md](../../notes/nirm3/report.md) and
@@ -95,6 +95,46 @@ Example (synth `ptr::read` p1 snippet, LSP mode):
 synth/out/snippets/ptr::read/1-synth-1295-unsafe.rs: 1 sink(s), 1 unsafe region(s)
   L5    ptr::read   std::ptr::read(owner)  -> Y (high) gold=Y
 ```
+
+## Safe-Rust counterexample lints
+
+A second, independent front end for the attack patterns of Hassnain & Stanford,
+"Counterexamples in Safe Rust" (ASEW '24): safe `std::fs` / `std::process` /
+`std::env` / `build.rs` code that violates memory safety through OS interfaces.
+These never enter `inventory.find_unsafe_regions` (they are not `unsafe`), so
+they are **not** part of the Y/M/N model and are **not** scored on the frozen
+split. Design, threat model, corpus numbers and limitations:
+[notes/research/counterexamples.md](../../notes/research/counterexamples.md).
+
+```
+lint_safe.py     rules + severity + suppression (clippy-style levels)
+provenance.py    literal < param < tainted < unknown, guard recognition
+test_lint_safe.py 34 checks pinned to the paper's figures 1,2,3,6,7
+```
+
+```sh
+python detect/test_lint_safe.py                       # 34 checks
+python detect/lint_safe.py src/ --json                # one crate
+python detect/lint_safe.py crates/ --max-bytes 100000 --edition 2021
+```
+
+| rule | triggers |
+|---|---|
+| `fs_special_path` | literal `/proc/*/mem`, `/dev/mem`, `\\.\` namespaces (deny) |
+| `fs_traversal_literal` | absolute literal whose `..` normalises elsewhere |
+| `fs_tainted_path` | env/argv/io-derived path with no `starts_with`/components guard |
+| `exec_basename` | `Command::new("ls")` — PATH/CWD resolution (CWE-426) |
+| `exec_tainted_cmd` | program name from a parameter or taint source |
+| `exec_shell_tainted` | literal shell with a caller-controlled argument |
+| `env_set_dangerous` / `env_read_dangerous` | `set_var`/`var` on `PATH`, `LD_PRELOAD`, `RUSTC`, `RUSTFLAGS`, `TMPDIR`, … |
+| `build_outside_out_dir` | `build.rs` write outside `OUT_DIR`/`target` |
+
+Severity demotes to `info` outside `pub fn` and `build.rs` (an app's own
+`Command::new("git")` is not the threat model). Suppress with
+`#[allow(nirm::rule)]` or `// nirm: allow(rule)`; per-rule levels in
+`[lints.nirm]`. Corpus pilot (147 crates, 8,426 files): 399 findings, 40 at
+`warn`, 0 `deny` —
+[lint_corpus_2026-11-19.json](out/lint_corpus_2026-11-19.json).
 
 ## Verdict policy (v1)
 

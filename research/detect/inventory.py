@@ -58,7 +58,7 @@ def mask_source(src: str) -> str:
                 continue
             m = re.match(r'b"', src[i:])
             if m:
-                j = i + 1
+                j = i + 2  # skip the b and the opening quote, not just the b
                 while j < n:
                     if src[j] == "\\":
                         j += 2
@@ -216,24 +216,38 @@ _METHOD_CALL = re.compile(r"\.\s*([A-Za-z_]\w*)\s*\(")
 
 
 def _split_args(text: str, base: int) -> tuple[list[str], list[tuple[int, int]]]:
+    """Split a masked argument list, keeping one span per positional argument.
+
+    String literals are blanked by ``mask_source``, so an argument can be
+    entirely whitespace in ``text``. Spans are therefore kept for every
+    position and delimited by the surrounding commas, not by visible tokens;
+    callers recover the real text from the unmasked source. Dropping blank
+    segments would silently renumber the arguments of every call with a
+    literal first argument.
+    """
+    if not text:
+        return [], []
     args, spans = [], []
     depth = 0
     start = 0
+
+    def add(seg: str, seg_start: int, seg_end: int) -> None:
+        lead = len(seg) - len(seg.lstrip())
+        a = base + seg_start + lead
+        if a >= base + seg_end:  # masked-out literal: keep the segment start
+            a = base + seg_start
+        args.append(seg.strip())
+        spans.append((a, base + seg_end))
+
     for i, c in enumerate(text):
         if c in "([{":
             depth += 1
         elif c in ")]}":
             depth -= 1
         elif c == "," and depth == 0:
-            seg = text[start:i]
-            if seg.strip():
-                args.append(seg.strip())
-                spans.append((base + start + (len(seg) - len(seg.lstrip())), base + i))
+            add(text[start:i], start, i)
             start = i + 1
-    seg = text[start:]
-    if seg.strip():
-        args.append(seg.strip())
-        spans.append((base + start + (len(seg) - len(seg.lstrip())), base + len(text)))
+    add(text[start:], start, len(text))
     return args, spans
 
 

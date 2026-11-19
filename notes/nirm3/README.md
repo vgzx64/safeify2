@@ -28,6 +28,27 @@ but is **not yet approved by the supervisor**, and NIRM 4's formal scope is ML
 models, not MIR. MIR currently has no owning milestone. Do not present the
 re-scope as settled until it is accepted in writing.
 
+## Scope extension: safe-Rust counterexamples (2026-11-19)
+
+The formal task text is "базовый статический анализатор", so the milestone can
+carry more than the AST/MIR wording. A second, independent front end is
+prototyped: lints for the safe-Rust attack patterns of Hassnain & Stanford,
+"Counterexamples in Safe Rust" (ASEW '24) — filesystem access through
+`/proc/*/mem`-style paths, `Command::new` PATH resolution, `build.rs` writes
+outside `OUT_DIR`, dangerous environment variables.
+
+It shares the source masker with this detector and **none** of the Y/M/N model:
+it is not scored on the frozen split, adds no number to
+[results.md](results.md), and does not touch the replaceability claim. Design,
+threat model, corpus pilot and limitations:
+[counterexamples.md](../research/counterexamples.md). Checks: 34/34
+(`test_lint_safe.py`); `test_detect.py` remains 8/8.
+
+While building it, two pre-existing defects in `inventory.py` were found and
+fixed: literal-only call arguments were dropped from `arg_spans`, and `b"…"`
+byte literals blanked the rest of the line. Neither affects the frozen split
+(0 byte string literals in all 288/69/97 files), so no reported number changes.
+
 ## Deliverables and Definition of Done
 
 The formal Definition of Done, with current status:
