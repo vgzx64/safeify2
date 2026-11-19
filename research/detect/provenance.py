@@ -31,7 +31,25 @@ from inventory import find_calls, find_matching, mask_source
 LITERAL = "literal"
 PARAM = "param"
 TAINTED = "tainted"
+TRUSTED = "trusted"
 UNKNOWN = "unknown"
+
+#: Environment variables that Cargo itself sets. They are dynamic values but
+#: not attacker-controlled: a path under OUT_DIR or CARGO_MANIFEST_DIR is the
+#: intended build-script behaviour, not the paper's build-time attack.
+_TRUSTED_ENV = {
+    "OUT_DIR",
+    "CARGO_MANIFEST_DIR",
+    "CARGO_MANIFEST_PATH",
+    "CARGO_TARGET_DIR",
+    "TARGET",
+    "HOST",
+    "PROFILE",
+    "OPT_LEVEL",
+    "DEBUG",
+    "NUM_JOBS",
+}
+_TRUSTED_PREFIX = ("CARGO_PKG_", "CARGO_CFG_", "CARGO_BIN_EXE_", "CARGO_FEATURE_")
 
 #: Taint sources: (regex, short name). Order matters only for the message.
 _TAINT_SOURCES: list[tuple[re.Pattern[str], str]] = [
@@ -58,6 +76,10 @@ class Prov:
     def is_dynamic(self) -> bool:
         """True for values a caller can influence (param or tainted)."""
         return self.kind in (PARAM, TAINTED)
+
+    def is_trusted(self) -> bool:
+        """True for Cargo-provided values (OUT_DIR and friends)."""
+        return self.kind == TRUSTED
 
 
 @dataclass
@@ -225,6 +247,7 @@ def classify(expr: str, fn: FnFacts | None, _depth: int = 0,
         if not m:
             break
         e = e[: m.start()].strip()
+    e = _clean(e)
     if not e:
         return Prov(UNKNOWN)
 
@@ -252,6 +275,8 @@ def classify(expr: str, fn: FnFacts | None, _depth: int = 0,
         if arg.is_literal() and arg.value and arg.value[:1] in ("/", "\\"):
             # an absolute component discards the base entirely
             return Prov(LITERAL, "", arg.value)
+        if base.is_trusted() and arg.is_literal():
+            return Prov(TRUSTED, base.detail)
         if base.kind == TAINTED or arg.kind == TAINTED:
             detail = base.detail if base.kind == TAINTED else arg.detail
             return Prov(TAINTED, detail or "path")
@@ -260,6 +285,10 @@ def classify(expr: str, fn: FnFacts | None, _depth: int = 0,
         if base.is_literal() and arg.is_literal():
             return Prov(LITERAL, "", None)
         return Prov(UNKNOWN)
+
+    m = re.match(r'^env\s*::\s*var(?:_os)?\s*\(\s*"([^"]+)"', e)
+    if m and (m.group(1) in _TRUSTED_ENV or m.group(1).startswith(_TRUSTED_PREFIX)):
+        return Prov(TRUSTED, m.group(1))
 
     for rx, name in _TAINT_SOURCES:
         if rx.search(e):
@@ -294,6 +323,10 @@ def _split_sum(text: str) -> list[str]:
 
 
 def _combine(provs: list[Prov]) -> Prov:
+    if provs and all(p.is_trusted() or p.is_literal() for p in provs) and any(
+        p.is_trusted() for p in provs
+    ):
+        return Prov(TRUSTED, next(p.detail for p in provs if p.is_trusted()))
     if any(p.kind == TAINTED for p in provs):
         return Prov(TAINTED, next(p.detail for p in provs if p.kind == TAINTED) or "concat")
     if any(p.kind == PARAM for p in provs):

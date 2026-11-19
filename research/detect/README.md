@@ -109,11 +109,11 @@ split. Design, threat model, corpus numbers and limitations:
 ```
 lint_safe.py     rules + severity + suppression (clippy-style levels)
 provenance.py    literal < param < tainted < unknown, guard recognition
-test_lint_safe.py 34 checks pinned to the paper's figures 1,2,3,6,7
+test_lint_safe.py 37 checks pinned to the paper's figures 1,2,3,6,7
 ```
 
 ```sh
-python detect/test_lint_safe.py                       # 34 checks
+python detect/test_lint_safe.py                       # 37 checks
 python detect/lint_safe.py src/ --json                # one crate
 python detect/lint_safe.py crates/ --max-bytes 100000 --edition 2021
 ```
@@ -132,9 +132,12 @@ python detect/lint_safe.py crates/ --max-bytes 100000 --edition 2021
 Severity demotes to `info` outside `pub fn` and `build.rs` (an app's own
 `Command::new("git")` is not the threat model). Suppress with
 `#[allow(nirm::rule)]` or `// nirm: allow(rule)`; per-rule levels in
-`[lints.nirm]`. Corpus pilot (147 crates, 8,426 files): 399 findings, 40 at
+`[lints.nirm]`. Corpus pilot (147 crates, 8,426 files): 243 findings, 29
 `warn`, 0 `deny` —
-[lint_corpus_2026-11-19.json](out/lint_corpus_2026-11-19.json).
+[lint_corpus_2026-11-19.json](out/lint_corpus_2026-11-19.json). Precision
+audit (census of all 23 unique actionable sites): 0 false positives, 11
+actionable — [audit sheet](out/lint_audit_2026-11-19.jsonl),
+[labels](out/lint_audit_labels_2026-11-19.json).
 
 ## Verdict policy (v1)
 

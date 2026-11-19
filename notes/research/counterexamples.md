@@ -1,6 +1,6 @@
 # Counterexamples in Safe Rust — detection design
 
-> **Status: prototype v1 · Updated 2026-11-19 · 34/34 lint checks,
+> **Status: prototype v1 · Updated 2026-11-19 · 37/37 lint checks,
 > 8/8 existing detector checks**
 >
 > Source paper: M. Hassnain, C. Stanford, *Counterexamples in Safe Rust*,
@@ -48,7 +48,7 @@ dangerous regardless of who calls them (`/proc/*/mem`, `/dev/mem`,
 |---|---|---|---|
 | `fs_special_path` | 1 filesystem | literal path in the danger table: `/proc/*/mem`, `/proc/*/pagemap`, `/proc/kcore`, `/dev/{mem,kmem,port}`, `/etc/ld.so.preload`, `\\.\` and `\\?\` namespaces, writes under `/proc/sys` and `/sys` | `deny` (`warn` for kernel config) |
 | `fs_traversal_literal` | 1 | absolute literal whose `..` normalises elsewhere | `warn` |
-| `fs_tainted_path` | 1 | argument from `env`/argv/stdio/file/network with no guard; `warn` for those, `info` for a plain parameter | `warn` |
+| `fs_tainted_path` | 1 | **write** sink whose path comes from env/argv/stdio/network with no guard (`warn`), or from a plain parameter (`info`). Reads of caller paths are out of scope; Cargo-provided variables (`OUT_DIR`, `CARGO_MANIFEST_DIR`, `CARGO_PKG_*`) are trusted, not taint | `warn` |
 | `exec_basename` | 2 command | `Command::new("ls")` — no path separator, so PATH (and CWD on Windows) resolves it | `warn` |
 | `exec_tainted_cmd` | 2 | program name from a parameter or taint source, no allowlist | `warn` |
 | `exec_shell_tainted` | 2 | literal `sh`/`bash`/`cmd`… with a caller-controlled argument | `warn` |
@@ -116,7 +116,7 @@ and the paper's.
 
 ### 7.1 Unit cases (done)
 
-`python detect/test_lint_safe.py` → **34/34**: Figures 1, 2, 3, 6, 7 plus
+`python detect/test_lint_safe.py` → **37/37**: Figures 1, 2, 3, 6, 7 plus
 negatives for each precision decision (guarded path, absolute command,
 allowlist, suppression, relative `..`, `/proc/sys` read, `pub fn` path
 parameter).
@@ -128,34 +128,84 @@ parameter).
 
 | Rule | deny | warn | info |
 |---|---|---|---|
-| `fs_tainted_path` | 0 | 3 | 282 |
 | `exec_basename` | 0 | 16 | 69 |
 | `exec_tainted_cmd` | 0 | 9 | 3 |
-| `build_outside_out_dir` | 0 | 12 | 0 |
+| `build_outside_out_dir` | 0 | 4 | 0 |
+| `fs_tainted_path` | 0 | 0 | 137 |
 | `env_read_dangerous` | 0 | 0 | 5 |
 | `fs_special_path` | 0 | 0 | 0 |
 | `fs_traversal_literal` | 0 | 0 | 0 |
 | `env_set_dangerous` | 0 | 0 | 0 |
 | `exec_shell_tainted` | 0 | 0 | 0 |
-| **total** | **0** | **40** | **359** |
+| **total** | **0** | **29** | **214** |
 
-399 findings in 153 of 8,426 files (1.8%); 46 are in `build.rs`, 67 in
-`tests/`+`examples/`. The 40 `warn` findings are the actionable set — 0.47% of
-files. Concentration: `mdbook` 70, `openssl-src` 55, `bam` 38, `tough` 36,
-`slice-deque` 27, `tar` 27. Artifact:
+243 findings in 86 of 8,426 files (1.0%); 26 are in `build.rs`, 41 in
+`tests/`+`examples/`. Concentration: `openssl-src` 45, `mdbook` 42,
+`slice-deque` 27, `bam` 24, `tough` 22, `arrayfire` 16. Artifact:
 [`lint_corpus_2026-11-19.json`](../../research/detect/out/lint_corpus_2026-11-19.json).
 
 Caveats: this is a *pilot* corpus, not the paper's crates.io selection, so the
 counts are not comparable with their Table 2 rates. `fs_tainted_path` dominates
-because any library that opens a caller-supplied path matches — that is why the
-parameter case is `info`, and why the `warn` count is the number to watch.
+the `info` stratum because any library that writes to a caller-supplied path
+matches — that is why the parameter case is `info` and only writes are
+considered.
 
-### 7.3 Precision audit (next)
+### 7.3 Precision audit (done, 2026-11-19)
 
-Sample 50 `deny`+`warn` findings, hand-label true/false positive, report the
-rate per rule with a Wilson interval. Target ≥80% on `deny` before the lints
-are described as usable. `fs_tainted_path` is the class most likely to fail
-this and may need to become opt-in.
+**Frame.** Census, not a sample: after deduplicating the same code site across
+crate versions, the corpus has **23 unique `warn`/`deny` sites in 8 crates**,
+and all 23 were labelled by reading each site with four lines of context. The
+sheet and labels are reproducible:
+
+```
+python detect/audit_lint.py --corpus detect/out/lint_corpus_2026-11-19.json \
+    --sheet detect/out/lint_audit_2026-11-19.jsonl --info-sample 0
+python detect/audit_lint.py --sheet detect/out/lint_audit_2026-11-19.jsonl \
+    --labels detect/out/lint_audit_labels_2026-11-19.json --stats
+```
+
+**Results.** Two numbers, because "is it correct" and "is it worth a human's
+attention" are different questions:
+
+| Rule | sites | correct (TP+TL) | strict TP (actionable) |
+|---|---|---|---|
+| `build_outside_out_dir` | 4 | 4 (1.00) | 4 (1.00) |
+| `exec_tainted_cmd` | 6 | 6 (1.00) | 4 (0.67) |
+| `exec_basename` | 13 | 13 (1.00) | 3 (0.23) |
+| **all** | **23** | **23 (1.00 [0.86, 1.00])** | **11 (0.48 [0.29, 0.67])** |
+
+Interval on the correctness column: Wilson 95%; the crate-clustered bootstrap is
+[1.00, 1.00] because no crate contains a false positive, so there is no
+resampling variance to report — with 8 crates and `arrayfire` contributing 12
+sites, the honest statement is "no false positive observed", not "precision is
+1.00 with tight bounds".
+
+**What the census says.** After the two fixes below, the lints produced **zero
+false positives** on this corpus. But only 48% of the actionable findings would
+change a reviewer's decision. The three strict `exec_basename` hits are
+`mdbook`'s `pub fn MDBook::test` spawning `rustdoc`, and `sys-info`'s
+`pub fn hostname()` on Windows; the ten non-actionable ones are
+`cmake`/`make`/`MSBuild.exe`/`git` invocations in `build.rs`, 8 of them from a
+single crate (arrayfire, two versions).
+
+That is the real result: **a `warn` on `Command::new("cmake")` inside
+`build.rs` is correct and useless at the same time.** The pattern is genuine
+(Figure 6 of the paper is precisely `Command::new("rustc")` in a build script)
+and it is so common that warning on it produces more noise than signal. The
+fix is not to demote it — that would hide the paper's own build-time attack —
+but to add an explicit allowlist of standard build tools (`cmake`, `make`,
+`ninja`, `git`, `rustc`, `cc`, `gcc`, `clang`, `pkg-config`, `install`, `cp`)
+that demotes only those names, leaving unusual ones at `warn`. That is the next
+change, and this census is its justification.
+
+**Not audited.** The 214 `info` findings were sanity-checked only (spot review
+of 40 while building the sheet; no obviously wrong instance) — no precision
+number is claimed for them, and it should not be: by construction they are the
+"library takes a caller path" class.
+
+**Limitations of the audit itself.** Single reviewer (self-audit, not blind);
+23 sites in 8 crates, all from one vendored corpus; labels are a judgement about
+the pattern, not about exploitability in the crate's deployment.
 
 ### 7.4 Regression against known CVEs (next)
 
@@ -192,6 +242,16 @@ claim it.
    regression cases: relative `../tests/cert.pem` flagged as traversal;
    *reading* `/proc/sys/kernel/ostype` (what `sys-info` legitimately does)
    flagged as an attack; a `pub fn` path parameter at `warn` instead of `info`.
+4. **`OUT_DIR` in a binding counted as "outside OUT_DIR".** The build rule
+   tested only the argument text, so
+   `let out_dir = env::var("OUT_DIR")?; File::create(Path::new(&out_dir)...)`
+   was a false positive — 4 of the 9 `build_outside_out_dir` hits in the first
+   audit. Fixed with binding resolution (depth 3) plus a trusted-environment
+   class for Cargo-provided variables.
+5. **Read sinks shared the write rule.** `fs_tainted_path` fired on
+   `fs::metadata`, `File::open`, `read_to_string` — reading a caller's path is
+   the library contract, not the paper's counterexample (their figures write).
+   Restricted to write sinks; the 137 remaining `info` findings are writes.
 
 ## 9. Known limitations
 
@@ -207,5 +267,11 @@ claim it.
   is a prefix list, not a semantic model.
 - Severity demotion is a syntactic proxy for reachability (`pub`, `build.rs`),
   not a call-graph result.
+
+
 - Test and example code inflates counts; `cargo-scan`-style filtering of
   `tests/`, `examples/` may be needed before any "real defect rate" claim.
+- `exec_basename` on a standard build tool (`cmake`, `make`, `git`) is correct
+  and useless; needs a tool allowlist (see §7.3).
+- The `info` stratum (214 findings) has no precision number; the audit covers
+  the 23 actionable sites only, in 8 crates, by a single reviewer.

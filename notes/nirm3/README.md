@@ -41,7 +41,7 @@ It shares the source masker with this detector and **none** of the Y/M/N model:
 it is not scored on the frozen split, adds no number to
 [results.md](results.md), and does not touch the replaceability claim. Design,
 threat model, corpus pilot and limitations:
-[counterexamples.md](../research/counterexamples.md). Checks: 34/34
+[counterexamples.md](../research/counterexamples.md). Checks: 37/37
 (`test_lint_safe.py`); `test_detect.py` remains 8/8.
 
 While building it, two pre-existing defects in `inventory.py` were found and

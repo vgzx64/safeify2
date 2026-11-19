@@ -398,6 +398,11 @@ def _fs_findings(call, fn: FnFacts, ctx: Ctx) -> list[Finding]:
                     )
                 )
         elif prov.is_dynamic():
+            if not _is_write_sink(ctx, call):
+                # Reading a caller-supplied path is the library contract and is
+                # not the paper's counterexample; only writes can corrupt the
+                # process or the toolchain.
+                continue
             guards = guards_for(ctx.mask, expr, fn.body_start, call.open_paren)
             if not guards:
                 src_txt = prov.detail or "an input"
@@ -415,7 +420,7 @@ def _fs_findings(call, fn: FnFacts, ctx: Ctx) -> list[Finding]:
                     )
                 )
 
-        if ctx.is_build and _is_write_sink(ctx, call) and not _under_out_dir(expr):
+        if ctx.is_build and _is_write_sink(ctx, call) and not _under_out_dir(ctx, fn, expr):
             out.append(
                 _emit(
                     ctx,
@@ -440,8 +445,24 @@ def _is_write_sink(ctx: Ctx, call) -> bool:
     return _tail2(call.callee) in _WRITE_SINKS
 
 
-def _under_out_dir(expr: str) -> bool:
-    return "OUT_DIR" in expr or "target" in expr or "CARGO_TARGET_DIR" in expr
+def _under_out_dir(ctx: Ctx, fn: FnFacts, expr: str, depth: int = 0,
+                   seen: frozenset[str] = frozenset()) -> bool:
+    """Does this path expression reach OUT_DIR, directly or through a binding?
+
+    `let out_dir = env::var("OUT_DIR")?; File::create(Path::new(&out_dir)...)`
+    is the intended build-script pattern; testing only the argument text made
+    it a false positive in 4 of 9 audited sites.
+    """
+    if "OUT_DIR" in expr or "CARGO_TARGET_DIR" in expr or "target" in expr:
+        return True
+    if depth >= 3:
+        return False
+    for ident in set(re.findall(r"[A-Za-z_]\w*", expr)):
+        if ident in seen or ident not in fn.bindings:
+            continue
+        if _under_out_dir(ctx, fn, fn.bindings[ident], depth + 1, seen | {ident}):
+            return True
+    return False
 
 
 def _shell_args_dynamic(ctx: Ctx, call, fn: FnFacts) -> bool:

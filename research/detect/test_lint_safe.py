@@ -105,7 +105,7 @@ pub fn safe_open(root: &Path, user: &str) -> std::io::Result<()> {
     if !path.starts_with(root) {
         return Err(std::io::ErrorKind::PermissionDenied.into());
     }
-    File::open(path)?;
+    std::fs::write(path, b"")?;
     Ok(())
 }
 """
@@ -159,17 +159,42 @@ pub fn spawn() {
 PRIVATE_TAINTED = """
 use std::fs::File;
 
-fn open_user(p: &str) {
-    let _ = File::open(p);
+fn save_user(p: &str) {
+    let _ = std::fs::write(p, b"x");
 }
 """
 
 TAINT_JOIN = """
-use std::fs::File;
-
-pub fn open_home(name: &str) -> std::io::Result<File> {
+pub fn write_home(name: &str) -> std::io::Result<()> {
     let home = std::env::var("HOME").unwrap();
-    File::open(home.clone() + "/" + name)
+    std::fs::write(home.clone() + "/" + name, b"")
+}
+"""
+
+READ_TAINTED = """
+pub fn read_any(p: &str) -> std::io::Result<String> {
+    std::fs::read_to_string(p)
+}
+"""
+
+BUILD_OUT_DIR = """
+use std::fs::File;
+use std::io::Write;
+
+fn main() {
+    let out_dir = std::env::var("OUT_DIR").unwrap();
+    let mut f = File::create(std::path::Path::new(&out_dir).join("version.rs")).unwrap();
+    writeln!(f, "pub const V: &str = \"1\";").unwrap();
+}
+"""
+
+BUILD_MANIFEST_WRITE = """
+use std::fs;
+
+fn main() {
+    let src = std::path::PathBuf::from(std::env::var("CARGO_MANIFEST_DIR").unwrap());
+    let build = src.join("arrayfire").join("build");
+    let _ = fs::create_dir(&build);
 }
 """
 
@@ -227,8 +252,8 @@ pub fn panic_on_oops() -> std::io::Result<()> {
 """
 
 PUB_PARAM_PATH = """
-pub fn read_any(p: &str) -> std::io::Result<String> {
-    std::fs::read_to_string(p)
+pub fn write_any(p: &str) -> std::io::Result<()> {
+    std::fs::write(p, b"")
 }
 """
 
@@ -297,6 +322,12 @@ CASES = [
      {"fs_special_path": "warn"}, set()),
     ("pub fn taking a path is info only", PUB_PARAM_PATH, "ok.rs",
      {"fs_tainted_path": "info"}, set()),
+    ("reading a caller path is not the pattern", READ_TAINTED, "ok.rs",
+     {}, {"fs_tainted_path"}),
+    ("build.rs OUT_DIR binding is fine", BUILD_OUT_DIR, "build.rs",
+     {}, {"build_outside_out_dir"}),
+    ("build.rs writing into the crate is not", BUILD_MANIFEST_WRITE, "build.rs",
+     {"build_outside_out_dir": "warn"}, set()),
 ]
 
 
