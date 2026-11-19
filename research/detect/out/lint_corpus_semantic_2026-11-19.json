@@ -1,0 +1,1858 @@
+[
+ {
+  "path": "transitions/external/crates/arrayfire/3.5.0/arrayfire-3.5.0/build.rs",
+  "line": 275,
+  "col": 28,
+  "rule": "build_outside_out_dir",
+  "level": "warn",
+  "message": "build script writes a caller-supplied path; the write lands outside OUT_DIR"
+ },
+ {
+  "path": "transitions/external/crates/arrayfire/3.5.0/arrayfire-3.5.0/build.rs",
+  "line": 275,
+  "col": 28,
+  "rule": "fs_tainted_path",
+  "level": "info",
+  "message": "path written by this call comes from a caller-supplied path"
+ },
+ {
+  "path": "transitions/external/crates/arrayfire/3.5.0/arrayfire-3.5.0/build.rs",
+  "line": 317,
+  "col": 38,
+  "rule": "exec_basename",
+  "level": "warn",
+  "message": "`cmake` is resolved through PATH (and the CWD on Windows)"
+ },
+ {
+  "path": "transitions/external/crates/arrayfire/3.5.0/arrayfire-3.5.0/build.rs",
+  "line": 332,
+  "col": 36,
+  "rule": "exec_basename",
+  "level": "warn",
+  "message": "`make` is resolved through PATH (and the CWD on Windows)"
+ },
+ {
+  "path": "transitions/external/crates/arrayfire/3.6.0/arrayfire-3.6.0/build.rs",
+  "line": 240,
+  "col": 28,
+  "rule": "build_outside_out_dir",
+  "level": "warn",
+  "message": "build script writes a caller-supplied path; the write lands outside OUT_DIR"
+ },
+ {
+  "path": "transitions/external/crates/arrayfire/3.6.0/arrayfire-3.6.0/build.rs",
+  "line": 240,
+  "col": 28,
+  "rule": "fs_tainted_path",
+  "level": "info",
+  "message": "path written by this call comes from a caller-supplied path"
+ },
+ {
+  "path": "transitions/external/crates/arrayfire/3.6.0/arrayfire-3.6.0/build.rs",
+  "line": 245,
+  "col": 38,
+  "rule": "exec_basename",
+  "level": "warn",
+  "message": "`cmake` is resolved through PATH (and the CWD on Windows)"
+ },
+ {
+  "path": "transitions/external/crates/arrayfire/3.6.0/arrayfire-3.6.0/build.rs",
+  "line": 254,
+  "col": 36,
+  "rule": "exec_basename",
+  "level": "warn",
+  "message": "`make` is resolved through PATH (and the CWD on Windows)"
+ },
+ {
+  "path": "transitions/external/crates/bam/0.1.2/bam-0.1.2/src/bam_writer.rs",
+  "line": 52,
+  "col": 35,
+  "rule": "fs_tainted_path",
+  "level": "info",
+  "message": "path written by this call comes from a caller-supplied path"
+ },
+ {
+  "path": "transitions/external/crates/bam/0.1.2/bam-0.1.2/src/bgzip/write.rs",
+  "line": 354,
+  "col": 33,
+  "rule": "fs_tainted_path",
+  "level": "info",
+  "message": "path written by this call comes from a caller-supplied path"
+ },
+ {
+  "path": "transitions/external/crates/bam/0.1.2/bam-0.1.2/src/sam.rs",
+  "line": 42,
+  "col": 50,
+  "rule": "fs_tainted_path",
+  "level": "info",
+  "message": "path written by this call comes from a caller-supplied path"
+ },
+ {
+  "path": "transitions/external/crates/bam/0.1.2/bam-0.1.2/tests/integration_test.rs",
+  "line": 99,
+  "col": 38,
+  "rule": "exec_basename",
+  "level": "info",
+  "message": "`samtools` is resolved through PATH (and the CWD on Windows)"
+ },
+ {
+  "path": "transitions/external/crates/bam/0.1.2/bam-0.1.2/tests/integration_test.rs",
+  "line": 140,
+  "col": 34,
+  "rule": "exec_basename",
+  "level": "info",
+  "message": "`samtools` is resolved through PATH (and the CWD on Windows)"
+ },
+ {
+  "path": "transitions/external/crates/bam/0.1.2/bam-0.1.2/tests/integration_test.rs",
+  "line": 179,
+  "col": 34,
+  "rule": "exec_basename",
+  "level": "info",
+  "message": "`samtools` is resolved through PATH (and the CWD on Windows)"
+ },
+ {
+  "path": "transitions/external/crates/bam/0.1.2/bam-0.1.2/tests/integration_test.rs",
+  "line": 190,
+  "col": 34,
+  "rule": "exec_basename",
+  "level": "info",
+  "message": "`samtools` is resolved through PATH (and the CWD on Windows)"
+ },
+ {
+  "path": "transitions/external/crates/bam/0.1.2/bam-0.1.2/tests/integration_test.rs",
+  "line": 234,
+  "col": 34,
+  "rule": "exec_basename",
+  "level": "info",
+  "message": "`samtools` is resolved through PATH (and the CWD on Windows)"
+ },
+ {
+  "path": "transitions/external/crates/bam/0.1.2/bam-0.1.2/tests/integration_test.rs",
+  "line": 245,
+  "col": 34,
+  "rule": "exec_basename",
+  "level": "info",
+  "message": "`samtools` is resolved through PATH (and the CWD on Windows)"
+ },
+ {
+  "path": "transitions/external/crates/bam/0.1.2/bam-0.1.2/tests/integration_test.rs",
+  "line": 304,
+  "col": 38,
+  "rule": "exec_basename",
+  "level": "info",
+  "message": "`samtools` is resolved through PATH (and the CWD on Windows)"
+ },
+ {
+  "path": "transitions/external/crates/bam/0.1.2/bam-0.1.2/tests/integration_test.rs",
+  "line": 316,
+  "col": 38,
+  "rule": "exec_basename",
+  "level": "info",
+  "message": "`samtools` is resolved through PATH (and the CWD on Windows)"
+ },
+ {
+  "path": "transitions/external/crates/bam/0.1.2/bam-0.1.2/tests/integration_test.rs",
+  "line": 354,
+  "col": 34,
+  "rule": "exec_basename",
+  "level": "info",
+  "message": "`samtools` is resolved through PATH (and the CWD on Windows)"
+ },
+ {
+  "path": "transitions/external/crates/bam/0.1.3/bam-0.1.3/src/bam_writer.rs",
+  "line": 52,
+  "col": 35,
+  "rule": "fs_tainted_path",
+  "level": "info",
+  "message": "path written by this call comes from a caller-supplied path"
+ },
+ {
+  "path": "transitions/external/crates/bam/0.1.3/bam-0.1.3/src/bgzip/write.rs",
+  "line": 354,
+  "col": 33,
+  "rule": "fs_tainted_path",
+  "level": "info",
+  "message": "path written by this call comes from a caller-supplied path"
+ },
+ {
+  "path": "transitions/external/crates/bam/0.1.3/bam-0.1.3/src/sam.rs",
+  "line": 42,
+  "col": 50,
+  "rule": "fs_tainted_path",
+  "level": "info",
+  "message": "path written by this call comes from a caller-supplied path"
+ },
+ {
+  "path": "transitions/external/crates/bam/0.1.3/bam-0.1.3/tests/integration_test.rs",
+  "line": 99,
+  "col": 38,
+  "rule": "exec_basename",
+  "level": "info",
+  "message": "`samtools` is resolved through PATH (and the CWD on Windows)"
+ },
+ {
+  "path": "transitions/external/crates/bam/0.1.3/bam-0.1.3/tests/integration_test.rs",
+  "line": 140,
+  "col": 34,
+  "rule": "exec_basename",
+  "level": "info",
+  "message": "`samtools` is resolved through PATH (and the CWD on Windows)"
+ },
+ {
+  "path": "transitions/external/crates/bam/0.1.3/bam-0.1.3/tests/integration_test.rs",
+  "line": 179,
+  "col": 34,
+  "rule": "exec_basename",
+  "level": "info",
+  "message": "`samtools` is resolved through PATH (and the CWD on Windows)"
+ },
+ {
+  "path": "transitions/external/crates/bam/0.1.3/bam-0.1.3/tests/integration_test.rs",
+  "line": 190,
+  "col": 34,
+  "rule": "exec_basename",
+  "level": "info",
+  "message": "`samtools` is resolved through PATH (and the CWD on Windows)"
+ },
+ {
+  "path": "transitions/external/crates/bam/0.1.3/bam-0.1.3/tests/integration_test.rs",
+  "line": 234,
+  "col": 34,
+  "rule": "exec_basename",
+  "level": "info",
+  "message": "`samtools` is resolved through PATH (and the CWD on Windows)"
+ },
+ {
+  "path": "transitions/external/crates/bam/0.1.3/bam-0.1.3/tests/integration_test.rs",
+  "line": 245,
+  "col": 34,
+  "rule": "exec_basename",
+  "level": "info",
+  "message": "`samtools` is resolved through PATH (and the CWD on Windows)"
+ },
+ {
+  "path": "transitions/external/crates/bam/0.1.3/bam-0.1.3/tests/integration_test.rs",
+  "line": 304,
+  "col": 38,
+  "rule": "exec_basename",
+  "level": "info",
+  "message": "`samtools` is resolved through PATH (and the CWD on Windows)"
+ },
+ {
+  "path": "transitions/external/crates/bam/0.1.3/bam-0.1.3/tests/integration_test.rs",
+  "line": 316,
+  "col": 38,
+  "rule": "exec_basename",
+  "level": "info",
+  "message": "`samtools` is resolved through PATH (and the CWD on Windows)"
+ },
+ {
+  "path": "transitions/external/crates/bam/0.1.3/bam-0.1.3/tests/integration_test.rs",
+  "line": 354,
+  "col": 34,
+  "rule": "exec_basename",
+  "level": "info",
+  "message": "`samtools` is resolved through PATH (and the CWD on Windows)"
+ },
+ {
+  "path": "transitions/external/crates/bumpalo/2.6.0/bumpalo-2.6.0/tests/readme_up_to_date.rs",
+  "line": 8,
+  "col": 33,
+  "rule": "exec_basename",
+  "level": "info",
+  "message": "`cargo` is resolved through PATH (and the CWD on Windows)"
+ },
+ {
+  "path": "transitions/external/crates/bumpalo/3.2.1/bumpalo-3.2.1/tests/readme_up_to_date.rs",
+  "line": 8,
+  "col": 33,
+  "rule": "exec_basename",
+  "level": "info",
+  "message": "`cargo` is resolved through PATH (and the CWD on Windows)"
+ },
+ {
+  "path": "transitions/external/crates/claxon/0.3.2/claxon-0.3.2/tests/testsamples.rs",
+  "line": 20,
+  "col": 31,
+  "rule": "exec_basename",
+  "level": "info",
+  "message": "`metaflac` is resolved through PATH (and the CWD on Windows)"
+ },
+ {
+  "path": "transitions/external/crates/claxon/0.3.2/claxon-0.3.2/tests/testsamples.rs",
+  "line": 40,
+  "col": 31,
+  "rule": "exec_basename",
+  "level": "info",
+  "message": "`flac` is resolved through PATH (and the CWD on Windows)"
+ },
+ {
+  "path": "transitions/external/crates/claxon/0.4.1/claxon-0.4.1/tests/testsamples.rs",
+  "line": 21,
+  "col": 31,
+  "rule": "exec_basename",
+  "level": "info",
+  "message": "`metaflac` is resolved through PATH (and the CWD on Windows)"
+ },
+ {
+  "path": "transitions/external/crates/claxon/0.4.1/claxon-0.4.1/tests/testsamples.rs",
+  "line": 41,
+  "col": 31,
+  "rule": "exec_basename",
+  "level": "info",
+  "message": "`metaflac` is resolved through PATH (and the CWD on Windows)"
+ },
+ {
+  "path": "transitions/external/crates/claxon/0.4.1/claxon-0.4.1/tests/testsamples.rs",
+  "line": 54,
+  "col": 31,
+  "rule": "exec_basename",
+  "level": "info",
+  "message": "`flac` is resolved through PATH (and the CWD on Windows)"
+ },
+ {
+  "path": "transitions/external/crates/cranelift-codegen/0.72.0/cranelift-codegen-0.72.0/build.rs",
+  "line": 103,
+  "col": 46,
+  "rule": "exec_basename",
+  "level": "warn",
+  "message": "`git` is resolved through PATH (and the CWD on Windows)"
+ },
+ {
+  "path": "transitions/external/crates/cranelift-codegen/0.74.0/cranelift-codegen-0.74.0/build.rs",
+  "line": 103,
+  "col": 46,
+  "rule": "exec_basename",
+  "level": "warn",
+  "message": "`git` is resolved through PATH (and the CWD on Windows)"
+ },
+ {
+  "path": "transitions/external/crates/fltk/0.15.2/fltk-0.15.2/examples/terminal.rs",
+  "line": 75,
+  "col": 40,
+  "rule": "exec_tainted_cmd",
+  "level": "info",
+  "message": "program name comes from caller-controlled; PATH/CWD decides what runs"
+ },
+ {
+  "path": "transitions/external/crates/fltk/0.15.3/fltk-0.15.3/examples/terminal.rs",
+  "line": 75,
+  "col": 40,
+  "rule": "exec_tainted_cmd",
+  "level": "info",
+  "message": "program name comes from caller-controlled; PATH/CWD decides what runs"
+ },
+ {
+  "path": "transitions/external/crates/grep-cli/0.1.5/grep-cli-0.1.5/src/decompress.rs",
+  "line": 143,
+  "col": 40,
+  "rule": "exec_tainted_cmd",
+  "level": "warn",
+  "message": "program name comes from caller-controlled; PATH/CWD decides what runs"
+ },
+ {
+  "path": "transitions/external/crates/grep-cli/0.1.6/grep-cli-0.1.6/src/decompress.rs",
+  "line": 180,
+  "col": 40,
+  "rule": "exec_tainted_cmd",
+  "level": "warn",
+  "message": "program name comes from caller-controlled; PATH/CWD decides what runs"
+ },
+ {
+  "path": "transitions/external/crates/grep-cli/0.1.6/grep-cli-0.1.6/src/decompress.rs",
+  "line": 439,
+  "col": 38,
+  "rule": "env_read_dangerous",
+  "level": "info",
+  "message": "`PATH` read from the environment: a taint source"
+ },
+ {
+  "path": "transitions/external/crates/image/0.22.0/image-0.22.0/src/dynimage.rs",
+  "line": 929,
+  "col": 49,
+  "rule": "fs_tainted_path",
+  "level": "info",
+  "message": "path written by this call comes from a caller-supplied path"
+ },
+ {
+  "path": "transitions/external/crates/image/0.23.11/image-0.23.11/src/io/free_functions.rs",
+  "line": 154,
+  "col": 49,
+  "rule": "fs_tainted_path",
+  "level": "info",
+  "message": "path written by this call comes from a caller-supplied path"
+ },
+ {
+  "path": "transitions/external/crates/image/0.23.11/image-0.23.11/src/io/free_functions.rs",
+  "line": 205,
+  "col": 49,
+  "rule": "fs_tainted_path",
+  "level": "info",
+  "message": "path written by this call comes from a caller-supplied path"
+ },
+ {
+  "path": "transitions/external/crates/image/0.23.12/image-0.23.12/src/io/free_functions.rs",
+  "line": 145,
+  "col": 49,
+  "rule": "fs_tainted_path",
+  "level": "info",
+  "message": "path written by this call comes from a caller-supplied path"
+ },
+ {
+  "path": "transitions/external/crates/image/0.23.12/image-0.23.12/src/io/free_functions.rs",
+  "line": 196,
+  "col": 49,
+  "rule": "fs_tainted_path",
+  "level": "info",
+  "message": "path written by this call comes from a caller-supplied path"
+ },
+ {
+  "path": "transitions/external/crates/libsbc/0.1.4/libsbc-0.1.4/examples/decode.rs",
+  "line": 26,
+  "col": 35,
+  "rule": "fs_tainted_path",
+  "level": "info",
+  "message": "path written by this call comes from `field`"
+ },
+ {
+  "path": "transitions/external/crates/libsbc/0.1.5/libsbc-0.1.5/examples/decode.rs",
+  "line": 26,
+  "col": 35,
+  "rule": "fs_tainted_path",
+  "level": "info",
+  "message": "path written by this call comes from `field`"
+ },
+ {
+  "path": "transitions/external/crates/lucet-runtime-internals/0.4.3/lucet-runtime-internals-0.4.3/build.rs",
+  "line": 36,
+  "col": 45,
+  "rule": "exec_basename",
+  "level": "warn",
+  "message": "`git` is resolved through PATH (and the CWD on Windows)"
+ },
+ {
+  "path": "transitions/external/crates/lucet-runtime-internals/0.5.1/lucet-runtime-internals-0.5.1/build.rs",
+  "line": 36,
+  "col": 45,
+  "rule": "exec_basename",
+  "level": "warn",
+  "message": "`git` is resolved through PATH (and the CWD on Windows)"
+ },
+ {
+  "path": "transitions/external/crates/mdbook/0.4.4/mdbook-0.4.4/src/book/book.rs",
+  "line": 52,
+  "col": 46,
+  "rule": "fs_tainted_path",
+  "level": "info",
+  "message": "path written by this call comes from a caller-supplied path"
+ },
+ {
+  "path": "transitions/external/crates/mdbook/0.4.4/mdbook-0.4.4/src/book/init.rs",
+  "line": 102,
+  "col": 22,
+  "rule": "fs_tainted_path",
+  "level": "info",
+  "message": "path written by this call comes from a caller-supplied path"
+ },
+ {
+  "path": "transitions/external/crates/mdbook/0.4.4/mdbook-0.4.4/src/book/init.rs",
+  "line": 123,
+  "col": 28,
+  "rule": "fs_tainted_path",
+  "level": "info",
+  "message": "path written by this call comes from a caller-supplied path"
+ },
+ {
+  "path": "transitions/external/crates/mdbook/0.4.4/mdbook-0.4.4/src/book/init.rs",
+  "line": 126,
+  "col": 38,
+  "rule": "fs_tainted_path",
+  "level": "info",
+  "message": "path written by this call comes from a caller-supplied path"
+ },
+ {
+  "path": "transitions/external/crates/mdbook/0.4.4/mdbook-0.4.4/src/book/init.rs",
+  "line": 130,
+  "col": 24,
+  "rule": "fs_tainted_path",
+  "level": "info",
+  "message": "path written by this call comes from a caller-supplied path"
+ },
+ {
+  "path": "transitions/external/crates/mdbook/0.4.4/mdbook-0.4.4/src/book/init.rs",
+  "line": 132,
+  "col": 44,
+  "rule": "fs_tainted_path",
+  "level": "info",
+  "message": "path written by this call comes from a caller-supplied path"
+ },
+ {
+  "path": "transitions/external/crates/mdbook/0.4.4/mdbook-0.4.4/src/book/init.rs",
+  "line": 135,
+  "col": 43,
+  "rule": "fs_tainted_path",
+  "level": "info",
+  "message": "path written by this call comes from a caller-supplied path"
+ },
+ {
+  "path": "transitions/external/crates/mdbook/0.4.4/mdbook-0.4.4/src/book/init.rs",
+  "line": 139,
+  "col": 46,
+  "rule": "fs_tainted_path",
+  "level": "info",
+  "message": "path written by this call comes from a caller-supplied path"
+ },
+ {
+  "path": "transitions/external/crates/mdbook/0.4.4/mdbook-0.4.4/src/book/init.rs",
+  "line": 143,
+  "col": 46,
+  "rule": "fs_tainted_path",
+  "level": "info",
+  "message": "path written by this call comes from a caller-supplied path"
+ },
+ {
+  "path": "transitions/external/crates/mdbook/0.4.4/mdbook-0.4.4/src/book/init.rs",
+  "line": 146,
+  "col": 40,
+  "rule": "fs_tainted_path",
+  "level": "info",
+  "message": "path written by this call comes from a caller-supplied path"
+ },
+ {
+  "path": "transitions/external/crates/mdbook/0.4.4/mdbook-0.4.4/src/book/init.rs",
+  "line": 149,
+  "col": 40,
+  "rule": "fs_tainted_path",
+  "level": "info",
+  "message": "path written by this call comes from a caller-supplied path"
+ },
+ {
+  "path": "transitions/external/crates/mdbook/0.4.4/mdbook-0.4.4/src/book/init.rs",
+  "line": 152,
+  "col": 35,
+  "rule": "fs_tainted_path",
+  "level": "info",
+  "message": "path written by this call comes from a caller-supplied path"
+ },
+ {
+  "path": "transitions/external/crates/mdbook/0.4.4/mdbook-0.4.4/src/book/init.rs",
+  "line": 155,
+  "col": 46,
+  "rule": "fs_tainted_path",
+  "level": "info",
+  "message": "path written by this call comes from a caller-supplied path"
+ },
+ {
+  "path": "transitions/external/crates/mdbook/0.4.4/mdbook-0.4.4/src/book/init.rs",
+  "line": 158,
+  "col": 45,
+  "rule": "fs_tainted_path",
+  "level": "info",
+  "message": "path written by this call comes from a caller-supplied path"
+ },
+ {
+  "path": "transitions/external/crates/mdbook/0.4.4/mdbook-0.4.4/src/book/init.rs",
+  "line": 167,
+  "col": 34,
+  "rule": "fs_tainted_path",
+  "level": "info",
+  "message": "path written by this call comes from a caller-supplied path"
+ },
+ {
+  "path": "transitions/external/crates/mdbook/0.4.4/mdbook-0.4.4/src/book/init.rs",
+  "line": 181,
+  "col": 38,
+  "rule": "fs_tainted_path",
+  "level": "info",
+  "message": "path written by this call comes from a caller-supplied path"
+ },
+ {
+  "path": "transitions/external/crates/mdbook/0.4.4/mdbook-0.4.4/src/book/init.rs",
+  "line": 188,
+  "col": 30,
+  "rule": "fs_tainted_path",
+  "level": "info",
+  "message": "path written by this call comes from a caller-supplied path"
+ },
+ {
+  "path": "transitions/external/crates/mdbook/0.4.4/mdbook-0.4.4/src/book/init.rs",
+  "line": 198,
+  "col": 28,
+  "rule": "fs_tainted_path",
+  "level": "info",
+  "message": "path written by this call comes from a caller-supplied path"
+ },
+ {
+  "path": "transitions/external/crates/mdbook/0.4.4/mdbook-0.4.4/src/book/init.rs",
+  "line": 201,
+  "col": 28,
+  "rule": "fs_tainted_path",
+  "level": "info",
+  "message": "path written by this call comes from a caller-supplied path"
+ },
+ {
+  "path": "transitions/external/crates/mdbook/0.4.4/mdbook-0.4.4/src/book/init.rs",
+  "line": 204,
+  "col": 28,
+  "rule": "fs_tainted_path",
+  "level": "info",
+  "message": "path written by this call comes from a caller-supplied path"
+ },
+ {
+  "path": "transitions/external/crates/mdbook/0.4.4/mdbook-0.4.4/src/book/mod.rs",
+  "line": 269,
+  "col": 44,
+  "rule": "exec_basename",
+  "level": "warn",
+  "message": "`rustdoc` is resolved through PATH (and the CWD on Windows)"
+ },
+ {
+  "path": "transitions/external/crates/mdbook/0.4.4/mdbook-0.4.4/src/cmd/init.rs",
+  "line": 74,
+  "col": 31,
+  "rule": "exec_basename",
+  "level": "info",
+  "message": "`git` is resolved through PATH (and the CWD on Windows)"
+ },
+ {
+  "path": "transitions/external/crates/mdbook/0.4.4/mdbook-0.4.4/src/renderer/html_handlebars/hbs_renderer.rs",
+  "line": 340,
+  "col": 22,
+  "rule": "fs_tainted_path",
+  "level": "info",
+  "message": "path written by this call comes from a caller-supplied path"
+ },
+ {
+  "path": "transitions/external/crates/mdbook/0.4.4/mdbook-0.4.4/src/renderer/html_handlebars/hbs_renderer.rs",
+  "line": 401,
+  "col": 30,
+  "rule": "fs_tainted_path",
+  "level": "info",
+  "message": "path written by this call comes from a caller-supplied path"
+ },
+ {
+  "path": "transitions/external/crates/mdbook/0.4.4/mdbook-0.4.4/src/renderer/html_handlebars/hbs_renderer.rs",
+  "line": 492,
+  "col": 28,
+  "rule": "fs_tainted_path",
+  "level": "info",
+  "message": "path written by this call comes from a caller-supplied path"
+ },
+ {
+  "path": "transitions/external/crates/mdbook/0.4.4/mdbook-0.4.4/src/renderer/markdown_renderer.rs",
+  "line": 47,
+  "col": 28,
+  "rule": "fs_tainted_path",
+  "level": "info",
+  "message": "path written by this call comes from a caller-supplied path"
+ },
+ {
+  "path": "transitions/external/crates/mdbook/0.4.4/mdbook-0.4.4/src/renderer/mod.rs",
+  "line": 195,
+  "col": 36,
+  "rule": "fs_tainted_path",
+  "level": "info",
+  "message": "path written by this call comes from a caller-supplied path"
+ },
+ {
+  "path": "transitions/external/crates/mdbook/0.4.4/mdbook-0.4.4/src/utils/fs.rs",
+  "line": 71,
+  "col": 18,
+  "rule": "fs_tainted_path",
+  "level": "info",
+  "message": "path written by this call comes from a caller-supplied path"
+ },
+ {
+  "path": "transitions/external/crates/mdbook/0.4.4/mdbook-0.4.4/src/utils/fs.rs",
+  "line": 129,
+  "col": 32,
+  "rule": "fs_tainted_path",
+  "level": "warn",
+  "message": "path written by this call comes from a caller-supplied path"
+ },
+ {
+  "path": "transitions/external/crates/mdbook/0.4.4/mdbook-0.4.4/src/utils/fs.rs",
+  "line": 168,
+  "col": 17,
+  "rule": "fs_tainted_path",
+  "level": "warn",
+  "message": "path written by this call comes from a caller-supplied path"
+ },
+ {
+  "path": "transitions/external/crates/mdbook/0.4.4/mdbook-0.4.4/tests/dummy_book/mod.rs",
+  "line": 73,
+  "col": 18,
+  "rule": "fs_tainted_path",
+  "level": "info",
+  "message": "path written by this call comes from a caller-supplied path"
+ },
+ {
+  "path": "transitions/external/crates/mdbook/0.4.4/mdbook-0.4.4/tests/dummy_book/mod.rs",
+  "line": 129,
+  "col": 42,
+  "rule": "fs_tainted_path",
+  "level": "info",
+  "message": "path written by this call comes from a caller-supplied path"
+ },
+ {
+  "path": "transitions/external/crates/mdbook/0.4.5/mdbook-0.4.5/src/book/book.rs",
+  "line": 52,
+  "col": 46,
+  "rule": "fs_tainted_path",
+  "level": "info",
+  "message": "path written by this call comes from a caller-supplied path"
+ },
+ {
+  "path": "transitions/external/crates/mdbook/0.4.5/mdbook-0.4.5/src/book/init.rs",
+  "line": 102,
+  "col": 22,
+  "rule": "fs_tainted_path",
+  "level": "info",
+  "message": "path written by this call comes from a caller-supplied path"
+ },
+ {
+  "path": "transitions/external/crates/mdbook/0.4.5/mdbook-0.4.5/src/book/init.rs",
+  "line": 123,
+  "col": 28,
+  "rule": "fs_tainted_path",
+  "level": "info",
+  "message": "path written by this call comes from a caller-supplied path"
+ },
+ {
+  "path": "transitions/external/crates/mdbook/0.4.5/mdbook-0.4.5/src/book/init.rs",
+  "line": 126,
+  "col": 38,
+  "rule": "fs_tainted_path",
+  "level": "info",
+  "message": "path written by this call comes from a caller-supplied path"
+ },
+ {
+  "path": "transitions/external/crates/mdbook/0.4.5/mdbook-0.4.5/src/book/init.rs",
+  "line": 130,
+  "col": 24,
+  "rule": "fs_tainted_path",
+  "level": "info",
+  "message": "path written by this call comes from a caller-supplied path"
+ },
+ {
+  "path": "transitions/external/crates/mdbook/0.4.5/mdbook-0.4.5/src/book/init.rs",
+  "line": 132,
+  "col": 44,
+  "rule": "fs_tainted_path",
+  "level": "info",
+  "message": "path written by this call comes from a caller-supplied path"
+ },
+ {
+  "path": "transitions/external/crates/mdbook/0.4.5/mdbook-0.4.5/src/book/init.rs",
+  "line": 135,
+  "col": 43,
+  "rule": "fs_tainted_path",
+  "level": "info",
+  "message": "path written by this call comes from a caller-supplied path"
+ },
+ {
+  "path": "transitions/external/crates/mdbook/0.4.5/mdbook-0.4.5/src/book/init.rs",
+  "line": 139,
+  "col": 46,
+  "rule": "fs_tainted_path",
+  "level": "info",
+  "message": "path written by this call comes from a caller-supplied path"
+ },
+ {
+  "path": "transitions/external/crates/mdbook/0.4.5/mdbook-0.4.5/src/book/init.rs",
+  "line": 143,
+  "col": 46,
+  "rule": "fs_tainted_path",
+  "level": "info",
+  "message": "path written by this call comes from a caller-supplied path"
+ },
+ {
+  "path": "transitions/external/crates/mdbook/0.4.5/mdbook-0.4.5/src/book/init.rs",
+  "line": 146,
+  "col": 40,
+  "rule": "fs_tainted_path",
+  "level": "info",
+  "message": "path written by this call comes from a caller-supplied path"
+ },
+ {
+  "path": "transitions/external/crates/mdbook/0.4.5/mdbook-0.4.5/src/book/init.rs",
+  "line": 149,
+  "col": 40,
+  "rule": "fs_tainted_path",
+  "level": "info",
+  "message": "path written by this call comes from a caller-supplied path"
+ },
+ {
+  "path": "transitions/external/crates/mdbook/0.4.5/mdbook-0.4.5/src/book/init.rs",
+  "line": 152,
+  "col": 35,
+  "rule": "fs_tainted_path",
+  "level": "info",
+  "message": "path written by this call comes from a caller-supplied path"
+ },
+ {
+  "path": "transitions/external/crates/mdbook/0.4.5/mdbook-0.4.5/src/book/init.rs",
+  "line": 155,
+  "col": 46,
+  "rule": "fs_tainted_path",
+  "level": "info",
+  "message": "path written by this call comes from a caller-supplied path"
+ },
+ {
+  "path": "transitions/external/crates/mdbook/0.4.5/mdbook-0.4.5/src/book/init.rs",
+  "line": 158,
+  "col": 45,
+  "rule": "fs_tainted_path",
+  "level": "info",
+  "message": "path written by this call comes from a caller-supplied path"
+ },
+ {
+  "path": "transitions/external/crates/mdbook/0.4.5/mdbook-0.4.5/src/book/init.rs",
+  "line": 167,
+  "col": 34,
+  "rule": "fs_tainted_path",
+  "level": "info",
+  "message": "path written by this call comes from a caller-supplied path"
+ },
+ {
+  "path": "transitions/external/crates/mdbook/0.4.5/mdbook-0.4.5/src/book/init.rs",
+  "line": 181,
+  "col": 38,
+  "rule": "fs_tainted_path",
+  "level": "info",
+  "message": "path written by this call comes from a caller-supplied path"
+ },
+ {
+  "path": "transitions/external/crates/mdbook/0.4.5/mdbook-0.4.5/src/book/init.rs",
+  "line": 188,
+  "col": 30,
+  "rule": "fs_tainted_path",
+  "level": "info",
+  "message": "path written by this call comes from a caller-supplied path"
+ },
+ {
+  "path": "transitions/external/crates/mdbook/0.4.5/mdbook-0.4.5/src/book/init.rs",
+  "line": 198,
+  "col": 28,
+  "rule": "fs_tainted_path",
+  "level": "info",
+  "message": "path written by this call comes from a caller-supplied path"
+ },
+ {
+  "path": "transitions/external/crates/mdbook/0.4.5/mdbook-0.4.5/src/book/init.rs",
+  "line": 201,
+  "col": 28,
+  "rule": "fs_tainted_path",
+  "level": "info",
+  "message": "path written by this call comes from a caller-supplied path"
+ },
+ {
+  "path": "transitions/external/crates/mdbook/0.4.5/mdbook-0.4.5/src/book/init.rs",
+  "line": 204,
+  "col": 28,
+  "rule": "fs_tainted_path",
+  "level": "info",
+  "message": "path written by this call comes from a caller-supplied path"
+ },
+ {
+  "path": "transitions/external/crates/mdbook/0.4.5/mdbook-0.4.5/src/book/mod.rs",
+  "line": 269,
+  "col": 44,
+  "rule": "exec_basename",
+  "level": "warn",
+  "message": "`rustdoc` is resolved through PATH (and the CWD on Windows)"
+ },
+ {
+  "path": "transitions/external/crates/mdbook/0.4.5/mdbook-0.4.5/src/cmd/init.rs",
+  "line": 74,
+  "col": 31,
+  "rule": "exec_basename",
+  "level": "info",
+  "message": "`git` is resolved through PATH (and the CWD on Windows)"
+ },
+ {
+  "path": "transitions/external/crates/mdbook/0.4.5/mdbook-0.4.5/src/renderer/html_handlebars/hbs_renderer.rs",
+  "line": 340,
+  "col": 22,
+  "rule": "fs_tainted_path",
+  "level": "info",
+  "message": "path written by this call comes from a caller-supplied path"
+ },
+ {
+  "path": "transitions/external/crates/mdbook/0.4.5/mdbook-0.4.5/src/renderer/html_handlebars/hbs_renderer.rs",
+  "line": 401,
+  "col": 30,
+  "rule": "fs_tainted_path",
+  "level": "info",
+  "message": "path written by this call comes from a caller-supplied path"
+ },
+ {
+  "path": "transitions/external/crates/mdbook/0.4.5/mdbook-0.4.5/src/renderer/html_handlebars/hbs_renderer.rs",
+  "line": 492,
+  "col": 28,
+  "rule": "fs_tainted_path",
+  "level": "info",
+  "message": "path written by this call comes from a caller-supplied path"
+ },
+ {
+  "path": "transitions/external/crates/mdbook/0.4.5/mdbook-0.4.5/src/renderer/markdown_renderer.rs",
+  "line": 47,
+  "col": 28,
+  "rule": "fs_tainted_path",
+  "level": "info",
+  "message": "path written by this call comes from a caller-supplied path"
+ },
+ {
+  "path": "transitions/external/crates/mdbook/0.4.5/mdbook-0.4.5/src/renderer/mod.rs",
+  "line": 195,
+  "col": 36,
+  "rule": "fs_tainted_path",
+  "level": "info",
+  "message": "path written by this call comes from a caller-supplied path"
+ },
+ {
+  "path": "transitions/external/crates/mdbook/0.4.5/mdbook-0.4.5/src/utils/fs.rs",
+  "line": 71,
+  "col": 18,
+  "rule": "fs_tainted_path",
+  "level": "info",
+  "message": "path written by this call comes from a caller-supplied path"
+ },
+ {
+  "path": "transitions/external/crates/mdbook/0.4.5/mdbook-0.4.5/src/utils/fs.rs",
+  "line": 129,
+  "col": 32,
+  "rule": "fs_tainted_path",
+  "level": "warn",
+  "message": "path written by this call comes from a caller-supplied path"
+ },
+ {
+  "path": "transitions/external/crates/mdbook/0.4.5/mdbook-0.4.5/src/utils/fs.rs",
+  "line": 168,
+  "col": 17,
+  "rule": "fs_tainted_path",
+  "level": "warn",
+  "message": "path written by this call comes from a caller-supplied path"
+ },
+ {
+  "path": "transitions/external/crates/mdbook/0.4.5/mdbook-0.4.5/tests/dummy_book/mod.rs",
+  "line": 73,
+  "col": 18,
+  "rule": "fs_tainted_path",
+  "level": "info",
+  "message": "path written by this call comes from a caller-supplied path"
+ },
+ {
+  "path": "transitions/external/crates/mdbook/0.4.5/mdbook-0.4.5/tests/dummy_book/mod.rs",
+  "line": 129,
+  "col": 42,
+  "rule": "fs_tainted_path",
+  "level": "info",
+  "message": "path written by this call comes from a caller-supplied path"
+ },
+ {
+  "path": "transitions/external/crates/openssl-src/111.13.0+1.1.1i/openssl-src-111.13.0+1.1.1i/src/lib.rs",
+  "line": 60,
+  "col": 26,
+  "rule": "exec_basename",
+  "level": "info",
+  "message": "`gmake` is resolved through PATH (and the CWD on Windows)"
+ },
+ {
+  "path": "transitions/external/crates/openssl-src/111.13.0+1.1.1i/openssl-src-111.13.0+1.1.1i/src/lib.rs",
+  "line": 62,
+  "col": 26,
+  "rule": "exec_basename",
+  "level": "info",
+  "message": "`make` is resolved through PATH (and the CWD on Windows)"
+ },
+ {
+  "path": "transitions/external/crates/openssl-src/111.13.0+1.1.1i/openssl-src-111.13.0+1.1.1i/src/lib.rs",
+  "line": 74,
+  "col": 32,
+  "rule": "fs_tainted_path",
+  "level": "warn",
+  "message": "path written by this call comes from a caller-supplied path"
+ },
+ {
+  "path": "transitions/external/crates/openssl-src/111.13.0+1.1.1i/openssl-src-111.13.0+1.1.1i/src/lib.rs",
+  "line": 77,
+  "col": 32,
+  "rule": "fs_tainted_path",
+  "level": "warn",
+  "message": "path written by this call comes from a caller-supplied path"
+ },
+ {
+  "path": "transitions/external/crates/openssl-src/111.13.0+1.1.1i/openssl-src-111.13.0+1.1.1i/src/lib.rs",
+  "line": 81,
+  "col": 28,
+  "rule": "fs_tainted_path",
+  "level": "warn",
+  "message": "path written by this call comes from a caller-supplied path"
+ },
+ {
+  "path": "transitions/external/crates/openssl-src/111.13.0+1.1.1i/openssl-src-111.13.0+1.1.1i/src/lib.rs",
+  "line": 87,
+  "col": 42,
+  "rule": "exec_tainted_cmd",
+  "level": "warn",
+  "message": "program name comes from `OPENSSL_SRC_PERL`; PATH/CWD decides what runs"
+ },
+ {
+  "path": "transitions/external/crates/openssl-src/111.13.0+1.1.1i/openssl-src-111.13.0+1.1.1i/src/lib.rs",
+  "line": 402,
+  "col": 28,
+  "rule": "fs_tainted_path",
+  "level": "warn",
+  "message": "path written by this call comes from a caller-supplied path"
+ },
+ {
+  "path": "transitions/external/crates/openssl-src/111.13.0+1.1.1i/openssl-src-111.13.0+1.1.1i/src/lib.rs",
+  "line": 445,
+  "col": 32,
+  "rule": "fs_tainted_path",
+  "level": "info",
+  "message": "path written by this call comes from a caller-supplied path"
+ },
+ {
+  "path": "transitions/external/crates/openssl-src/111.13.0+1.1.1i/openssl-src-111.13.0+1.1.1i/src/lib.rs",
+  "line": 448,
+  "col": 37,
+  "rule": "fs_tainted_path",
+  "level": "info",
+  "message": "path written by this call comes from a caller-supplied path"
+ },
+ {
+  "path": "transitions/external/crates/openssl-src/111.13.0+1.1.1i/openssl-src-111.13.0+1.1.1i/src/lib.rs",
+  "line": 449,
+  "col": 29,
+  "rule": "fs_tainted_path",
+  "level": "info",
+  "message": "path written by this call comes from a caller-supplied path"
+ },
+ {
+  "path": "transitions/external/crates/openssl-src/111.13.0+1.1.1i/openssl-src-111.13.0+1.1.1i/src/lib.rs",
+  "line": 472,
+  "col": 15,
+  "rule": "fs_tainted_path",
+  "level": "info",
+  "message": "path written by this call comes from a caller-supplied path"
+ },
+ {
+  "path": "transitions/external/crates/openssl-src/111.14.0+1.1.1j/openssl-src-111.14.0+1.1.1j/src/lib.rs",
+  "line": 62,
+  "col": 26,
+  "rule": "exec_basename",
+  "level": "info",
+  "message": "`gmake` is resolved through PATH (and the CWD on Windows)"
+ },
+ {
+  "path": "transitions/external/crates/openssl-src/111.14.0+1.1.1j/openssl-src-111.14.0+1.1.1j/src/lib.rs",
+  "line": 64,
+  "col": 26,
+  "rule": "exec_basename",
+  "level": "info",
+  "message": "`make` is resolved through PATH (and the CWD on Windows)"
+ },
+ {
+  "path": "transitions/external/crates/openssl-src/111.14.0+1.1.1j/openssl-src-111.14.0+1.1.1j/src/lib.rs",
+  "line": 76,
+  "col": 32,
+  "rule": "fs_tainted_path",
+  "level": "warn",
+  "message": "path written by this call comes from a caller-supplied path"
+ },
+ {
+  "path": "transitions/external/crates/openssl-src/111.14.0+1.1.1j/openssl-src-111.14.0+1.1.1j/src/lib.rs",
+  "line": 79,
+  "col": 32,
+  "rule": "fs_tainted_path",
+  "level": "warn",
+  "message": "path written by this call comes from a caller-supplied path"
+ },
+ {
+  "path": "transitions/external/crates/openssl-src/111.14.0+1.1.1j/openssl-src-111.14.0+1.1.1j/src/lib.rs",
+  "line": 83,
+  "col": 28,
+  "rule": "fs_tainted_path",
+  "level": "warn",
+  "message": "path written by this call comes from a caller-supplied path"
+ },
+ {
+  "path": "transitions/external/crates/openssl-src/111.14.0+1.1.1j/openssl-src-111.14.0+1.1.1j/src/lib.rs",
+  "line": 89,
+  "col": 42,
+  "rule": "exec_tainted_cmd",
+  "level": "warn",
+  "message": "program name comes from `OPENSSL_SRC_PERL`; PATH/CWD decides what runs"
+ },
+ {
+  "path": "transitions/external/crates/openssl-src/111.14.0+1.1.1j/openssl-src-111.14.0+1.1.1j/src/lib.rs",
+  "line": 400,
+  "col": 28,
+  "rule": "fs_tainted_path",
+  "level": "warn",
+  "message": "path written by this call comes from a caller-supplied path"
+ },
+ {
+  "path": "transitions/external/crates/openssl-src/111.14.0+1.1.1j/openssl-src-111.14.0+1.1.1j/src/lib.rs",
+  "line": 445,
+  "col": 32,
+  "rule": "fs_tainted_path",
+  "level": "info",
+  "message": "path written by this call comes from a caller-supplied path"
+ },
+ {
+  "path": "transitions/external/crates/openssl-src/111.14.0+1.1.1j/openssl-src-111.14.0+1.1.1j/src/lib.rs",
+  "line": 448,
+  "col": 37,
+  "rule": "fs_tainted_path",
+  "level": "info",
+  "message": "path written by this call comes from a caller-supplied path"
+ },
+ {
+  "path": "transitions/external/crates/openssl-src/111.14.0+1.1.1j/openssl-src-111.14.0+1.1.1j/src/lib.rs",
+  "line": 449,
+  "col": 29,
+  "rule": "fs_tainted_path",
+  "level": "info",
+  "message": "path written by this call comes from a caller-supplied path"
+ },
+ {
+  "path": "transitions/external/crates/openssl-src/111.14.0+1.1.1j/openssl-src-111.14.0+1.1.1j/src/lib.rs",
+  "line": 472,
+  "col": 15,
+  "rule": "fs_tainted_path",
+  "level": "info",
+  "message": "path written by this call comes from a caller-supplied path"
+ },
+ {
+  "path": "transitions/external/crates/openssl-src/111.15.0+1.1.1k/openssl-src-111.15.0+1.1.1k/src/lib.rs",
+  "line": 62,
+  "col": 26,
+  "rule": "exec_basename",
+  "level": "info",
+  "message": "`gmake` is resolved through PATH (and the CWD on Windows)"
+ },
+ {
+  "path": "transitions/external/crates/openssl-src/111.15.0+1.1.1k/openssl-src-111.15.0+1.1.1k/src/lib.rs",
+  "line": 64,
+  "col": 26,
+  "rule": "exec_basename",
+  "level": "info",
+  "message": "`make` is resolved through PATH (and the CWD on Windows)"
+ },
+ {
+  "path": "transitions/external/crates/openssl-src/111.15.0+1.1.1k/openssl-src-111.15.0+1.1.1k/src/lib.rs",
+  "line": 123,
+  "col": 32,
+  "rule": "fs_tainted_path",
+  "level": "warn",
+  "message": "path written by this call comes from a caller-supplied path"
+ },
+ {
+  "path": "transitions/external/crates/openssl-src/111.15.0+1.1.1k/openssl-src-111.15.0+1.1.1k/src/lib.rs",
+  "line": 126,
+  "col": 32,
+  "rule": "fs_tainted_path",
+  "level": "warn",
+  "message": "path written by this call comes from a caller-supplied path"
+ },
+ {
+  "path": "transitions/external/crates/openssl-src/111.15.0+1.1.1k/openssl-src-111.15.0+1.1.1k/src/lib.rs",
+  "line": 130,
+  "col": 28,
+  "rule": "fs_tainted_path",
+  "level": "warn",
+  "message": "path written by this call comes from a caller-supplied path"
+ },
+ {
+  "path": "transitions/external/crates/openssl-src/111.15.0+1.1.1k/openssl-src-111.15.0+1.1.1k/src/lib.rs",
+  "line": 136,
+  "col": 42,
+  "rule": "exec_tainted_cmd",
+  "level": "warn",
+  "message": "program name comes from `OPENSSL_SRC_PERL`; PATH/CWD decides what runs"
+ },
+ {
+  "path": "transitions/external/crates/openssl-src/111.15.0+1.1.1k/openssl-src-111.15.0+1.1.1k/src/lib.rs",
+  "line": 456,
+  "col": 28,
+  "rule": "fs_tainted_path",
+  "level": "warn",
+  "message": "path written by this call comes from a caller-supplied path"
+ },
+ {
+  "path": "transitions/external/crates/openssl-src/111.15.0+1.1.1k/openssl-src-111.15.0+1.1.1k/src/lib.rs",
+  "line": 501,
+  "col": 32,
+  "rule": "fs_tainted_path",
+  "level": "info",
+  "message": "path written by this call comes from a caller-supplied path"
+ },
+ {
+  "path": "transitions/external/crates/openssl-src/111.15.0+1.1.1k/openssl-src-111.15.0+1.1.1k/src/lib.rs",
+  "line": 504,
+  "col": 37,
+  "rule": "fs_tainted_path",
+  "level": "info",
+  "message": "path written by this call comes from a caller-supplied path"
+ },
+ {
+  "path": "transitions/external/crates/openssl-src/111.15.0+1.1.1k/openssl-src-111.15.0+1.1.1k/src/lib.rs",
+  "line": 505,
+  "col": 29,
+  "rule": "fs_tainted_path",
+  "level": "info",
+  "message": "path written by this call comes from a caller-supplied path"
+ },
+ {
+  "path": "transitions/external/crates/openssl-src/111.15.0+1.1.1k/openssl-src-111.15.0+1.1.1k/src/lib.rs",
+  "line": 528,
+  "col": 15,
+  "rule": "fs_tainted_path",
+  "level": "info",
+  "message": "path written by this call comes from a caller-supplied path"
+ },
+ {
+  "path": "transitions/external/crates/openssl-src/111.8.1+1.1.1f/openssl-src-111.8.1+1.1.1f/src/lib.rs",
+  "line": 60,
+  "col": 26,
+  "rule": "exec_basename",
+  "level": "info",
+  "message": "`gmake` is resolved through PATH (and the CWD on Windows)"
+ },
+ {
+  "path": "transitions/external/crates/openssl-src/111.8.1+1.1.1f/openssl-src-111.8.1+1.1.1f/src/lib.rs",
+  "line": 62,
+  "col": 26,
+  "rule": "exec_basename",
+  "level": "info",
+  "message": "`make` is resolved through PATH (and the CWD on Windows)"
+ },
+ {
+  "path": "transitions/external/crates/openssl-src/111.8.1+1.1.1f/openssl-src-111.8.1+1.1.1f/src/lib.rs",
+  "line": 74,
+  "col": 32,
+  "rule": "fs_tainted_path",
+  "level": "warn",
+  "message": "path written by this call comes from a caller-supplied path"
+ },
+ {
+  "path": "transitions/external/crates/openssl-src/111.8.1+1.1.1f/openssl-src-111.8.1+1.1.1f/src/lib.rs",
+  "line": 77,
+  "col": 32,
+  "rule": "fs_tainted_path",
+  "level": "warn",
+  "message": "path written by this call comes from a caller-supplied path"
+ },
+ {
+  "path": "transitions/external/crates/openssl-src/111.8.1+1.1.1f/openssl-src-111.8.1+1.1.1f/src/lib.rs",
+  "line": 81,
+  "col": 28,
+  "rule": "fs_tainted_path",
+  "level": "warn",
+  "message": "path written by this call comes from a caller-supplied path"
+ },
+ {
+  "path": "transitions/external/crates/openssl-src/111.8.1+1.1.1f/openssl-src-111.8.1+1.1.1f/src/lib.rs",
+  "line": 87,
+  "col": 42,
+  "rule": "exec_tainted_cmd",
+  "level": "warn",
+  "message": "program name comes from `OPENSSL_SRC_PERL`; PATH/CWD decides what runs"
+ },
+ {
+  "path": "transitions/external/crates/openssl-src/111.8.1+1.1.1f/openssl-src-111.8.1+1.1.1f/src/lib.rs",
+  "line": 366,
+  "col": 28,
+  "rule": "fs_tainted_path",
+  "level": "warn",
+  "message": "path written by this call comes from a caller-supplied path"
+ },
+ {
+  "path": "transitions/external/crates/openssl-src/111.8.1+1.1.1f/openssl-src-111.8.1+1.1.1f/src/lib.rs",
+  "line": 409,
+  "col": 32,
+  "rule": "fs_tainted_path",
+  "level": "info",
+  "message": "path written by this call comes from a caller-supplied path"
+ },
+ {
+  "path": "transitions/external/crates/openssl-src/111.8.1+1.1.1f/openssl-src-111.8.1+1.1.1f/src/lib.rs",
+  "line": 412,
+  "col": 37,
+  "rule": "fs_tainted_path",
+  "level": "info",
+  "message": "path written by this call comes from a caller-supplied path"
+ },
+ {
+  "path": "transitions/external/crates/openssl-src/111.8.1+1.1.1f/openssl-src-111.8.1+1.1.1f/src/lib.rs",
+  "line": 413,
+  "col": 29,
+  "rule": "fs_tainted_path",
+  "level": "info",
+  "message": "path written by this call comes from a caller-supplied path"
+ },
+ {
+  "path": "transitions/external/crates/openssl-src/111.8.1+1.1.1f/openssl-src-111.8.1+1.1.1f/src/lib.rs",
+  "line": 433,
+  "col": 18,
+  "rule": "fs_tainted_path",
+  "level": "info",
+  "message": "path written by this call comes from a caller-supplied path"
+ },
+ {
+  "path": "transitions/external/crates/openssl-src/111.9.0+1.1.1g/openssl-src-111.9.0+1.1.1g/src/lib.rs",
+  "line": 60,
+  "col": 26,
+  "rule": "exec_basename",
+  "level": "info",
+  "message": "`gmake` is resolved through PATH (and the CWD on Windows)"
+ },
+ {
+  "path": "transitions/external/crates/openssl-src/111.9.0+1.1.1g/openssl-src-111.9.0+1.1.1g/src/lib.rs",
+  "line": 62,
+  "col": 26,
+  "rule": "exec_basename",
+  "level": "info",
+  "message": "`make` is resolved through PATH (and the CWD on Windows)"
+ },
+ {
+  "path": "transitions/external/crates/openssl-src/111.9.0+1.1.1g/openssl-src-111.9.0+1.1.1g/src/lib.rs",
+  "line": 74,
+  "col": 32,
+  "rule": "fs_tainted_path",
+  "level": "warn",
+  "message": "path written by this call comes from a caller-supplied path"
+ },
+ {
+  "path": "transitions/external/crates/openssl-src/111.9.0+1.1.1g/openssl-src-111.9.0+1.1.1g/src/lib.rs",
+  "line": 77,
+  "col": 32,
+  "rule": "fs_tainted_path",
+  "level": "warn",
+  "message": "path written by this call comes from a caller-supplied path"
+ },
+ {
+  "path": "transitions/external/crates/openssl-src/111.9.0+1.1.1g/openssl-src-111.9.0+1.1.1g/src/lib.rs",
+  "line": 81,
+  "col": 28,
+  "rule": "fs_tainted_path",
+  "level": "warn",
+  "message": "path written by this call comes from a caller-supplied path"
+ },
+ {
+  "path": "transitions/external/crates/openssl-src/111.9.0+1.1.1g/openssl-src-111.9.0+1.1.1g/src/lib.rs",
+  "line": 87,
+  "col": 42,
+  "rule": "exec_tainted_cmd",
+  "level": "warn",
+  "message": "program name comes from `OPENSSL_SRC_PERL`; PATH/CWD decides what runs"
+ },
+ {
+  "path": "transitions/external/crates/openssl-src/111.9.0+1.1.1g/openssl-src-111.9.0+1.1.1g/src/lib.rs",
+  "line": 366,
+  "col": 28,
+  "rule": "fs_tainted_path",
+  "level": "warn",
+  "message": "path written by this call comes from a caller-supplied path"
+ },
+ {
+  "path": "transitions/external/crates/openssl-src/111.9.0+1.1.1g/openssl-src-111.9.0+1.1.1g/src/lib.rs",
+  "line": 409,
+  "col": 32,
+  "rule": "fs_tainted_path",
+  "level": "info",
+  "message": "path written by this call comes from a caller-supplied path"
+ },
+ {
+  "path": "transitions/external/crates/openssl-src/111.9.0+1.1.1g/openssl-src-111.9.0+1.1.1g/src/lib.rs",
+  "line": 412,
+  "col": 37,
+  "rule": "fs_tainted_path",
+  "level": "info",
+  "message": "path written by this call comes from a caller-supplied path"
+ },
+ {
+  "path": "transitions/external/crates/openssl-src/111.9.0+1.1.1g/openssl-src-111.9.0+1.1.1g/src/lib.rs",
+  "line": 413,
+  "col": 29,
+  "rule": "fs_tainted_path",
+  "level": "info",
+  "message": "path written by this call comes from a caller-supplied path"
+ },
+ {
+  "path": "transitions/external/crates/openssl-src/111.9.0+1.1.1g/openssl-src-111.9.0+1.1.1g/src/lib.rs",
+  "line": 433,
+  "col": 18,
+  "rule": "fs_tainted_path",
+  "level": "info",
+  "message": "path written by this call comes from a caller-supplied path"
+ },
+ {
+  "path": "transitions/external/crates/openssl/0.10.8/openssl-0.10.8/src/ssl/test.rs",
+  "line": 60,
+  "col": 38,
+  "rule": "exec_basename",
+  "level": "info",
+  "message": "`openssl` is resolved through PATH (and the CWD on Windows)"
+ },
+ {
+  "path": "transitions/external/crates/openssl/0.10.9/openssl-0.10.9/src/ssl/test.rs",
+  "line": 60,
+  "col": 38,
+  "rule": "exec_basename",
+  "level": "info",
+  "message": "`openssl` is resolved through PATH (and the CWD on Windows)"
+ },
+ {
+  "path": "transitions/external/crates/openssl/0.8.3/openssl-0.8.3/src/ssl/tests/mod.rs",
+  "line": 54,
+  "col": 38,
+  "rule": "exec_basename",
+  "level": "info",
+  "message": "`openssl` is resolved through PATH (and the CWD on Windows)"
+ },
+ {
+  "path": "transitions/external/crates/openssl/0.9.0/openssl-0.9.0/src/ssl/tests/mod.rs",
+  "line": 57,
+  "col": 38,
+  "rule": "exec_basename",
+  "level": "info",
+  "message": "`openssl` is resolved through PATH (and the CWD on Windows)"
+ },
+ {
+  "path": "transitions/external/crates/protobuf/2.5.0/protobuf-2.5.0/build.rs",
+  "line": 16,
+  "col": 26,
+  "rule": "env_read_dangerous",
+  "level": "info",
+  "message": "`RUSTC` read from the environment: a taint source"
+ },
+ {
+  "path": "transitions/external/crates/protobuf/2.5.0/protobuf-2.5.0/build.rs",
+  "line": 18,
+  "col": 43,
+  "rule": "exec_tainted_cmd",
+  "level": "warn",
+  "message": "program name comes from `RUSTC`; PATH/CWD decides what runs"
+ },
+ {
+  "path": "transitions/external/crates/protobuf/2.6.0/protobuf-2.6.0/build.rs",
+  "line": 16,
+  "col": 26,
+  "rule": "env_read_dangerous",
+  "level": "info",
+  "message": "`RUSTC` read from the environment: a taint source"
+ },
+ {
+  "path": "transitions/external/crates/protobuf/2.6.0/protobuf-2.6.0/build.rs",
+  "line": 18,
+  "col": 43,
+  "rule": "exec_tainted_cmd",
+  "level": "warn",
+  "message": "program name comes from `RUSTC`; PATH/CWD decides what runs"
+ },
+ {
+  "path": "transitions/external/crates/pyo3/0.11.1/pyo3-0.11.1/build.rs",
+  "line": 277,
+  "col": 28,
+  "rule": "exec_tainted_cmd",
+  "level": "warn",
+  "message": "program name comes from caller-controlled; PATH/CWD decides what runs"
+ },
+ {
+  "path": "transitions/external/crates/pyo3/0.11.1/pyo3-0.11.1/build.rs",
+  "line": 404,
+  "col": 51,
+  "rule": "exec_tainted_cmd",
+  "level": "warn",
+  "message": "program name comes from caller-controlled; PATH/CWD decides what runs"
+ },
+ {
+  "path": "transitions/external/crates/pyo3/0.12.4/pyo3-0.12.4/build.rs",
+  "line": 532,
+  "col": 28,
+  "rule": "exec_tainted_cmd",
+  "level": "warn",
+  "message": "program name comes from caller-controlled; PATH/CWD decides what runs"
+ },
+ {
+  "path": "transitions/external/crates/pyo3/0.12.4/pyo3-0.12.4/build.rs",
+  "line": 645,
+  "col": 47,
+  "rule": "exec_tainted_cmd",
+  "level": "warn",
+  "message": "program name comes from caller-controlled; PATH/CWD decides what runs"
+ },
+ {
+  "path": "transitions/external/crates/rocket/0.4.4/rocket-0.4.4/src/data/data.rs",
+  "line": 225,
+  "col": 54,
+  "rule": "fs_tainted_path",
+  "level": "info",
+  "message": "path written by this call comes from a caller-supplied path"
+ },
+ {
+  "path": "transitions/external/crates/rocket/0.4.5/rocket-0.4.5/src/data/data.rs",
+  "line": 225,
+  "col": 54,
+  "rule": "fs_tainted_path",
+  "level": "info",
+  "message": "path written by this call comes from a caller-supplied path"
+ },
+ {
+  "path": "transitions/external/crates/rocket/0.4.6/rocket-0.4.6/src/data/data.rs",
+  "line": 229,
+  "col": 54,
+  "rule": "fs_tainted_path",
+  "level": "info",
+  "message": "path written by this call comes from a caller-supplied path"
+ },
+ {
+  "path": "transitions/external/crates/rocket/0.4.7/rocket-0.4.7/src/data/data.rs",
+  "line": 229,
+  "col": 54,
+  "rule": "fs_tainted_path",
+  "level": "info",
+  "message": "path written by this call comes from a caller-supplied path"
+ },
+ {
+  "path": "transitions/external/crates/tar/0.4.15/tar-0.4.15/src/entry.rs",
+  "line": 411,
+  "col": 35,
+  "rule": "fs_tainted_path",
+  "level": "info",
+  "message": "path written by this call comes from a caller-supplied path"
+ },
+ {
+  "path": "transitions/external/crates/tar/0.4.15/tar-0.4.15/src/entry.rs",
+  "line": 436,
+  "col": 42,
+  "rule": "fs_tainted_path",
+  "level": "info",
+  "message": "path written by this call comes from a caller-supplied path"
+ },
+ {
+  "path": "transitions/external/crates/tar/0.4.15/tar-0.4.15/src/entry.rs",
+  "line": 536,
+  "col": 33,
+  "rule": "fs_tainted_path",
+  "level": "info",
+  "message": "path written by this call comes from a caller-supplied path"
+ },
+ {
+  "path": "transitions/external/crates/tar/0.4.16/tar-0.4.16/src/entry.rs",
+  "line": 399,
+  "col": 35,
+  "rule": "fs_tainted_path",
+  "level": "info",
+  "message": "path written by this call comes from a caller-supplied path"
+ },
+ {
+  "path": "transitions/external/crates/tar/0.4.16/tar-0.4.16/src/entry.rs",
+  "line": 439,
+  "col": 42,
+  "rule": "fs_tainted_path",
+  "level": "info",
+  "message": "path written by this call comes from a caller-supplied path"
+ },
+ {
+  "path": "transitions/external/crates/tar/0.4.16/tar-0.4.16/src/entry.rs",
+  "line": 489,
+  "col": 35,
+  "rule": "fs_tainted_path",
+  "level": "info",
+  "message": "path written by this call comes from a caller-supplied path"
+ },
+ {
+  "path": "transitions/external/crates/tar/0.4.16/tar-0.4.16/src/entry.rs",
+  "line": 494,
+  "col": 42,
+  "rule": "fs_tainted_path",
+  "level": "info",
+  "message": "path written by this call comes from a caller-supplied path"
+ },
+ {
+  "path": "transitions/external/crates/tar/0.4.16/tar-0.4.16/src/entry.rs",
+  "line": 548,
+  "col": 33,
+  "rule": "fs_tainted_path",
+  "level": "info",
+  "message": "path written by this call comes from a caller-supplied path"
+ },
+ {
+  "path": "transitions/external/crates/temporary/0.6.3/temporary-0.6.3/src/lib.rs",
+  "line": 68,
+  "col": 34,
+  "rule": "fs_tainted_path",
+  "level": "warn",
+  "message": "path written by this call comes from a caller-supplied path"
+ },
+ {
+  "path": "transitions/external/crates/temporary/0.6.3/temporary-0.6.3/src/lib.rs",
+  "line": 109,
+  "col": 28,
+  "rule": "fs_tainted_path",
+  "level": "info",
+  "message": "path written by this call comes from a caller-supplied path"
+ },
+ {
+  "path": "transitions/external/crates/temporary/0.6.4/temporary-0.6.4/src/lib.rs",
+  "line": 68,
+  "col": 34,
+  "rule": "fs_tainted_path",
+  "level": "warn",
+  "message": "path written by this call comes from a caller-supplied path"
+ },
+ {
+  "path": "transitions/external/crates/temporary/0.6.4/temporary-0.6.4/src/lib.rs",
+  "line": 114,
+  "col": 28,
+  "rule": "fs_tainted_path",
+  "level": "info",
+  "message": "path written by this call comes from a caller-supplied path"
+ },
+ {
+  "path": "transitions/external/crates/tiny_http/0.7.0/tiny_http-0.7.0/benches/bench.rs",
+  "line": 19,
+  "col": 24,
+  "rule": "exec_basename",
+  "level": "info",
+  "message": "`curl` is resolved through PATH (and the CWD on Windows)"
+ },
+ {
+  "path": "transitions/external/crates/tiny_http/0.7.0/tiny_http-0.7.0/examples/php-cgi.rs",
+  "line": 18,
+  "col": 28,
+  "rule": "exec_basename",
+  "level": "info",
+  "message": "`php-cgi` is resolved through PATH (and the CWD on Windows)"
+ },
+ {
+  "path": "transitions/external/crates/tiny_http/0.8.0/tiny_http-0.8.0/benches/bench.rs",
+  "line": 19,
+  "col": 24,
+  "rule": "exec_basename",
+  "level": "info",
+  "message": "`curl` is resolved through PATH (and the CWD on Windows)"
+ },
+ {
+  "path": "transitions/external/crates/tiny_http/0.8.0/tiny_http-0.8.0/examples/php-cgi.rs",
+  "line": 18,
+  "col": 28,
+  "rule": "exec_basename",
+  "level": "info",
+  "message": "`php-cgi` is resolved through PATH (and the CWD on Windows)"
+ },
+ {
+  "path": "transitions/external/crates/tough/0.7.0/tough-0.7.0/src/cache.rs",
+  "line": 32,
+  "col": 33,
+  "rule": "fs_tainted_path",
+  "level": "info",
+  "message": "path written by this call comes from a caller-supplied path"
+ },
+ {
+  "path": "transitions/external/crates/tough/0.7.0/tough-0.7.0/src/cache.rs",
+  "line": 35,
+  "col": 33,
+  "rule": "fs_tainted_path",
+  "level": "info",
+  "message": "path written by this call comes from a caller-supplied path"
+ },
+ {
+  "path": "transitions/external/crates/tough/0.7.0/tough-0.7.0/src/cache.rs",
+  "line": 124,
+  "col": 46,
+  "rule": "fs_tainted_path",
+  "level": "info",
+  "message": "path written by this call comes from a caller-supplied path"
+ },
+ {
+  "path": "transitions/external/crates/tough/0.7.0/tough-0.7.0/src/cache.rs",
+  "line": 153,
+  "col": 19,
+  "rule": "fs_tainted_path",
+  "level": "info",
+  "message": "path written by this call comes from a caller-supplied path"
+ },
+ {
+  "path": "transitions/external/crates/tough/0.7.0/tough-0.7.0/src/datastore.rs",
+  "line": 45,
+  "col": 26,
+  "rule": "fs_tainted_path",
+  "level": "warn",
+  "message": "path written by this call comes from a caller-supplied path"
+ },
+ {
+  "path": "transitions/external/crates/tough/0.7.0/tough-0.7.0/src/datastore.rs",
+  "line": 56,
+  "col": 31,
+  "rule": "fs_tainted_path",
+  "level": "warn",
+  "message": "path written by this call comes from a caller-supplied path"
+ },
+ {
+  "path": "transitions/external/crates/tough/0.7.0/tough-0.7.0/src/editor/signed.rs",
+  "line": 128,
+  "col": 33,
+  "rule": "fs_tainted_path",
+  "level": "info",
+  "message": "path written by this call comes from a caller-supplied path"
+ },
+ {
+  "path": "transitions/external/crates/tough/0.7.0/tough-0.7.0/src/editor/signed.rs",
+  "line": 150,
+  "col": 24,
+  "rule": "fs_tainted_path",
+  "level": "warn",
+  "message": "path written by this call comes from a caller-supplied path"
+ },
+ {
+  "path": "transitions/external/crates/tough/0.7.0/tough-0.7.0/src/editor/signed.rs",
+  "line": 193,
+  "col": 33,
+  "rule": "fs_tainted_path",
+  "level": "info",
+  "message": "path written by this call comes from a caller-supplied path"
+ },
+ {
+  "path": "transitions/external/crates/tough/0.7.0/tough-0.7.0/src/editor/signed.rs",
+  "line": 356,
+  "col": 18,
+  "rule": "fs_tainted_path",
+  "level": "info",
+  "message": "path written by this call comes from a caller-supplied path"
+ },
+ {
+  "path": "transitions/external/crates/tough/0.7.0/tough-0.7.0/src/key_source.rs",
+  "line": 42,
+  "col": 27,
+  "rule": "fs_tainted_path",
+  "level": "info",
+  "message": "path written by this call comes from a caller-supplied path"
+ },
+ {
+  "path": "transitions/external/crates/tough/0.7.1/tough-0.7.1/src/cache.rs",
+  "line": 32,
+  "col": 33,
+  "rule": "fs_tainted_path",
+  "level": "info",
+  "message": "path written by this call comes from a caller-supplied path"
+ },
+ {
+  "path": "transitions/external/crates/tough/0.7.1/tough-0.7.1/src/cache.rs",
+  "line": 35,
+  "col": 33,
+  "rule": "fs_tainted_path",
+  "level": "info",
+  "message": "path written by this call comes from a caller-supplied path"
+ },
+ {
+  "path": "transitions/external/crates/tough/0.7.1/tough-0.7.1/src/cache.rs",
+  "line": 124,
+  "col": 46,
+  "rule": "fs_tainted_path",
+  "level": "info",
+  "message": "path written by this call comes from a caller-supplied path"
+ },
+ {
+  "path": "transitions/external/crates/tough/0.7.1/tough-0.7.1/src/cache.rs",
+  "line": 153,
+  "col": 19,
+  "rule": "fs_tainted_path",
+  "level": "info",
+  "message": "path written by this call comes from a caller-supplied path"
+ },
+ {
+  "path": "transitions/external/crates/tough/0.7.1/tough-0.7.1/src/datastore.rs",
+  "line": 45,
+  "col": 26,
+  "rule": "fs_tainted_path",
+  "level": "warn",
+  "message": "path written by this call comes from a caller-supplied path"
+ },
+ {
+  "path": "transitions/external/crates/tough/0.7.1/tough-0.7.1/src/datastore.rs",
+  "line": 56,
+  "col": 31,
+  "rule": "fs_tainted_path",
+  "level": "warn",
+  "message": "path written by this call comes from a caller-supplied path"
+ },
+ {
+  "path": "transitions/external/crates/tough/0.7.1/tough-0.7.1/src/editor/signed.rs",
+  "line": 128,
+  "col": 33,
+  "rule": "fs_tainted_path",
+  "level": "info",
+  "message": "path written by this call comes from a caller-supplied path"
+ },
+ {
+  "path": "transitions/external/crates/tough/0.7.1/tough-0.7.1/src/editor/signed.rs",
+  "line": 150,
+  "col": 24,
+  "rule": "fs_tainted_path",
+  "level": "warn",
+  "message": "path written by this call comes from a caller-supplied path"
+ },
+ {
+  "path": "transitions/external/crates/tough/0.7.1/tough-0.7.1/src/editor/signed.rs",
+  "line": 193,
+  "col": 33,
+  "rule": "fs_tainted_path",
+  "level": "info",
+  "message": "path written by this call comes from a caller-supplied path"
+ },
+ {
+  "path": "transitions/external/crates/tough/0.7.1/tough-0.7.1/src/editor/signed.rs",
+  "line": 356,
+  "col": 18,
+  "rule": "fs_tainted_path",
+  "level": "info",
+  "message": "path written by this call comes from a caller-supplied path"
+ },
+ {
+  "path": "transitions/external/crates/tough/0.7.1/tough-0.7.1/src/key_source.rs",
+  "line": 42,
+  "col": 27,
+  "rule": "fs_tainted_path",
+  "level": "info",
+  "message": "path written by this call comes from a caller-supplied path"
+ },
+ {
+  "path": "transitions/external/crates/xcb/0.10.1/xcb-0.10.1/build/main.rs",
+  "line": 87,
+  "col": 17,
+  "rule": "env_read_dangerous",
+  "level": "info",
+  "message": "`PATH` read from the environment: a taint source"
+ },
+ {
+  "path": "transitions/external/crates/xcb/0.10.1/xcb-0.10.1/build/output.rs",
+  "line": 15,
+  "col": 35,
+  "rule": "fs_tainted_path",
+  "level": "info",
+  "message": "path written by this call comes from a caller-supplied path"
+ },
+ {
+  "path": "transitions/external/crates/xcb/1.0.0-beta.0/xcb-1.0.0-beta.0/build/main.rs",
+  "line": 100,
+  "col": 17,
+  "rule": "env_read_dangerous",
+  "level": "info",
+  "message": "`PATH` read from the environment: a taint source"
+ },
+ {
+  "path": "transitions/external/crates/xcb/1.0.0-beta.0/xcb-1.0.0-beta.0/build/output.rs",
+  "line": 15,
+  "col": 35,
+  "rule": "fs_tainted_path",
+  "level": "info",
+  "message": "path written by this call comes from a caller-supplied path"
+ }
+]

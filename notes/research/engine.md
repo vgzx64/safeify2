@@ -180,8 +180,40 @@ not an assertion:
 | corpus findings / `warn` | 251 / 31 | — |
 | wall time, 147 crates | ~2.5–4 min | — |
 
+Corpus-wide differential (329 crate versions, 8,426 files), old text engine vs
+`safeify-lint`, keyed on `(rule, file, line)`. Artifact:
+[`lint_corpus_semantic_2026-11-19.json`](../../research/detect/out/lint_corpus_semantic_2026-11-19.json),
+driver [`run_semantic_corpus.py`](../../research/detect/run_semantic_corpus.py).
+Semantic engine: 232 findings in 82 files (old census: 251 in 91).
+
+| Rule | old | new | common | old-only | new-only |
+|---|---|---|---|---|---|
+| `exec_basename` | 85 | 55 | 55 | 30 | 0 |
+| `exec_tainted_cmd` | 14 | 15 | 11 | 3 | 4 |
+| `fs_tainted_path` | 141 | 155 | 123 | 18 | 32 |
+| `build_outside_out_dir` | 4 | 2 | 2 | 2 | 0 |
+| `env_read_dangerous` | 5 | 5 | 5 | 0 | 0 |
+
+Old-only causes, each checked against the source:
+
+- **files that are not a Cargo target** (slice-deque `ci/*.rs`, 10 sites): the
+  semantic engine walks the crate graph, so a script that no target includes is
+  never compiled and never scanned. The text engine lints it anyway.
+- **`#[cfg(windows)]` blocks** (arrayfire `build.rs`, 6 sites): only the active
+  configuration resolves.
+- **`Command` types from unresolved dependencies** (lettre `&self.command`,
+  chrono `path`): `no_deps` cannot resolve a non-`std` `Command::new`, so the
+  sink is invisible. This is the largest honest coverage gap and is what a
+  `--deps` mode would recover.
+- **macro arguments** (simd-json `format!(".baseline/{}.json", name)`): macro
+  token trees are not walked yet; `format!`/`concat!` need expansion.
+
+New-only causes: the mdbook binding-resolution gains (9) and the openssl field
+false positives (2) described above; the remainder are the same classes on other
+crates.
+
 Differential status on 10 corpus crates (2026-11-19), old text engine vs
-`safeify-lint`, keyed on `(rule, file, line)`:
+`safeify-lint`, keyed on `(rule, file, line)` — per-crate detail:
 
 | Rule | old | new | common | old-only | new-only |
 |---|---|---|---|---|---|
