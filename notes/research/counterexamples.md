@@ -129,18 +129,18 @@ parameter).
 | Rule | deny | warn | info |
 |---|---|---|---|
 | `exec_basename` | 0 | 16 | 69 |
-| `exec_tainted_cmd` | 0 | 9 | 3 |
+| `exec_tainted_cmd` | 0 | 11 | 3 |
 | `build_outside_out_dir` | 0 | 4 | 0 |
-| `fs_tainted_path` | 0 | 0 | 137 |
+| `fs_tainted_path` | 0 | 0 | 143 |
 | `env_read_dangerous` | 0 | 0 | 5 |
 | `fs_special_path` | 0 | 0 | 0 |
 | `fs_traversal_literal` | 0 | 0 | 0 |
 | `env_set_dangerous` | 0 | 0 | 0 |
 | `exec_shell_tainted` | 0 | 0 | 0 |
-| **total** | **0** | **29** | **214** |
+| **total** | **0** | **31** | **220** |
 
-243 findings in 86 of 8,426 files (1.0%); 26 are in `build.rs`, 41 in
-`tests/`+`examples/`. Concentration: `openssl-src` 45, `mdbook` 42,
+251 findings in 91 of 8,426 files (1.1%); 26 are in `build.rs`, 41 in
+`tests/`+`examples/`. Concentration: `mdbook` 48, `openssl-src` 45,
 `slice-deque` 27, `bam` 24, `tough` 22, `arrayfire` 16. Artifact:
 [`lint_corpus_2026-11-19.json`](../../research/detect/out/lint_corpus_2026-11-19.json).
 
@@ -153,8 +153,8 @@ considered.
 ### 7.3 Precision audit (done, 2026-11-19)
 
 **Frame.** Census, not a sample: after deduplicating the same code site across
-crate versions, the corpus has **23 unique `warn`/`deny` sites in 8 crates**,
-and all 23 were labelled by reading each site with four lines of context. The
+crate versions, the corpus has **25 unique `warn`/`deny` sites in 9 crates**,
+and all 25 were labelled by reading each site with four lines of context. The
 sheet and labels are reproducible:
 
 ```
@@ -170,23 +170,30 @@ attention" are different questions:
 | Rule | sites | correct (TP+TL) | strict TP (actionable) |
 |---|---|---|---|
 | `build_outside_out_dir` | 4 | 4 (1.00) | 4 (1.00) |
-| `exec_tainted_cmd` | 6 | 6 (1.00) | 4 (0.67) |
+| `exec_tainted_cmd` | 8 | 7 (0.88) | 5 (0.62) |
 | `exec_basename` | 13 | 13 (1.00) | 3 (0.23) |
-| **all** | **23** | **23 (1.00 [0.86, 1.00])** | **11 (0.48 [0.29, 0.67])** |
+| **all** | **25** | **24 (0.96 [0.80, 0.99])** | **12 (0.48 [0.30, 0.67])** |
 
 Interval on the correctness column: Wilson 95%; the crate-clustered bootstrap is
-[1.00, 1.00] because no crate contains a false positive, so there is no
-resampling variance to report — with 8 crates and `arrayfire` contributing 12
-sites, the honest statement is "no false positive observed", not "precision is
-1.00 with tight bounds".
+[0.80, 1.00], which is the honest width — 9 crates, `arrayfire` contributing 12
+of the 25 sites.
 
-**What the census says.** After the two fixes below, the lints produced **zero
-false positives** on this corpus. But only 48% of the actionable findings would
-change a reviewer's decision. The three strict `exec_basename` hits are
-`mdbook`'s `pub fn MDBook::test` spawning `rustdoc`, and `sys-info`'s
-`pub fn hostname()` on Windows; the ten non-actionable ones are
-`cmake`/`make`/`MSBuild.exe`/`git` invocations in `build.rs`, 8 of them from a
-single crate (arrayfire, two versions).
+The single false positive is `grep-cli` **0.1.6**, the patched version: the fix
+resolves the decompressor with `resolve_binary()` in the builder, so `bin` is an
+absolute `PathBuf`, but the call site still reads `Command::new(&decomp_cmd.bin)`
+and the linter cannot see the resolution across the function boundary. The
+warning is right about the pattern and wrong about the version. Cross-function
+evidence (or an interprocedural guard) is what would separate 0.1.5 from 0.1.6,
+and that is out of reach for this lattice.
+
+**What the census says.** After the fixes below, the lints produce **one false
+positive in 25** — the patched `grep-cli` 0.1.6 above. But only 48% of the
+actionable findings would change a reviewer's decision: the strict hits are
+`mdbook`'s `pub fn MDBook::test` spawning `rustdoc`, `sys-info`'s
+`pub fn hostname()` on Windows, the vulnerable `grep-cli` 0.1.5 line, and six
+environment-selected program names (`openssl-src`, `protobuf`, `pyo3`). The
+non-actionable ones are `cmake`/`make`/`MSBuild.exe`/`git` invocations in
+`build.rs`, 8 of them from a single crate (arrayfire, two versions).
 
 That is the real result: **a `warn` on `Command::new("cmake")` inside
 `build.rs` is correct and useless at the same time.** The pattern is genuine
@@ -207,16 +214,38 @@ number is claimed for them, and it should not be: by construction they are the
 23 sites in 8 crates, all from one vendored corpus; labels are a judgement about
 the pattern, not about exploitability in the crate's deployment.
 
-### 7.4 Regression against known CVEs (next)
+### 7.4 Regression against known advisories (done, 2026-11-19)
 
-Must fire on:
+`python detect/test_rustsec.py` → 3/3 expectations hold, including the
+deliberate negatives.
 
-- RUSTSEC-2021-0071 (`grep-cli`): Windows CWD-relative executable resolution
-  → `exec_basename`;
-- RUSTSEC-2022-0058 (`inconceivable`): build-time UB injection →
-  `build_outside_out_dir` / `exec_basename` in `build.rs`;
-- `rustdecimal`: env-var-triggered payload → `env_read_dangerous` +
-  `exec_tainted_cmd`.
+| Advisory | Shape | Outcome |
+|---|---|---|
+| RUSTSEC-2021-0071 (`grep-cli` 0.1.5) | `Command::new(&decomp_cmd.bin)` — program name is a struct field | `exec_tainted_cmd` on the real `decompress.rs:143` |
+| RUSTSEC-2022-0042 (`rustdecimal`) | env check → fetch → write `/tmp` → exec an absolute path | **no finding** — gap |
+| RUSTSEC-2022-0058 (`inconceivable`) | macro injects UB behind a feature flag | **no finding** — out of scope |
+
+**The first one initially did not fire.** The program name is a struct field
+whose literal is two functions away (`bin: OsStr::new(&args[0])` in the
+builder), so the lattice returned `unknown` and the linter stayed silent on the
+canonical PATH-hijack advisory. The fix is a principled widening: a field of a
+local or parameter value (`cmd.bin`, `self.config.program`) counts as
+caller-determined rather than unknown — which is exactly the class
+`exec_tainted_cmd` exists for. The suite now asserts the hit on the real line,
+so the coverage claim is checked against the vulnerable source, not a
+reconstruction.
+
+**`rustdecimal` stays a gap on purpose.** It is not a PATH-resolution or
+path-taint problem: the binary name is an absolute literal, the payload is
+written by the same function, and the trigger is a custom variable
+(`GITLAB_CI`) that no dangerous-variable table should contain. Catching it needs
+a def-use rule — *execute a path this function wrote down* (`exec_written_path`)
+— which is a new rule, not a tweak. Adding it now would be fitting the rule to
+the fixture; the honest state is a documented gap.
+
+**`inconceivable` is out of scope:** the UB lives in macro expansion behind a
+feature flag. The fixture records the negative so the suite fails if someone
+later claims coverage.
 
 ### 7.5 Ablation (next)
 

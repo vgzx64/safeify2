@@ -42,7 +42,9 @@ it is not scored on the frozen split, adds no number to
 [results.md](results.md), and does not touch the replaceability claim. Design,
 threat model, corpus pilot and limitations:
 [counterexamples.md](../research/counterexamples.md). Checks: 37/37
-(`test_lint_safe.py`); `test_detect.py` remains 8/8.
+(`test_lint_safe.py`), 3/3 advisory fixtures (`test_rustsec.py` — RUSTSEC-2021-0071
+covered, RUSTSEC-2022-0042 a documented gap, RUSTSEC-2022-0058 out of scope);
+`test_detect.py` remains 8/8.
 
 While building it, two pre-existing defects in `inventory.py` were found and
 fixed: literal-only call arguments were dropped from `arg_spans`, and `b"…"`

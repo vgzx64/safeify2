@@ -400,6 +400,22 @@
     "message": "Command::new(\"git\") has no path separator, so it is resolved through PATH and, on Windows, the current directory (CWE-426, cf. RUSTSEC-2021-0071); use an absolute path"
   },
   {
+    "path": "transitions/external/crates/grep-cli/0.1.5/grep-cli-0.1.5/src/decompress.rs",
+    "line": 143,
+    "col": 27,
+    "rule": "exec_tainted_cmd",
+    "level": "warn",
+    "message": "program name '&decomp_cmd.bin' comes from decomp_cmd.bin without an allowlist"
+  },
+  {
+    "path": "transitions/external/crates/grep-cli/0.1.6/grep-cli-0.1.6/src/decompress.rs",
+    "line": 180,
+    "col": 27,
+    "rule": "exec_tainted_cmd",
+    "level": "warn",
+    "message": "program name '&decomp_cmd.bin' comes from decomp_cmd.bin without an allowlist"
+  },
+  {
     "path": "transitions/external/crates/grep-cli/0.1.6/grep-cli-0.1.6/src/decompress.rs",
     "line": 439,
     "col": 26,
@@ -640,6 +656,30 @@
     "message": "path 'original' comes from original and is not validated against a root directory (canonicalize + starts_with, components/ParentDir, or an allowlist)"
   },
   {
+    "path": "transitions/external/crates/mdbook/0.4.4/mdbook-0.4.4/src/renderer/html_handlebars/hbs_renderer.rs",
+    "line": 492,
+    "col": 9,
+    "rule": "fs_tainted_path",
+    "level": "info",
+    "message": "path '&destination' comes from ctx.destination and is not validated against a root directory (canonicalize + starts_with, components/ParentDir, or an allowlist)"
+  },
+  {
+    "path": "transitions/external/crates/mdbook/0.4.4/mdbook-0.4.4/src/renderer/markdown_renderer.rs",
+    "line": 47,
+    "col": 9,
+    "rule": "fs_tainted_path",
+    "level": "info",
+    "message": "path '&destination' comes from ctx.destination and is not validated against a root directory (canonicalize + starts_with, components/ParentDir, or an allowlist)"
+  },
+  {
+    "path": "transitions/external/crates/mdbook/0.4.4/mdbook-0.4.4/src/renderer/mod.rs",
+    "line": 195,
+    "col": 17,
+    "rule": "fs_tainted_path",
+    "level": "info",
+    "message": "path '&ctx.destination' comes from ctx.destination and is not validated against a root directory (canonicalize + starts_with, components/ParentDir, or an allowlist)"
+  },
+  {
     "path": "transitions/external/crates/mdbook/0.4.4/mdbook-0.4.4/src/utils/fs.rs",
     "line": 71,
     "col": 5,
@@ -806,6 +846,30 @@
     "rule": "fs_tainted_path",
     "level": "info",
     "message": "path 'original' comes from original and is not validated against a root directory (canonicalize + starts_with, components/ParentDir, or an allowlist)"
+  },
+  {
+    "path": "transitions/external/crates/mdbook/0.4.5/mdbook-0.4.5/src/renderer/html_handlebars/hbs_renderer.rs",
+    "line": 492,
+    "col": 9,
+    "rule": "fs_tainted_path",
+    "level": "info",
+    "message": "path '&destination' comes from ctx.destination and is not validated against a root directory (canonicalize + starts_with, components/ParentDir, or an allowlist)"
+  },
+  {
+    "path": "transitions/external/crates/mdbook/0.4.5/mdbook-0.4.5/src/renderer/markdown_renderer.rs",
+    "line": 47,
+    "col": 9,
+    "rule": "fs_tainted_path",
+    "level": "info",
+    "message": "path '&destination' comes from ctx.destination and is not validated against a root directory (canonicalize + starts_with, components/ParentDir, or an allowlist)"
+  },
+  {
+    "path": "transitions/external/crates/mdbook/0.4.5/mdbook-0.4.5/src/renderer/mod.rs",
+    "line": 195,
+    "col": 17,
+    "rule": "fs_tainted_path",
+    "level": "info",
+    "message": "path '&ctx.destination' comes from ctx.destination and is not validated against a root directory (canonicalize + starts_with, components/ParentDir, or an allowlist)"
   },
   {
     "path": "transitions/external/crates/mdbook/0.4.5/mdbook-0.4.5/src/utils/fs.rs",

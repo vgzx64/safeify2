@@ -297,6 +297,16 @@ def classify(expr: str, fn: FnFacts | None, _depth: int = 0,
     if re.fullmatch(r"self\s*\.\s*[A-Za-z_]\w*", e):
         return Prov(PARAM, "self")
 
+    # A field of a local value (`cmd.bin`, `self.config.program`) is not a
+    # literal the analysis can see. Treating it as "caller-determined" is what
+    # catches `Command::new(&decomp_cmd.bin)` (RUSTSEC-2021-0071) and
+    # `Command::new(interpreter)` shapes without guessing a value.
+    m = re.fullmatch(r"[A-Za-z_]\w*(?:\s*\.\s*[A-Za-z_]\w*)+", e)
+    if m:
+        root = re.split(r"\s*\.\s*", e)[0]
+        if root == "self" or (fn is not None and (root in fn.params or root in fn.bindings)):
+            return Prov(PARAM, e)
+
     if re.fullmatch(r"[A-Za-z_]\w*", e) and fn is not None:
         if e in fn.bindings and e not in _seen:
             return classify(fn.bindings[e], fn, _depth + 1, _seen | {e})

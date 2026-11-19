@@ -110,10 +110,12 @@ split. Design, threat model, corpus numbers and limitations:
 lint_safe.py     rules + severity + suppression (clippy-style levels)
 provenance.py    literal < param < tainted < unknown, guard recognition
 test_lint_safe.py 37 checks pinned to the paper's figures 1,2,3,6,7
+test_rustsec.py   3 advisory fixtures; records one gap and one out-of-scope
 ```
 
 ```sh
 python detect/test_lint_safe.py                       # 37 checks
+python detect/test_rustsec.py                         # advisory regression
 python detect/lint_safe.py src/ --json                # one crate
 python detect/lint_safe.py crates/ --max-bytes 100000 --edition 2021
 ```
@@ -124,7 +126,7 @@ python detect/lint_safe.py crates/ --max-bytes 100000 --edition 2021
 | `fs_traversal_literal` | absolute literal whose `..` normalises elsewhere |
 | `fs_tainted_path` | env/argv/io-derived path with no `starts_with`/components guard |
 | `exec_basename` | `Command::new("ls")` — PATH/CWD resolution (CWE-426) |
-| `exec_tainted_cmd` | program name from a parameter or taint source |
+| `exec_tainted_cmd` | program name not statically known: parameter, taint source, or struct field (`cmd.bin`) |
 | `exec_shell_tainted` | literal shell with a caller-controlled argument |
 | `env_set_dangerous` / `env_read_dangerous` | `set_var`/`var` on `PATH`, `LD_PRELOAD`, `RUSTC`, `RUSTFLAGS`, `TMPDIR`, … |
 | `build_outside_out_dir` | `build.rs` write outside `OUT_DIR`/`target` |
@@ -132,11 +134,11 @@ python detect/lint_safe.py crates/ --max-bytes 100000 --edition 2021
 Severity demotes to `info` outside `pub fn` and `build.rs` (an app's own
 `Command::new("git")` is not the threat model). Suppress with
 `#[allow(nirm::rule)]` or `// nirm: allow(rule)`; per-rule levels in
-`[lints.nirm]`. Corpus pilot (147 crates, 8,426 files): 243 findings, 29
+`[lints.nirm]`. Corpus pilot (147 crates, 8,426 files): 251 findings, 31
 `warn`, 0 `deny` —
 [lint_corpus_2026-11-19.json](out/lint_corpus_2026-11-19.json). Precision
-audit (census of all 23 unique actionable sites): 0 false positives, 11
-actionable — [audit sheet](out/lint_audit_2026-11-19.jsonl),
+audit (census of all 25 unique actionable sites): 1 false positive (a patched
+crate version), 12 actionable — [audit sheet](out/lint_audit_2026-11-19.jsonl),
 [labels](out/lint_audit_labels_2026-11-19.json).
 
 ## Verdict policy (v1)
