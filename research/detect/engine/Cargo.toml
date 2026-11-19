@@ -1,0 +1,31 @@
+[package]
+name = "safeify-lint"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[[bin]]
+name = "safeify-lint"
+path = "src/main.rs"
+
+# rust-analyzer as a library, built from the vendored source tree
+# (vendors/rust-analyzer, commit in its .git file). Path dependencies are used
+# instead of the published ra_ap_* crates so the analysis engine is pinned to
+# code that is checked into this repository and reproducible offline.
+# The `ide` facade crate is deliberately not a dependency: the lints need hir
+# (resolution, types) and ide-db (RootDatabase), not assists/completion.
+[dependencies]
+load-cargo = { path = "../../../vendors/rust-analyzer/crates/load-cargo" }
+ide-db = { path = "../../../vendors/rust-analyzer/crates/ide-db" }
+hir = { path = "../../../vendors/rust-analyzer/crates/hir" }
+hir-def = { path = "../../../vendors/rust-analyzer/crates/hir-def" }
+hir-ty = { path = "../../../vendors/rust-analyzer/crates/hir-ty" }
+base-db = { path = "../../../vendors/rust-analyzer/crates/base-db" }
+syntax = { path = "../../../vendors/rust-analyzer/crates/syntax" }
+project-model = { path = "../../../vendors/rust-analyzer/crates/project-model" }
+vfs = { path = "../../../vendors/rust-analyzer/crates/vfs" }
+span = { path = "../../../vendors/rust-analyzer/crates/span" }
+paths = { path = "../../../vendors/rust-analyzer/crates/paths" }
+anyhow = "1"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"

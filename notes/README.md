@@ -20,6 +20,7 @@ Working notes for the dissertation and the SafeNet experiments.
 | [nirm3/signoff-request.md](nirm3/signoff-request.md) | Draft | Three decisions requested from the supervisor (re-scope, test reuse, DoD #3 substitution) |
 | [nirm3/results.md](nirm3/results.md) | Provisional | Frozen-split protocol, 2026-11-18 post-fix rerun, per-class/CIs, superseded history, limitations |
 | [research/counterexamples.md](research/counterexamples.md) | Active | Safe-Rust counterexample lints (ASEW '24): rules, provenance lattice, threat model, corpus pilot, limitations |
+| [research/engine.md](research/engine.md) | Active | Semantic engine: rust-analyzer as a library, resolved rules, interprocedural summaries, parity migration |
 | [research/bert-pair-model.md](research/bert-pair-model.md) | Planned | NIRM 4 BERT pair model: current state, frozen-BERT cache plan, gates |
 | [research/research-vectors.md](research/research-vectors.md) | Active | Research directions beyond the SafeNet baseline |
 | [research/synthetic-data-theory.md](research/synthetic-data-theory.md) | Active | Why and how to build synthetic data without a circular evaluation |

@@ -141,7 +141,7 @@ SUPPRESSED_COMMENT = """
 use std::fs::File;
 
 pub fn read_mem() -> std::io::Result<()> {
-    // nirm: allow(fs_special_path)
+    // safeify: allow(fs_special_path)
     let f = File::open("/proc/self/mem")?;
     Ok(())
 }
@@ -150,7 +150,7 @@ pub fn read_mem() -> std::io::Result<()> {
 SUPPRESSED_ATTR = """
 use std::process::Command;
 
-#[allow(nirm::exec_basename)]
+#[allow(safeify::exec_basename)]
 pub fn spawn() {
     Command::new("git").status().unwrap();
 }

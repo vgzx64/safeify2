@@ -3,12 +3,12 @@
 Implements four of the five attack patterns of Hassnain & Stanford,
 "Counterexamples in Safe Rust" (ASEW '24):
 
-  1. filesystem access      -> nirm::fs_special_path, fs_traversal_literal,
+  1. filesystem access      -> safeify::fs_special_path, fs_traversal_literal,
                                fs_tainted_path
-  2. command execution      -> nirm::exec_basename, exec_tainted_cmd,
+  2. command execution      -> safeify::exec_basename, exec_tainted_cmd,
                                exec_shell_tainted
-  4. build-time effects     -> nirm::build_outside_out_dir
-  5. environment variables  -> nirm::env_set_dangerous, env_read_dangerous
+  4. build-time effects     -> safeify::build_outside_out_dir
+  5. environment variables  -> safeify::env_set_dangerous, env_read_dangerous
 
 Pattern 3 (compiler unsoundness) is out of scope: it is fixed in the compiler
 and cannot be decided from source. See notes/research/counterexamples.md.
@@ -16,8 +16,8 @@ and cannot be decided from source. See notes/research/counterexamples.md.
 These are policy lints over safe code, not the Y/M/N replaceability verdicts
 of `verdict.py`, and they share no evaluation with it. Severity follows clippy
 conventions: `deny | warn | info`, overridable per rule in Cargo.toml
-`[lints.nirm]`, suppressible with `#[allow(nirm::rule)]` above the function or
-a `// nirm: allow(rule)` comment on the line before the call.
+`[lints.safeify]`, suppressible with `#[allow(safeify::rule)]` above the function or
+a `// safeify: allow(rule)` comment on the line before the call.
 
 Conservative by construction: a finding requires either a literal in a
 danger-table, or a parameter/tainted value with no recognised guard. Values
@@ -242,7 +242,7 @@ class Finding:
     message: str
 
     def render(self) -> str:
-        return f"{self.path}:{self.line}:{self.col}: {self.level}[nirm::{self.rule}]: {self.message}"
+        return f"{self.path}:{self.line}:{self.col}: {self.level}[safeify::{self.rule}]: {self.message}"
 
     def as_json(self) -> dict:
         return {
@@ -294,10 +294,10 @@ def danger_path(value: str) -> tuple[str, str] | None:
 # ------------------------------------------------------------- suppression ---
 
 def _allow_text(text: str, rule: str) -> bool:
-    for m in re.finditer(r"(?:allow|expect)\s*\(\s*nirm\s*::\s*([A-Za-z_]\w*)", text):
+    for m in re.finditer(r"(?:allow|expect)\s*\(\s*safeify\s*::\s*([A-Za-z_]\w*)", text):
         if m.group(1) in (rule, "all"):
             return True
-    for m in re.finditer(r"nirm:\s*allow\s*\(\s*(?:nirm\s*::\s*)?([A-Za-z_]\w*)", text):
+    for m in re.finditer(r"safeify:\s*allow\s*\(\s*(?:safeify\s*::\s*)?([A-Za-z_]\w*)", text):
         if m.group(1) in (rule, "all"):
             return True
     return False
@@ -640,7 +640,7 @@ def lint_source(src: str, path: str = "<memory>", edition: int | None = None,
 
 
 def _manifest_for(path: Path) -> dict:
-    """Nearest Cargo.toml settings: edition + [lints.nirm]."""
+    """Nearest Cargo.toml settings: edition + [lints.safeify]."""
     empty: dict = {}
     for parent in [path.parent, *path.parents][:6]:
         toml = parent / "Cargo.toml"
@@ -653,7 +653,7 @@ def _manifest_for(path: Path) -> dict:
         except Exception:
             return empty
         levels = {}
-        for key, val in (data.get("lints", {}).get("nirm", {}) or {}).items():
+        for key, val in (data.get("lints", {}).get("safeify", {}) or {}).items():
             if isinstance(val, str):
                 levels[key] = val
             elif isinstance(val, dict) and isinstance(val.get("level"), str):
@@ -708,7 +708,7 @@ def main(argv: list[str] | None = None) -> int:
         "--min-level", default="info", choices=["info", "warn", "deny"],
         help="suppress findings below this severity",
     )
-    ap.add_argument("--no-config", action="store_true", help="ignore Cargo.toml [lints.nirm]")
+    ap.add_argument("--no-config", action="store_true", help="ignore Cargo.toml [lints.safeify]")
     ap.add_argument(
         "--max-bytes", type=int, default=0,
         help="skip files larger than this (generated code), 0 = no limit",
