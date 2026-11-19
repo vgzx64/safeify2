@@ -11,4 +11,13 @@ export CARGO_TARGET_DIR="$ROOT/.tools/cargo-target/engine"
 export CARGO_NET_RETRY=5
 export CARGO_HTTP_TIMEOUT=60
 mkdir -p "$CARGO_HOME" "$CARGO_TARGET_DIR"
+
+# The vendored rust-analyzer carries one local fix: `no_deps` must apply to the
+# analysed package, not to the sysroot (otherwise std loses its alloc/core edges
+# and most of std becomes invisible). Apply the patch when it is not applied.
+PATCH="$ROOT/research/detect/engine/patches/rust-analyzer-sysroot-deps.patch"
+if [ -f "$PATCH" ] && git -C "$ROOT/vendors/rust-analyzer" apply --check "$PATCH" 2>/dev/null; then
+  git -C "$ROOT/vendors/rust-analyzer" apply "$PATCH"
+  echo "cargo.sh: applied $(basename "$PATCH")" >&2
+fi
 exec cargo "$@"

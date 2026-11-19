@@ -31,6 +31,11 @@ pub struct Ctx<'a> {
     pub source: &'a str,
     pub is_pub: bool,
     pub is_build: bool,
+    /// Rules suppressed for this function by `#[allow(safeify::x)]` /
+    /// `#[expect(safeify::x)]` (resolved by rust-analyzer, so crate-level,
+    /// module-level and `cfg_attr` forms all work) or by a
+    /// `// safeify: allow(x)` comment.
+    pub allowed: Vec<String>,
 }
 
 impl<'a> Ctx<'a> {
@@ -50,6 +55,9 @@ impl<'a> Ctx<'a> {
         mut level: &'static str,
         message: String,
     ) {
+        if self.allowed.iter().any(|name| allows(name, rule)) {
+            return;
+        }
         if level == "warn" && DEMOTABLE.contains(&rule) && !(self.is_pub || self.is_build) {
             level = "info";
         }
@@ -117,7 +125,11 @@ impl<'a, 'b> Scanner<'a, 'b> {
                 .arg_list()
                 .map(|list| list.args().collect())
                 .unwrap_or_default();
-            self.sink(&path, spec.kind, spec.args, &args, Some(&call), &writes, out);
+            self.sink(&path, spec.kind, spec.args, &args, Some(&call), &writes, None, out);
+        }
+
+        for mac in body.syntax().descendants().filter_map(ast::MacroCall::cast) {
+            self.scan_macro(&mac, 0, out);
         }
 
         for method in methods {
@@ -131,12 +143,14 @@ impl<'a, 'b> Scanner<'a, 'b> {
                 .arg_list()
                 .map(|list| list.args().collect())
                 .unwrap_or_default();
-            let kind = if path == "fs::OpenOptions::open" && !openoptions_writes(&method) {
+            let kind = if sink::normalized(&path) == "fs::OpenOptions::open"
+                && !openoptions_writes(&method)
+            {
                 SinkKind::FsRead
             } else {
                 spec.kind
             };
-            self.sink(&path, kind, spec.args, &args, Some(&method), &writes, out);
+            self.sink(&path, kind, spec.args, &args, Some(&method), &writes, None, out);
         }
     }
 
@@ -149,6 +163,7 @@ impl<'a, 'b> Scanner<'a, 'b> {
         args: &[ast::Expr],
         node: Option<&impl AstNode>,
         writes: &[(u32, String)],
+        origin: Option<TextSize>,
         out: &mut Vec<Finding>,
     ) {
         if std::env::var_os("SAFEIFY_DEBUG").is_some() {
@@ -170,13 +185,8 @@ impl<'a, 'b> Scanner<'a, 'b> {
                         continue;
                     };
                     let prov = self.eval.expr(arg);
-                    if std::env::var_os("SAFEIFY_DEBUG").is_some() {
-                        eprintln!(
-                            "  PROV {:?} detail={:?} value={:?}",
-                            prov.kind, prov.detail, prov.value
-                        );
-                    }
-                    self.fs_sink(&prov, arg.syntax().text_range().start(), write, out);
+                    let at = origin.unwrap_or_else(|| arg.syntax().text_range().start());
+                    self.fs_sink(arg, &prov, at, write, out);
                 }
             }
             SinkKind::EnvWrite | SinkKind::EnvRead => {
@@ -190,7 +200,7 @@ impl<'a, 'b> Scanner<'a, 'b> {
                 if !sink::dangerous_env(name) {
                     return;
                 }
-                let at = arg.syntax().text_range().start();
+                let at = origin.unwrap_or_else(|| arg.syntax().text_range().start());
                 if kind == SinkKind::EnvWrite {
                     self.ctx.emit(
                         out,
@@ -214,7 +224,8 @@ impl<'a, 'b> Scanner<'a, 'b> {
                     return;
                 };
                 let prov = self.eval.expr(arg);
-                self.exec_program(&prov, arg.syntax().text_range().start(), writes, out);
+                let at = origin.unwrap_or_else(|| arg.syntax().text_range().start());
+                self.exec_program(&prov, at, writes, out);
             }
             SinkKind::ExecArg => {
                 let Some(arg) = args.first() else {
@@ -224,12 +235,20 @@ impl<'a, 'b> Scanner<'a, 'b> {
                 let Some(node) = node else {
                     return;
                 };
-                self.exec_arg(node.syntax(), &prov, arg.syntax().text_range().start(), out);
+                let at = origin.unwrap_or_else(|| arg.syntax().text_range().start());
+                self.exec_arg(node.syntax(), &prov, at, out);
             }
         }
     }
 
-    fn fs_sink(&self, prov: &Prov, at: TextSize, write: bool, out: &mut Vec<Finding>) {
+    fn fs_sink(
+        &self,
+        arg: &ast::Expr,
+        prov: &Prov,
+        at: TextSize,
+        write: bool,
+        out: &mut Vec<Finding>,
+    ) {
         if write && self.ctx.is_build && !under_out_dir(prov) {
             let what = prov
                 .value
@@ -265,7 +284,7 @@ impl<'a, 'b> Scanner<'a, 'b> {
             }
             return;
         }
-        if write && prov.is_tainted() {
+        if write && prov.is_tainted() && !self.guarded(arg) {
             let level = if prov.kind == Kind::Tainted { "warn" } else { "info" };
             let detail = if prov.detail.is_empty() {
                 "a caller-supplied path".to_string()
@@ -280,6 +299,131 @@ impl<'a, 'b> Scanner<'a, 'b> {
                 format!("path written by this call comes from {detail}"),
             );
         }
+    }
+
+    /// Is the sink argument protected by a guard that runs before it?
+    ///
+    /// Two shapes count, both resolved rather than text-matched:
+    /// * `path.file_name()` on the value itself (only the last component is used);
+    /// * a dominating `if` whose condition checks the canonicalised value with
+    ///   `starts_with`, or inspects `components()` for `ParentDir`/`RootDir`.
+    fn guarded(&self, arg: &ast::Expr) -> bool {
+        // Any resolved `file_name()` on the value, whoever owns it
+        // (`std::fs::DirEntry`, `walkdir::DirEntry`, `Path`): only the last
+        // path component is used, so the write stays inside the directory.
+        if self.expr_has_named_call(arg, "file_name") {
+            return true;
+        }
+        let arg_range = arg.syntax().text_range();
+        for if_expr in arg.syntax().ancestors().filter_map(ast::IfExpr::cast) {
+            let Some(then_branch) = if_expr.then_branch() else {
+                continue;
+            };
+            if !then_branch.syntax().text_range().contains_range(arg_range) {
+                continue;
+            }
+            let Some(condition) = if_expr.condition() else {
+                continue;
+            };
+            if self.condition_guards(&condition) {
+                return true;
+            }
+        }
+        false
+    }
+
+    fn condition_guards(&self, condition: &ast::Expr) -> bool {
+        let mut canonicalised_starts_with = false;
+        let mut components = false;
+        let mut parent_dir = false;
+        for node in condition.syntax().descendants() {
+            if let Some(call) = ast::MethodCallExpr::cast(node.clone()) {
+                let Some(function) = self.eval.sema.resolve_method_call(&call) else {
+                    continue;
+                };
+                let path = crate::paths::qualified_path(self.eval.db, function);
+                match sink::normalized(&path) {
+                    "path::Path::starts_with" => {
+                        if let Some(receiver) = call.receiver() {
+                            if self.value_derives_from(
+                                &receiver,
+                                &["fs::canonicalize", "path::Path::canonicalize"],
+                                0,
+                            ) {
+                                canonicalised_starts_with = true;
+                            }
+                        }
+                    }
+                    "path::Path::components" => components = true,
+                    _ => {}
+                }
+            }
+            if let Some(path_expr) = ast::PathExpr::cast(node.clone()) {
+                if let Some(path) = path_expr.path() {
+                    if let Some(name) = path.segment().and_then(|s| s.name_ref()) {
+                        if matches!(name.text().to_string().as_str(), "ParentDir" | "RootDir") {
+                            parent_dir = true;
+                        }
+                    }
+                }
+            }
+        }
+        canonicalised_starts_with || (components && parent_dir)
+    }
+
+    /// Does this value come from one of `paths`, directly or through a local
+    /// binding (`let canonical = fs::canonicalize(p)?`)?
+    fn value_derives_from(&self, expr: &ast::Expr, paths: &[&str], depth: usize) -> bool {
+        if depth > 3 {
+            return false;
+        }
+        if self.expr_has_call(expr, paths) {
+            return true;
+        }
+        if let ast::Expr::PathExpr(path_expr) = expr {
+            if let Some(path) = path_expr.path() {
+                if let Some(hir::PathResolution::Local(local)) =
+                    self.eval.sema.resolve_path(&path)
+                {
+                    let source = local.primary_source(self.eval.db);
+                    let node = source.source.value.syntax().clone();
+                    if let Some(ident_pat) = ast::IdentPat::cast(node) {
+                        if let Some(init) = ident_pat
+                            .syntax()
+                            .ancestors()
+                            .find_map(ast::LetStmt::cast)
+                            .and_then(|l| l.initializer())
+                        {
+                            return self.value_derives_from(&init, paths, depth + 1);
+                        }
+                    }
+                }
+            }
+        }
+        false
+    }
+
+    fn expr_has_named_call(&self, expr: &ast::Expr, name: &str) -> bool {
+        expr.syntax()
+            .descendants()
+            .filter_map(ast::MethodCallExpr::cast)
+            .any(|call| {
+                self.eval
+                    .sema
+                    .resolve_method_call(&call)
+                    .map(|function| crate::paths::qualified_path(self.eval.db, function))
+                    .is_some_and(|path| path.rsplit("::").next() == Some(name))
+            })
+    }
+
+    fn expr_has_call(&self, expr: &ast::Expr, paths: &[&str]) -> bool {
+        expr.syntax()
+            .descendants()
+            .filter_map(ast::CallExpr::cast)
+            .any(|call| {
+                self.resolve_call(&call)
+                    .is_some_and(|resolved| paths.contains(&sink::normalized(&resolved)))
+            })
     }
 
     fn exec_program(
@@ -364,12 +508,60 @@ impl<'a, 'b> Scanner<'a, 'b> {
             match current {
                 ast::Expr::MethodCallExpr(m) => current = m.receiver()?,
                 ast::Expr::CallExpr(c) => {
-                    if self.resolve_call(&c).as_deref() == Some("process::Command::new") {
+                    if self.resolve_call(&c)
+                        .as_deref()
+                        .map(sink::normalized)
+                        == Some("process::Command::new")
+                    {
                         return first_arg_literal(&c);
                     }
                     return None;
                 }
                 _ => return None,
+            }
+        }
+    }
+
+    /// Calls written inside a macro invocation (`try!(File::create(p))`,
+    /// `assert!(..)`, `matches!(..)`) are tokens in the source tree, but
+    /// rust-analyzer expands them into a real syntax tree. Scan the expansion
+    /// and report at the macro call site, which is where the reader looks.
+    fn scan_macro(&self, call: &ast::MacroCall, depth: usize, out: &mut Vec<Finding>) {
+        if depth > 3 {
+            return;
+        }
+        let Some(expanded) = self.eval.sema.expand_macro_call(call) else {
+            return;
+        };
+        let at = call.syntax().text_range().start();
+        let writes: Vec<(u32, String)> = Vec::new();
+        for node in expanded.value.descendants() {
+            if let Some(inner) = ast::CallExpr::cast(node.clone()) {
+                let Some(path) = self.resolve_call(&inner) else {
+                    continue;
+                };
+                let Some(spec) = sink::sink_spec(&path) else {
+                    continue;
+                };
+                let args: Vec<ast::Expr> = inner
+                    .arg_list()
+                    .map(|list| list.args().collect())
+                    .unwrap_or_default();
+                self.sink(&path, spec.kind, spec.args, &args, Some(&inner), &writes, Some(at), out);
+            } else if let Some(inner) = ast::MethodCallExpr::cast(node.clone()) {
+                let Some(path) = self.resolve_method(&inner) else {
+                    continue;
+                };
+                let Some(spec) = sink::sink_spec(&path) else {
+                    continue;
+                };
+                let args: Vec<ast::Expr> = inner
+                    .arg_list()
+                    .map(|list| list.args().collect())
+                    .unwrap_or_default();
+                self.sink(&path, spec.kind, spec.args, &args, Some(&inner), &writes, Some(at), out);
+            } else if let Some(nested) = ast::MacroCall::cast(node.clone()) {
+                self.scan_macro(&nested, depth + 1, out);
             }
         }
     }
@@ -385,6 +577,12 @@ impl<'a, 'b> Scanner<'a, 'b> {
 
     fn resolve_method(&self, call: &ast::MethodCallExpr) -> Option<String> {
         let function = self.eval.sema.resolve_method_call(call)?;
+        // Method resolution occasionally answers with a free function of the
+        // same name (`std::fs::write` for a `.write(..)` call). A free function
+        // cannot be a method: do not turn it into a sink.
+        if !function.has_self_param(self.eval.db) {
+            return None;
+        }
         Some(crate::paths::qualified_path(self.eval.db, function))
     }
 }
@@ -408,6 +606,38 @@ fn openoptions_writes(call: &ast::MethodCallExpr) -> bool {
         current = m.receiver();
     }
     write
+}
+
+/// Does a lint name from an attribute or comment cover `rule`? Accept both the
+/// tool-qualified and bare spelling, matching how clippy tool lints work.
+fn allows(name: &str, rule: &str) -> bool {
+    name == rule || name == format!("safeify::{rule}") || name == "all" || name == "safeify"
+}
+
+/// `// safeify: allow(a, b)` directives. Comments are tokens, so this is a
+/// directive scan rather than a rule decision.
+pub fn comment_allows(fn_ast: &ast::Fn) -> Vec<String> {
+    let mut out = Vec::new();
+    let Some(body) = fn_ast.body() else {
+        return out;
+    };
+    for token in body.syntax().descendants_with_tokens().filter_map(|it| it.into_token()) {
+        if token.kind() != syntax::SyntaxKind::COMMENT {
+            continue;
+        }
+        let text = token.text().to_string();
+        let Some(rest) = text.split("safeify: allow(").nth(1) else {
+            continue;
+        };
+        let inner = rest.split(')').next().unwrap_or(rest);
+        for name in inner.split(',') {
+            let name = name.trim();
+            if !name.is_empty() {
+                out.push(name.to_string());
+            }
+        }
+    }
+    out
 }
 
 /// Whether a build-script write target is legitimately inside the build

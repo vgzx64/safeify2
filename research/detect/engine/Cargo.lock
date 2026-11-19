@@ -1226,10 +1226,12 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "base-db",
+ "cfg",
  "hir",
  "hir-def",
  "hir-ty",
  "ide-db",
+ "intern",
  "load-cargo",
  "paths",
  "project-model",

@@ -79,7 +79,57 @@ pub fn sysroot_dir() -> Result<PathBuf> {
     )
 }
 
+/// `feature = "<name>"` cfg atoms for every feature in the package manifest,
+/// plus any caller-supplied atoms (`flag` or `key=value`).
+fn cfg_overrides(root: &Path, extra: &[String]) -> project_model::CfgOverrides {
+    let output = std::process::Command::new("cargo")
+        .args(["metadata", "--no-deps", "--format-version", "1", "--manifest-path"])
+        .arg(root.join("Cargo.toml"))
+        .env("CARGO_NET_OFFLINE", "true")
+        .output();
+    let Ok(output) = output else {
+        return project_model::CfgOverrides::default();
+    };
+    let Ok(meta) = serde_json::from_slice::<serde_json::Value>(&output.stdout) else {
+        return project_model::CfgOverrides::default();
+    };
+    let mut atoms = Vec::new();
+    for package in meta["packages"].as_array().into_iter().flatten() {
+        for name in package["features"]
+            .as_object()
+            .into_iter()
+            .flatten()
+            .map(|(name, _)| name)
+        {
+            atoms.push(cfg::CfgAtom::KeyValue {
+                key: intern::Symbol::intern("feature"),
+                value: intern::Symbol::intern(name),
+            });
+        }
+    }
+    for spec in extra {
+        match spec.split_once('=') {
+            Some((key, value)) => atoms.push(cfg::CfgAtom::KeyValue {
+                key: intern::Symbol::intern(key.trim()),
+                value: intern::Symbol::intern(value.trim()),
+            }),
+            None => atoms.push(cfg::CfgAtom::Flag(intern::Symbol::intern(spec.trim()))),
+        }
+    }
+    project_model::CfgOverrides {
+        global: cfg::CfgDiff::new(atoms, Vec::new()),
+        ..project_model::CfgOverrides::default()
+    }
+}
+
 pub fn load_crate(dir: &Path) -> Result<Loaded> {
+    load_crate_with_cfg(dir, &[])
+}
+
+/// Load a package, optionally enabling extra `cfg` atoms (for example
+/// `windows`, `target_family=windows`) so code compiled for another target is
+/// analysed too. Feature-gated modules are always enabled.
+pub fn load_crate_with_cfg(dir: &Path, extra_cfg: &[String]) -> Result<Loaded> {
     let root = dir
         .canonicalize()
         .with_context(|| format!("cannot resolve crate directory {}", dir.display()))?;
@@ -90,6 +140,10 @@ pub fn load_crate(dir: &Path) -> Result<Loaded> {
         no_deps: true,
         all_targets: true,
         set_test: true,
+        // Enable every feature the package declares: a counterexample in a
+        // feature-gated module is shipped to whoever enables the feature, and
+        // with `--no-deps` cargo cannot compute the active set itself.
+        cfg_overrides: cfg_overrides(&root, extra_cfg),
         sysroot: Some(RustLibSource::Path(AbsPathBuf::assert_utf8(sysroot_dir()?))),
         ..CargoConfig::default()
     };

@@ -1,0 +1,51 @@
+diff --git a/crates/project-model/src/workspace.rs b/crates/project-model/src/workspace.rs
+index db3cecb5b2..fb7622af56 100644
+--- a/crates/project-model/src/workspace.rs
++++ b/crates/project-model/src/workspace.rs
+@@ -402,6 +402,10 @@ impl ProjectWorkspace {
+             let loaded_sysroot = Builder::new()
+                 .name("ProjectWorkspace::loaded_sysroot".to_owned())
+                 .spawn_scoped(s, || {
++                    // `no_deps` describes the *target* project only. The
++                    // sysroot workspace always needs its internal edges
++                    // (std -> alloc/core), otherwise re-exports and impls in
++                    // alloc-related modules are invisible to analysis.
+                     sysroot.load_workspace(
+                         &RustSourceWorkspaceConfig::CargoMetadata(sysroot_metadata_config(
+                             config,
+@@ -409,7 +413,7 @@ impl ProjectWorkspace {
+                             &targets,
+                             toolchain.clone(),
+                         )),
+-                        config.no_deps,
++                        false,
+                         progress,
+                     )
+                 })
+@@ -513,7 +517,7 @@ impl ProjectWorkspace {
+                 if let Some(sysroot_project) = sysroot_project {
+                     sysroot.load_workspace(
+                         &RustSourceWorkspaceConfig::Json(*sysroot_project),
+-                        config.no_deps,
++                        false,
+                         progress,
+                     )
+                 } else {
+@@ -524,7 +528,7 @@ impl ProjectWorkspace {
+                             &targets,
+                             toolchain.clone(),
+                         )),
+-                        config.no_deps,
++                        false,
+                         progress,
+                     )
+                 }
+@@ -586,7 +590,7 @@ impl ProjectWorkspace {
+                 &targets,
+                 toolchain.clone(),
+             )),
+-            config.no_deps,
++            false,
+             &|_| (),
+         );
+         if let Some(loaded_sysroot) = loaded_sysroot {

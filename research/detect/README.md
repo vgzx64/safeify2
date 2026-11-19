@@ -144,6 +144,42 @@ sites → 251 findings (31 at `warn`) —
 [lint_ablation_2026-11-19.json](out/lint_ablation_2026-11-19.json) — [audit sheet](out/lint_audit_2026-11-19.jsonl),
 [labels](out/lint_audit_labels_2026-11-19.json).
 
+## Semantic engine (counterexample lints)
+
+`engine/` is the rust-analyzer-based linter that replaces the text layer of
+[`lint_safe.py`](lint_safe.py). It links the vendored rust-analyzer
+(`vendors/rust-analyzer`) as a library, loads one Cargo package with
+`no_deps`, resolves every callee and binding through `Semantics`, and decides
+each rule on the resolved item plus the provenance of its arguments. Design,
+semantic mechanisms and measured parity: [engine.md](../../notes/research/engine.md).
+
+```sh
+# build (applies the checked-in rust-analyzer patch, uses .tools/cargo-home)
+engine/cargo.sh build --release
+
+# lint one package, JSON on stdout
+.tools/cargo-target/engine/release/safeify-lint --crate path/to/package
+
+# also analyze Windows-only code
+... --crate path/to/package --extra-cfg windows,target_family=windows,target_os=windows
+
+# regression suite (fixtures encode designed behaviour, not snapshots)
+engine/cargo.sh test --release
+
+# corpus differential against the text engine
+python3 detect/run_semantic_corpus.py --jobs 10
+python3 detect/compare_engines.py path/to/package
+```
+
+Suppress a rule with `#[allow(safeify::fs_special_path)]` on the function,
+module or crate (resolved by rust-analyzer, so `cfg_attr` and `#[expect]`
+work), or with a `// safeify: allow(fs_special_path)` comment in the function.
+
+Known limits: calls whose callee lives in an unresolved dependency are
+invisible (`no_deps`); `format!`/`concat!` *arguments* are not modelled
+(the expansion is scanned, so `try!`/`assert!` bodies are); and code that no
+Cargo target includes is not analyzed at all.
+
 ## Verdict policy (v1)
 
 | family | default | upgrade rules (evidence needed) |

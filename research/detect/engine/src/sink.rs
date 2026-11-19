@@ -27,6 +27,7 @@ pub struct Sink {
 /// Resolve a qualified path to a sink. Paths look like `fs::write`,
 /// `fs::File::create`, `process::Command::new`, `io::Write::write_all`.
 pub fn sink_spec(path: &str) -> Option<Sink> {
+    let path = strip_lang_prefix(path);
     match path {
         // Both arguments of a two-path operation are checked: the source can be
         // caller-controlled too (`copy(from, OUT_DIR)`).
@@ -61,6 +62,21 @@ pub fn sink_spec(path: &str) -> Option<Sink> {
         }
         _ => None,
     }
+}
+
+/// Drop a leading `std::`/`core::`/`alloc::`/`proc_macro::` so the sink tables
+/// can name language-crate items without caring which of the three owns them.
+pub fn normalized(path: &str) -> &str {
+    strip_lang_prefix(path)
+}
+
+fn strip_lang_prefix(path: &str) -> &str {
+    for prefix in ["std::", "core::", "alloc::", "proc_macro::"] {
+        if let Some(rest) = path.strip_prefix(prefix) {
+            return rest;
+        }
+    }
+    path
 }
 
 pub fn is_shell(name: &str) -> bool {
@@ -126,12 +142,12 @@ pub fn is_trusted_env(name: &str) -> bool {
 }
 
 pub fn is_env_read(path: &str) -> bool {
-    matches!(path, "env::var" | "env::var_os")
+    matches!(strip_lang_prefix(path), "env::var" | "env::var_os")
 }
 
 /// Functions whose result is attacker-influenced (a taint source).
 pub fn taint_source(path: &str) -> Option<&'static str> {
-    Some(match path {
+    Some(match strip_lang_prefix(path) {
         "env::var" | "env::var_os" => "env",
         "env::args" | "env::args_os" => "argv",
         "env::current_dir" | "env::current_exe" => "cwd",
@@ -145,6 +161,29 @@ pub fn taint_source(path: &str) -> Option<&'static str> {
     })
 }
 
+/// `Option`/`Result` combinators; the value flows from the receiver through
+/// the closure, which `prov.rs` evaluates with its parameter bound.
+pub fn is_closure_adapter(name: &str) -> bool {
+    matches!(
+        name,
+        "map"
+            | "and_then"
+            | "or_else"
+            | "or"
+            | "unwrap_or"
+            | "unwrap_or_else"
+            | "ok_or"
+            | "ok_or_else"
+            | "map_err"
+            | "filter"
+            | "filter_map"
+            | "inspect"
+            | "inspect_err"
+            | "then"
+            | "then_some"
+    )
+}
+
 /// Path-composition methods. Used only when the receiver's type cannot be
 /// resolved: the result still derives from the receiver and the arguments.
 pub fn is_composition(name: &str) -> bool {
@@ -154,10 +193,28 @@ pub fn is_composition(name: &str) -> bool {
     )
 }
 
+/// Constructor-shaped associated-function names. Used only when the callee
+/// path itself does not resolve (blanket `From` impls, prelude helpers).
+pub fn is_constructor_name(name: &str) -> bool {
+    matches!(
+        name,
+        "from" | "new" | "from_os_str" | "from_utf8" | "from_utf8_lossy" | "from_utf8_unchecked"
+    )
+}
+
+/// Formatting entry points produced by `format!`/`println!` expansion; their
+/// value derives from every argument.
+pub fn is_formatting_producer(path: &str) -> bool {
+    matches!(
+        strip_lang_prefix(path),
+        "fmt::format" | "fmt::write" | "fmt::Arguments::new_v1" | "fmt::Arguments::new_const"
+    )
+}
+
 /// Constructors that wrap a value without changing where it came from.
 pub fn is_constructor(path: &str) -> bool {
     matches!(
-        path,
+        strip_lang_prefix(path),
         "path::PathBuf::from"
             | "path::PathBuf::from_os_str"
             | "path::Path::from"
@@ -173,13 +230,18 @@ pub fn is_constructor(path: &str) -> bool {
             | "rc::Rc::new"
             | "borrow::Cow::Borrowed"
             | "borrow::Cow::Owned"
+            | "convert::From::from"
+            | "convert::TryFrom::try_from"
+            | "option::Option::Some"
+            | "result::Result::Ok"
+            | "result::Result::Err"
     )
 }
 
 /// Functions that *validate* or canonicalise a path; their result is trusted.
 pub fn is_trusted_producer(path: &str) -> bool {
     matches!(
-        path,
+        strip_lang_prefix(path),
         "fs::canonicalize" | "path::Path::canonicalize" | "path::Path::file_name"
             | "path::Path::parent" | "path::Path::components" | "path::Path::to_path_buf"
     )
@@ -211,6 +273,14 @@ pub fn is_truthy_adapter(name: &str) -> bool {
             | "into_owned"
             | "to_vec"
             | "to_vec_lossy"
+            | "to_path_buf"
+            | "to_path"
+            | "as_deref"
+            | "as_mut"
+            | "to_ascii_lowercase"
+            | "to_ascii_uppercase"
+            | "trim_start"
+            | "trim_end"
             | "ok"
     )
 }
@@ -272,17 +342,12 @@ pub fn has_escaping_dotdot(value: &str) -> bool {
     if !(value.starts_with('/') || value.starts_with('\\')) {
         return false;
     }
-    let mut depth = 0usize;
+    // An absolute literal that walks up out of the directory it names: the
+    // normalised path is somewhere else than the written prefix suggests.
+    // `/tmp/../etc/shadow` normalises to `/etc/shadow`, which is not `/tmp`.
     for part in value.split(['/', '\\']) {
-        match part {
-            "" | "." => {}
-            ".." => {
-                if depth == 0 {
-                    return true;
-                }
-                depth -= 1;
-            }
-            _ => depth += 1,
+        if part == ".." {
+            return true;
         }
     }
     false

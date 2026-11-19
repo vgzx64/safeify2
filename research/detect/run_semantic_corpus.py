@@ -12,6 +12,7 @@ prints per-rule counts against the recorded baseline.
 from __future__ import annotations
 
 import argparse
+import concurrent.futures
 import json
 import subprocess
 import sys
@@ -38,32 +39,64 @@ def main(argv: list[str]) -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--limit", type=int, default=None)
     ap.add_argument("--out", default=str(ROOT / "detect" / "out" / "lint_corpus_semantic_2026-11-19.json"))
-    ap.add_argument("--timeout", type=int, default=180, help="seconds per crate")
+    ap.add_argument("--timeout", type=int, default=300, help="seconds per crate")
+    ap.add_argument("--jobs", type=int, default=10, help="parallel engine processes")
+    ap.add_argument("--restart", action="store_true", help="ignore partial results")
+    ap.add_argument("--engine-args", default="", help="extra arguments for safeify-lint")
     args = ap.parse_args(argv[1:])
     timeout = args.timeout
 
     findings: list[dict] = []
     failed: list[str] = []
-    for index, crate in enumerate(crate_dirs(args.limit), 1):
+    crates = crate_dirs(args.limit)
+
+    # Incremental output: one JSON line per finished crate, so a long run can be
+    # resumed instead of restarted (the engine rebuilds the std sysroot per
+    # process, which dominates wall time).
+    partial = Path(str(args.out) + ".partial.jsonl")
+    done: set[str] = set()
+    if partial.is_file() and not args.restart:
+        for line in partial.read_text().splitlines():
+            try:
+                record = json.loads(line)
+            except json.JSONDecodeError:
+                continue
+            done.add(record["crate"])
+            findings.extend(record["findings"])
+        print(f"resuming: {len(done)} crates already done", file=sys.stderr, flush=True)
+    crates = [crate for crate in crates if str(crate) not in done]
+
+    def analyze(crate: Path):
         try:
             proc = subprocess.run(
-                [str(ENGINE), "--crate", str(crate)],
+                [str(ENGINE), "--crate", str(crate),
+                 *(["--extra-cfg"] if args.engine_args else []),
+                 *([args.engine_args] if args.engine_args else [])],
                 capture_output=True, text=True, cwd=ROOT, timeout=timeout,
             )
         except subprocess.TimeoutExpired:
-            failed.append(f"{crate}: timeout after {timeout}s")
-            print(f"  TIMEOUT {crate}", file=sys.stderr, flush=True)
-            continue
+            return crate, None, f"timeout after {timeout}s"
         if proc.returncode != 0:
-            failed.append(f"{crate}: {proc.stderr.strip()[-200:]}")
-            print(f"  FAIL {crate}: {proc.stderr.strip()[-160:]}", file=sys.stderr, flush=True)
-            continue
+            return crate, None, proc.stderr.strip()[-200:]
         try:
-            findings.extend(json.loads(proc.stdout or "[]"))
+            return crate, json.loads(proc.stdout or "[]"), None
         except json.JSONDecodeError:
-            failed.append(f"{crate}: bad json")
-        if index % 10 == 0:
-            print(f"  {index} crates, {len(findings)} findings", file=sys.stderr, flush=True)
+            return crate, None, "bad json"
+
+    with concurrent.futures.ThreadPoolExecutor(max_workers=args.jobs) as pool:
+        futures = {pool.submit(analyze, crate): crate for crate in crates}
+        for done, future in enumerate(concurrent.futures.as_completed(futures), 1):
+            crate, rows, error = future.result()
+            if error is not None:
+                failed.append(f"{crate}: {error}")
+                print(f"  FAIL {crate}: {error}", file=sys.stderr, flush=True)
+            else:
+                findings.extend(rows)
+                with partial.open("a") as handle:
+                    handle.write(json.dumps({"crate": str(crate), "findings": rows}) + "\n")
+            if done % 20 == 0:
+                print(f"  {done}/{len(crates)} crates, {len(findings)} findings",
+                      file=sys.stderr, flush=True)
 
     seen = set()
     unique = []
@@ -75,6 +108,8 @@ def main(argv: list[str]) -> int:
         unique.append(row)
     unique.sort(key=lambda r: (r["path"], r["line"], r["rule"]))
     Path(args.out).write_text(json.dumps(unique, indent=1) + "\n")
+    if partial.is_file():
+        partial.unlink()
 
     print(f"\n{len(unique)} findings across {len({r['path'] for r in unique})} files")
     if failed:

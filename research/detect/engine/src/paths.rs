@@ -10,6 +10,16 @@ use ide_db::RootDatabase;
 
 pub fn qualified_path(db: &RootDatabase, f: Function) -> String {
     let mut parts: Vec<String> = Vec::new();
+    // Include the crate so that `std::fs::write` and an internal
+    // `std::sys::pal::unix::fs::write` never collapse to the same name.
+    if let Some(name) = f
+        .module(db)
+        .krate(db)
+        .display_name(db)
+        .map(|name| name.to_string())
+    {
+        parts.push(name);
+    }
     let mut modules = f.module(db).path_to_root(db);
     modules.reverse();
     for module in modules {
@@ -29,9 +39,10 @@ fn container_name(db: &RootDatabase, f: Function) -> Option<String> {
     match item.container(db) {
         AssocItemContainer::Trait(trait_) => Some(trait_.name(db).as_str().to_string()),
         AssocItemContainer::Impl(impl_) => {
-            let ty = impl_.self_ty(db);
-            let adt = ty.as_adt()?;
-            Some(adt.name(db).as_str().to_string())
+            // `impl Write for &File` must render as `File::write`, not as a
+            // bare `fs::write` that collides with the free function.
+            let ty = impl_.self_ty(db).strip_references().as_adt()?;
+            Some(ty.name(db).as_str().to_string())
         }
     }
 }

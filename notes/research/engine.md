@@ -1,7 +1,7 @@
 # Semantic engine — replacing the regex front end
 
-> **Status: milestone 2 (rules ported, differential harness running) ·
-> 2026-11-19**
+> **Status: milestone 3 (rules ported; macro bodies, suppressions, feature and
+> cross-target coverage) · 2026-11-19**
 >
 > Code: [`research/detect/engine/`](../../research/detect/engine/).
 > Supersedes the text layer of
@@ -149,8 +149,56 @@ generation and the audit sheet builder are I/O and bookkeeping, not analysis,
 and the 0.2000 accuracy on the 97-file split must keep reproducing from
 untouched code.
 
+## 5b. What the semantic engine does that text cannot
+
+Seven mechanisms carry most of the depth, and each is a rust-analyzer query
+rather than a text pattern:
+
+| Mechanism | Query | Why it matters |
+|---|---|---|
+| Pattern bindings | `hir::Local::primary_source` → `IdentPat` → enclosing `let` / `if let` / `match` / `for` | `if let Some(p) = env::var(..).ok()` keeps the taint of the scrutinee; the text engine lost it unless the names matched its binding table. |
+| Closure adapters | `resolve_method_call` → `Option::map`, then the closure body is evaluated with its parameter bound in a substitution | `env::var_os("OUT_DIR").map(|s| PathBuf::from(s).join("b"))` stays `trusted`; naive text classification either drops it or marks the whole chain tainted. |
+| Field summaries | `type_of_expr` → `as_adt` → crate-wide `(struct, field)` index built from record literals and assignments | `self.out_dir` initialised from `OUT_DIR` is trusted, while a field written from a parameter is not. Joins are taint-dominant (a single caller-controlled write wins), unlike the expression-level join. |
+| Guards | dominated `if` conditions: `starts_with` whose receiver resolves back to a `canonicalize` call, or `components` + `ParentDir` | a `File::create` inside `if canonical.starts_with(prefix)` is not a counterexample; the same value written after the `if` is. |
+| Macro bodies | `expand_macro_call` → walk the expansion | `try!(File::create(path))` and `assert!(matches!(..))` hide their calls in a token tree; the expansion is a real syntax tree whose nodes resolve. |
+| Suppressions | `lint_attrs(file_id, crate, item)` over the item's ancestors | `#[allow(safeify::exec_basename)]` works at function, module and crate level, including `cfg_attr` and `#[expect]`; a `// safeify: allow(...)` comment covers the function. |
+| Feature and target coverage | `CfgDiff` from the package manifest's features, plus `--extra-cfg` | code gated by `feature = ".."` is analyzed by default; `--extra-cfg windows,target_family=windows` analyzes the Windows branch of `#[cfg]` code.|
+
+## 5c. Two rust-analyzer behaviours worth knowing
+
+**`no_deps` leaks into the sysroot.** `CargoConfig::no_deps` is also passed to
+the sysroot workspace load, so `cargo metadata --no-deps` runs on
+`rust-src/library` and std loses its `alloc`/`core` edges. The crate graph then
+contains `std` with an empty dependency list, and everything re-exported from
+`alloc` (`String`, `Vec`, `Box`) or resolved through std impls (`Deref`,
+`AsRef`, `ToString`) silently fails to resolve — `String::new()` comes back as a
+type error. The engine carries a one-line fix in
+[`patches/rust-analyzer-sysroot-deps.patch`](../../research/detect/engine/patches/rust-analyzer-sysroot-deps.patch)
+(pass `false` for the sysroot load; `no_deps` describes the analysed package
+only), applied by `cargo.sh`. Without it, measured resolution on fixtures drops
+from `String`/`PathBuf` methods resolving to *nothing* resolving.
+
+**Item identity needs the crate and the impl container.** Rendering a
+resolved item as `module::name` is not enough: `std::fs::write` (free function)
+and the `write` method of `impl Write for &File` both render as `fs::write`,
+and a crate-local `write` in `sys::unix::io` renders the same way. The engine
+takes the crate name from `Crate::display_name`, strips only one leading
+`std::`/`core::`/`alloc::` for table lookup, and strips references from the
+impl's self type so `impl Write for &File` becomes `File::write`. Without this,
+mio 0.6.22 produced two false positives from `(&self.fd).write(src)`, which is
+a socket write, not a file write.
+
+**Expression macros are not reachable from `expand_macro_call` in every
+configuration.** `format!`/`concat!` inside a body currently expand to nothing
+in this setup, so macro arguments stay `unknown` and their sinks are not
+reported. Item-level macro calls, derived impls and declarative macros that
+produce items are covered by name resolution; expression-macro arguments are a
+known gap (see §7).
+
 ## 6. Reproducibility
 
+- One local patch to the vendored tree (sysroot dependency edges, §5c),
+  checked in as a patch file and applied by `cargo.sh`.
 - Built from the vendored source at
   [`vendors/rust-analyzer`](../../vendors/rust-analyzer) (git `aa198229`,
   2026-11-19) via path dependencies, so the analysis engine is pinned to code
@@ -167,6 +215,34 @@ untouched code.
   `CARGO_HOME` at `.tools/cargo-home` (the global one is read-only here) and
   the target dir at `.tools/cargo-target`, outside the repository tree.
 
+## 6b. Porting the frozen inventory (next)
+
+The frozen NIRM-3 evaluation does not use `lint_safe.py`: it uses
+[`inventory.py`](../../research/detect/inventory.py), which finds `unsafe`
+regions, the calls inside them, raw-pointer dereferences and the function's
+guard context by scanning masked text. That is the last regex analysis on the
+critical path, and it feeds `detect.py` → `verdict.py` → the 0.2000 accuracy on
+the 97-file split.
+
+Port plan, with the same discipline as the rules:
+
+1. `safeify-lint --inventory <crate>` emits one JSON object per file:
+   regions (`block`/`fn`), their call sites (resolved path, argument spans),
+   raw-pointer derefs (`ast::PrefixExpr` with `UnaryOp::Deref` whose operand
+   type is `*const`/`*mut`, which the text engine guessed from the preceding
+   word), and the enclosing function's context (name, params, visibility,
+   guards: `is_null`, `assert`, `with_capacity`, `len`/`capacity`,
+   `saturating_*`/`checked_*`, `matches!` — each a resolved call).
+2. A parity harness diffs the per-file `(region range, call callee, deref
+   offset)` sets against `inventory.py` on the frozen 288/69/97 files.
+3. Only when the diff is empty or explained does `detect.py` switch its
+   `inventory.*` calls to the adapter; then the frozen evaluation is re-run and
+   the 0.2000 / FP-on-N 0/27 / M-rate numbers are re-measured. If the inventory
+   changes, the numbers change and the report says by how much.
+
+Until that lands, the frozen numbers keep describing the text implementation
+and no claim in this note applies to them.
+
 ## 7. Measurements the engine must produce
 
 Recorded here as they land, so the claim "semantic > text" is a number and
@@ -180,68 +256,47 @@ not an assertion:
 | corpus findings / `warn` | 251 / 31 | — |
 | wall time, 147 crates | ~2.5–4 min | — |
 
-Corpus-wide differential (329 crate versions, 8,426 files), old text engine vs
-`safeify-lint`, keyed on `(rule, file, line)`. Artifact:
-[`lint_corpus_semantic_2026-11-19.json`](../../research/detect/out/lint_corpus_semantic_2026-11-19.json),
+Corpus-wide differential (329 crate versions, 8,426 files), text engine census
+(2026-11-19) vs the semantic engine (host pass ∪ Windows pass, 2026-11-20).
+Artifacts:
+[`lint_corpus_semantic_2026-11-20.json`](../../research/detect/out/lint_corpus_semantic_2026-11-20.json),
 driver [`run_semantic_corpus.py`](../../research/detect/run_semantic_corpus.py).
-Semantic engine: 232 findings in 82 files (old census: 251 in 91).
+Semantic engine: **259 findings in 92 files** (census: 251 in 91); severity
+distribution 65 `warn` / 194 `info` (census: 31 `warn`).
 
 | Rule | old | new | common | old-only | new-only |
 |---|---|---|---|---|---|
-| `exec_basename` | 85 | 55 | 55 | 30 | 0 |
-| `exec_tainted_cmd` | 14 | 15 | 11 | 3 | 4 |
-| `fs_tainted_path` | 141 | 155 | 123 | 18 | 32 |
+| `exec_basename` | 85 | 58 | 57 | 28 | 1 |
+| `exec_tainted_cmd` | 14 | 18 | 14 | 0 | 4 |
+| `fs_tainted_path` | 141 | 168 | 132 | 9 | 36 |
 | `build_outside_out_dir` | 4 | 2 | 2 | 2 | 0 |
 | `env_read_dangerous` | 5 | 5 | 5 | 0 | 0 |
+| `fs_special_path`, `fs_traversal_literal`, `exec_shell_tainted`, `exec_written_path`, `env_set_dangerous` | 0 | 0 | 0 | 0 | 0 |
 
-Old-only causes, each checked against the source:
+Old-only (31), every one checked against the source:
 
-- **files that are not a Cargo target** (slice-deque `ci/*.rs`, 10 sites): the
-  semantic engine walks the crate graph, so a script that no target includes is
-  never compiled and never scanned. The text engine lints it anyway.
-- **`#[cfg(windows)]` blocks** (arrayfire `build.rs`, 6 sites): only the active
-  configuration resolves.
-- **`Command` types from unresolved dependencies** (lettre `&self.command`,
-  chrono `path`): `no_deps` cannot resolve a non-`std` `Command::new`, so the
-  sink is invisible. This is the largest honest coverage gap and is what a
-  `--deps` mode would recover.
-- **macro arguments** (simd-json `format!(".baseline/{}.json", name)`): macro
-  token trees are not walked yet; `format!`/`concat!` need expansion.
+- **27 × a script that is not a Cargo target**: `slice-deque/ci/deploy_and_run_on_ios_simulator.rs`
+  is never compiled, so the crate graph does not contain it and the semantic
+  engine never scans it. The text engine scanned every `.rs` file it found.
+- **4 × `format!` arguments**: `simd-json/examples/perf.rs` writes
+  `format!(".baseline/{}.json", name)`; macro *arguments* are still `unknown`
+  (§5c), so the sink is not reported. This is the one real recall gap.
 
-New-only causes: the mdbook binding-resolution gains (9) and the openssl field
-false positives (2) described above; the remainder are the same classes on other
-crates.
+New-only (41):
 
-Differential status on 10 corpus crates (2026-11-19), old text engine vs
-`safeify-lint`, keyed on `(rule, file, line)` — per-crate detail:
-
-| Rule | old | new | common | old-only | new-only |
-|---|---|---|---|---|---|
-| `exec_basename` | 18 | 15 | 15 | 3 | 0 |
-| `exec_tainted_cmd` | 1 | 1 | 1 | 0 | 0 |
-| `build_outside_out_dir` | 2 | 1 | 1 | 1 | 0 |
-| `fs_tainted_path` | 43 | 53 | 42 | 1 | 11 |
-
-Every remaining difference has a named cause:
-
-- **old-only, `#[cfg(windows)]`** (arrayfire `build.rs` 206/210/222/230):
-  rust-analyzer only resolves the active configuration, so code compiled for a
-  different target is invisible. The text engine lints it; it does not build
-  here. Recorded as a coverage limit, not a bug.
-- **new-only, binding resolution** (mdbook `init.rs`, 9 sites): the text engine
-  gave up on `themedir.join("css")` because `themedir` was re-bound (its cycle
-  detection is name-based); the semantic engine resolves the actual `let`. The
-  extra findings are the same class as the 21 it already reported — an
-  under-reporting bug in the old engine, now fixed.
-- **new-only, missing field summary** (openssl-src `lib.rs`, 2 sites):
-  `self.out_dir` is initialised from `env::var("OUT_DIR")` in the build script,
-  so the write is legitimate; without a field summary the engine sees only
-  "field of self = caller-controlled". This is the false-positive class the
-  interprocedural field summary is designed to remove.
-- **`RwLock` guard receivers**: `self.write().join(file)` where `write()`
-  returns `RwLockWriteGuard<'_, &Path>` does not resolve in `no_deps` mode. The
-  engine keeps provenance through path-composition methods (`join`,
-  `with_file_name`, …) instead of dropping it; documented in `prov.rs`.
+- **mdbook `init.rs`/`fs.rs` (14)**: the text engine lost provenance through a
+  re-bound local (`let themedir = self.root.join(themedir)`); resolving the
+  actual `LetStmt` reports the writes uniformly with the 21 it already found.
+  Same class, under-reporting bug in the text engine.
+- **openssl-src `lib.rs` (13)**: `Build::out_dir()` stores a caller value into
+  the field, so the field summary is `param`; the library's own writes to it are
+  reported at `info`/`warn`. This is the deliberate may-analysis behaviour of
+  the field summary (taint dominates trust), and the audit labels judge it.
+- **`store_sqlite_tests.rs` (4), `main.rs` (2), `output.rs`/`build.rs` (4)**:
+  writes/execs from parameters or environment in test modules and examples that
+  the text engine missed through binding/field resolution.
+- **1 × `exec_basename`**: a `Command::new("cmd")` in a `#[cfg(windows)]` block,
+  recovered by the Windows pass.
 
 First measurements (2026-11-19), from the loader milestone:
 
