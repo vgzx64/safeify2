@@ -1,6 +1,6 @@
 # Counterexamples in Safe Rust — detection design
 
-> **Status: prototype v1 · Updated 2026-11-19 · 37/37 lint checks,
+> **Status: prototype v1 · Updated 2026-11-19 · 39/39 lint checks,
 > 8/8 existing detector checks**
 >
 > Source paper: M. Hassnain, C. Stanford, *Counterexamples in Safe Rust*,
@@ -52,6 +52,7 @@ dangerous regardless of who calls them (`/proc/*/mem`, `/dev/mem`,
 | `exec_basename` | 2 command | `Command::new("ls")` — no path separator, so PATH (and CWD on Windows) resolves it | `warn` |
 | `exec_tainted_cmd` | 2 | program name from a parameter or taint source, no allowlist | `warn` |
 | `exec_shell_tainted` | 2 | literal `sh`/`bash`/`cmd`… with a caller-controlled argument | `warn` |
+| `exec_written_path` | 2 | executes an absolute path this same function wrote earlier (dropper shape) | `warn` |
 | `env_set_dangerous` | 5 environment | `set_var`/`remove_var` on `PATH`, `LD_PRELOAD`, `RUSTC`, `RUSTFLAGS`, `TMPDIR`, `HOME`, … | `warn` |
 | `env_read_dangerous` | 5 | `var`/`var_os` of the same names (a taint source) | `info` |
 | `build_outside_out_dir` | 4 build-time | `build.rs` write whose path contains neither `OUT_DIR` nor `target` | `warn` |
@@ -116,7 +117,7 @@ and the paper's.
 
 ### 7.1 Unit cases (done)
 
-`python detect/test_lint_safe.py` → **37/37**: Figures 1, 2, 3, 6, 7 plus
+`python detect/test_lint_safe.py` → **39/39**: Figures 1, 2, 3, 6, 7 plus
 negatives for each precision decision (guarded path, absolute command,
 allowlist, suppression, relative `..`, `/proc/sys` read, `pub fn` path
 parameter).
@@ -222,7 +223,7 @@ deliberate negatives.
 | Advisory | Shape | Outcome |
 |---|---|---|
 | RUSTSEC-2021-0071 (`grep-cli` 0.1.5) | `Command::new(&decomp_cmd.bin)` — program name is a struct field | `exec_tainted_cmd` on the real `decompress.rs:143` |
-| RUSTSEC-2022-0042 (`rustdecimal`) | env check → fetch → write `/tmp` → exec an absolute path | **no finding** — gap |
+| RUSTSEC-2022-0042 (`rustdecimal`) | env check → fetch → write `/tmp` → exec an absolute path | `exec_written_path` on the reconstructed shape |
 | RUSTSEC-2022-0058 (`inconceivable`) | macro injects UB behind a feature flag | **no finding** — out of scope |
 
 **The first one initially did not fire.** The program name is a struct field
@@ -235,24 +236,56 @@ caller-determined rather than unknown — which is exactly the class
 so the coverage claim is checked against the vulnerable source, not a
 reconstruction.
 
-**`rustdecimal` stays a gap on purpose.** It is not a PATH-resolution or
-path-taint problem: the binary name is an absolute literal, the payload is
+**`rustdecimal` needed a new rule, not a tweak.** It is not a PATH-resolution
+or path-taint problem: the binary name is an absolute literal, the payload is
 written by the same function, and the trigger is a custom variable
-(`GITLAB_CI`) that no dangerous-variable table should contain. Catching it needs
-a def-use rule — *execute a path this function wrote down* (`exec_written_path`)
-— which is a new rule, not a tweak. Adding it now would be fitting the rule to
-the fixture; the honest state is a documented gap.
+(`GITLAB_CI`) that no dangerous-variable table should contain. The rule that
+covers it is def-use — *execute a path this function wrote down* — and it is
+implemented as `exec_written_path`: collect the literal paths written before the
+call in the same function (`fs::write`, `File::create`, `fs::copy`, …), and fire
+when the executed path is one of them. On the corpus it produces **zero**
+findings (no crate ships a same-function dropper), so the capability is
+free at the precision end. Limitation: cross-function droppers (write in one
+helper, exec in another) are invisible, which is the same interprocedural wall
+as everything else here.
 
 **`inconceivable` is out of scope:** the UB lives in macro expansion behind a
 feature flag. The fixture records the negative so the suite fails if someone
 later claims coverage.
 
-### 7.5 Ablation (next)
+### 7.5 Ablation: enumeration versus filtering (done, 2026-11-19)
 
-Baseline = "Cargo-Scan-style": flag every `fs`/`process`/`env` call
-unconditionally. Report how many of our findings survive guard filtering — the
-difference is the increment of the provenance layer, and the only fair way to
-claim it.
+`python detect/ablate_lints.py transitions/external/crates --max-bytes 100000`
+counts every call to a sink family — what a Cargo-Scan-style enumerator
+reports — against what the lints actually emit:
+
+| family | candidate call sites | findings | survives |
+|---|---|---|---|
+| filesystem | 915 | 132 | 14.4% |
+| command | 115 | 99 | 86.1% |
+| environment | 344 | 5 | 1.5% |
+| **total** | **1,374** | **251** | **18.3%** |
+
+At `warn` level alone: 31 of 1,374 (2.3%).
+
+Where the filesystem drop comes from: 123 literal paths that are safe, 2
+Cargo-provided (`OUT_DIR`/`CARGO_MANIFEST_DIR`), 2 guarded, 160 dynamic *reads*
+(out of scope), 37 calls without a path argument. The environment drop is
+almost total because `env::var` is only interesting for a fixed list of names
+and only at `info`.
+
+Two honest readings:
+
+- **Command execution does not filter.** 88 of 115 are literal basenames, and
+  nothing removes them without a tool allowlist. This is the same conclusion as
+  §7.3, measured differently: the family is barely filtered because the pattern
+  *is* the common case.
+- **The blind spot is large.** 445 of 915 filesystem calls (49%) classify
+  `unknown` — function returns and complex expressions — and are dropped
+  silently. Any recall claim is bounded by that number, which is the strongest
+  argument for the interprocedural step.
+
+Artifact: [`lint_ablation_2026-11-19.json`](../../research/detect/out/lint_ablation_2026-11-19.json).
 
 ## 8. Bugs found while building this
 
@@ -302,5 +335,7 @@ claim it.
   `tests/`, `examples/` may be needed before any "real defect rate" claim.
 - `exec_basename` on a standard build tool (`cmake`, `make`, `git`) is correct
   and useless; needs a tool allowlist (see §7.3).
-- The `info` stratum (214 findings) has no precision number; the audit covers
-  the 23 actionable sites only, in 8 crates, by a single reviewer.
+- `exec_written_path` only sees a write and an exec in the same function.
+- 49% of filesystem call sites classify `unknown` (§7.5) and can never fire.
+- The `info` stratum has no precision number; the audit covers
+  the 25 actionable sites only, in 9 crates, by a single reviewer.

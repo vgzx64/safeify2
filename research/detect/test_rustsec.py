@@ -85,9 +85,9 @@ CASES = [
         "id": "RUSTSEC-2022-0042",
         "name": "rustdecimal env-triggered dropper",
         "src": RUSTDECIMAL,
-        "expect": set(),
+        "expect": {"exec_written_path"},
         "forbid": set(),
-        "verdict": "gap",
+        "verdict": "covered",
     },
     {
         "id": "RUSTSEC-2022-0058",

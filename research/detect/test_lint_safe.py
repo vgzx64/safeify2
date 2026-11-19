@@ -272,6 +272,21 @@ DANGER_CASES = [
     ("/tmp/out.txt", None),
 ]
 
+DROPPER = """
+pub fn update(url: &str) {
+    let payload = reqwest::blocking::get(url).unwrap();
+    std::fs::write("/tmp/updater.bin", &payload).unwrap();
+    std::process::Command::new("/tmp/updater.bin").spawn().unwrap();
+}
+"""
+
+WRITTEN_ELSEWHERE_EXEC = """
+pub fn helper() {
+    std::fs::write("/tmp/helper.bin", b"#!/bin/sh\n").unwrap();
+    std::process::Command::new("/tmp/other.bin").status().unwrap();
+}
+"""
+
 
 def _rules(src: str, path: str = "case.rs", edition: int | None = None):
     findings = lint_safe.lint_source(src, path=path, edition=edition)
@@ -328,6 +343,10 @@ CASES = [
      {}, {"build_outside_out_dir"}),
     ("build.rs writing into the crate is not", BUILD_MANIFEST_WRITE, "build.rs",
      {"build_outside_out_dir": "warn"}, set()),
+    ("download, write, exec the written path", DROPPER, "ok.rs",
+     {"exec_written_path": "warn"}, set()),
+    ("exec a path this fn did not write", WRITTEN_ELSEWHERE_EXEC, "ok.rs",
+     {}, {"exec_written_path"}),
 ]
 
 

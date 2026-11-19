@@ -41,7 +41,7 @@ It shares the source masker with this detector and **none** of the Y/M/N model:
 it is not scored on the frozen split, adds no number to
 [results.md](results.md), and does not touch the replaceability claim. Design,
 threat model, corpus pilot and limitations:
-[counterexamples.md](../research/counterexamples.md). Checks: 37/37
+[counterexamples.md](../research/counterexamples.md). Checks: 39/39
 (`test_lint_safe.py`), 3/3 advisory fixtures (`test_rustsec.py` — RUSTSEC-2021-0071
 covered, RUSTSEC-2022-0042 a documented gap, RUSTSEC-2022-0058 out of scope);
 `test_detect.py` remains 8/8.

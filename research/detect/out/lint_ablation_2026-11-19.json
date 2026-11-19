@@ -1,0 +1,31 @@
+{
+  "buckets": {
+    "env:call": 336,
+    "env:no_fn": 8,
+    "exec:dynamic": 16,
+    "exec:literal_basename": 88,
+    "exec:unknown": 11,
+    "fs:guarded": 2,
+    "fs:literal_danger": 4,
+    "fs:literal_safe": 123,
+    "fs:no_arg": 37,
+    "fs:no_fn": 10,
+    "fs:read_dynamic": 160,
+    "fs:reported": 132,
+    "fs:trusted_env": 2,
+    "fs:unknown": 445
+  },
+  "families": {
+    "env": 344,
+    "exec": 115,
+    "fs": 915
+  },
+  "files": 8426,
+  "rules": {
+    "build_outside_out_dir": 4,
+    "env_read_dangerous": 5,
+    "exec_basename": 85,
+    "exec_tainted_cmd": 14,
+    "fs_tainted_path": 143
+  }
+}

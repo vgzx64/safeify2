@@ -68,6 +68,7 @@ RULE_LEVEL: dict[str, str] = {
     "exec_basename": "warn",
     "exec_tainted_cmd": "warn",
     "exec_shell_tainted": "warn",
+    "exec_written_path": "warn",
     "env_set_dangerous": "warn",
     "env_read_dangerous": "info",
     "build_outside_out_dir": "warn",
@@ -184,7 +185,7 @@ _PATH_SINKS = set(FS_PATH_ARG) | {
 _METHOD_SINKS = {"open", "create", "create_new"}
 
 
-def interesting_calls(mask: str) -> list:
+def interesting_calls(mask: str, start: int = 0, end: int | None = None) -> list:
     """Calls whose callee is one of the sinks, without resolving the rest.
 
     `inventory.find_calls` computes argument spans for every call in the file,
@@ -192,8 +193,9 @@ def interesting_calls(mask: str) -> list:
     short identifier and only matches parentheses for the few sinks we need.
     """
     calls = []
-    for m in re.finditer(r"\(", mask):
-        open_p = m.start()
+    end = len(mask) if end is None else end
+    for m in re.finditer(r"\(", mask[start:end]):
+        open_p = start + m.start()
         j = open_p - 1
         while j >= 0 and mask[j] in " \t\r\n":
             j -= 1
@@ -477,6 +479,29 @@ def _shell_args_dynamic(ctx: Ctx, call, fn: FnFacts) -> bool:
     return False
 
 
+_NET = re.compile(
+    r"\b(?:reqwest|ureq|hyper|attohttpc|surf|isahc|curl|TcpStream|std\s*::\s*net)\b"
+)
+
+
+def _written_literals(ctx: Ctx, fn: FnFacts, call) -> set[str]:
+    """Literal paths this function wrote before `call`.
+
+    The dropper shape: write a payload, then execute the path that was just
+    written. `unknown` provenance cannot express that, because the program
+    name *is* a literal — it just was not one when the function started.
+    """
+    out: set[str] = set()
+    for c in interesting_calls(ctx.mask, fn.body_start, call.open_paren):
+        if not _is_write_sink(ctx, c):
+            continue
+        for i in range(len(c.arg_spans)):
+            prov = classify(_arg(ctx, c, i), fn)
+            if prov.is_literal() and prov.value:
+                out.add(prov.value)
+    return out
+
+
 def _exec_findings(call, fn: FnFacts, ctx: Ctx) -> list[Finding]:
     if call.is_method or _tail2(call.callee) != "Command::new":
         return []
@@ -489,6 +514,23 @@ def _exec_findings(call, fn: FnFacts, ctx: Ctx) -> list[Finding]:
     if prov.is_literal() and prov.value:
         v = prov.value
         if "/" in v or "\\" in v:
+            if v in _written_literals(ctx, fn, call):
+                downloaded = bool(_NET.search(ctx.mask[fn.body_start : call.open_paren]))
+                tail = (
+                    "; the same function performs a network request"
+                    if downloaded
+                    else ""
+                )
+                return [
+                    _emit(
+                        ctx,
+                        fn,
+                        off,
+                        "exec_written_path",
+                        f"executes '{v}', a path this function wrote earlier{tail} "
+                        "— review what controls that file (dropper pattern)",
+                    )
+                ]
             return []  # explicit path: no PATH/CWD resolution
         if v in SHELLS:
             if _shell_args_dynamic(ctx, call, fn):
