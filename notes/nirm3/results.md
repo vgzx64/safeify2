@@ -12,15 +12,9 @@
 
 ## Protocol
 
-- Frozen real test split: `research/synth/splits/test.txt`, seed 1234;
-  `make_splits.py --check` → `OK` (train 288 / valid 69 / test 97).
-- 97 test files, 136 detected sinks, **105 evaluated**; 31 sinks are excluded as
-  `api_mismatch` because the file contains more than one API.
-- Gold: `research/synth/splits/eval_manifest.json`; verdict taxonomy and
-  per-pattern gold in `research/synth/splits/kb_verdicts.json`.
-- Scorer: `research/detect/score_frozen.py` — confusion, per-class P/R/F1,
-  macro-F1, coverage/risk, risk–coverage, pattern hints, and file-clustered
-  bootstrap 95% intervals (2,000 resamples of files, seed 1234).
+- Frozen real test split: `safeify-data/synth/splits/test.txt`, seed 1234.
+- Gold: `safeify-data/synth/splits/eval_manifest.json`.
+- Scorer: `safeify-ai/score_frozen.py`.
 - Metrics are per sink against the file-level gold verdict. Sinks in the same
   file are correlated; 105 sinks come from 97 files and 68 `(api, pattern)`
   cells, so the sample is clustered, not independent — hence file-level
@@ -100,8 +94,8 @@ the two `ptr::read` `N` claims, so it has no false `Y` but almost no `N` recall.
 
 ### DoD #3: retrieval
 
-`detect/export_retrieval.py` exports the modal sink `pattern_hint` per file as
-`{id, pattern_id}`; files without a hint get `0` (a miss). This is a
+`safeify-ai/export_retrieval.py` exports the modal sink `pattern_hint` per file.
+Files without a hint get `0` (a miss). This is a
 **substitution and a lower bound** — the detector is not a retrieval model.
 
 | Mode | Queries | Files with a claim | Top-1 pattern accuracy | Macro per-API recall | Recall on `N` |
@@ -187,7 +181,7 @@ the archived v1/v2/v3 and 2026-10-24 numbers are history.
    hover yields `{unknown}` and the sink stays `M`. The report must say this.
 4. **Corpus defects:** 20 excluded files, 14 label-conflict duplicate groups,
    6 cross-API identical sequences, 31 `api_mismatch` sinks. These are
-   documented in `research/synth/splits/stats.json`; no sensitivity analysis has
+   documented in `safeify-data/synth/splits/stats.json`; no sensitivity analysis has
    been done for the excluded sinks.
 5. **Verdicts are not fully reproducible:** see “Change from the 2026-10-24
    audit” above; the noise is confined to the raw-pointer-evidence family and is
@@ -209,37 +203,28 @@ the archived v1/v2/v3 and 2026-10-24 numbers are history.
 ## Reproduce
 
 ```bash
-cd research
-export PATH="$PWD/../.tools/ra-bin:$PATH"
-export HOME="$PWD/../.tools/ra-home"
+export PATH="$PWD/.tools/ra-bin:$PATH"
+export HOME="$PWD/.tools/ra-home"
 export RUSTUP_HOME=/home/user/.rustup CARGO_HOME=/home/user/.cargo
-source ../.venv/bin/activate
+source .venv/bin/activate
 
-python detect/test_detect.py                 # 8/8
-python synth/splits/make_splits.py --check   # OK
-python synth/splits/check_train_leakage.py   # OK
+python safeify-ai/test_detect.py
+python safeify-data/synth/splits/make_splits.py --check
+python safeify-data/synth/splits/check_train_leakage.py
 
-T=synth/splits/test.txt
-sed "s|^|../vendors/SafeNet/testdata/|" "$T" | tr '\n' '\0' \
-  | xargs -0 python -u detect/detect.py --json detect/out/nirm3_eval_lsp.json
-sed "s|^|../vendors/SafeNet/testdata/|" "$T" | tr '\n' '\0' \
-  | xargs -0 python -u detect/detect.py --no-lsp --json detect/out/nirm3_eval_nolsp.json
+T=safeify-data/synth/splits/test.txt
+sed "s|^|vendors/SafeNet/testdata/|" "$T" | tr '\n' '\0' \
+  | xargs -0 python -u safeify-ai/detect.py --json safeify-ai/out/nirm3_eval_lsp.json
 
-python detect/score_frozen.py --report detect/out/nirm3_eval_lsp.json \
-  --report2 detect/out/nirm3_eval_nolsp.json \
-  | tee detect/out/nirm3_eval_score.txt
-
-python detect/export_retrieval.py detect/out/nirm3_eval_lsp.json \
-  --out detect/out/nirm3_retrieval_lsp.json
-python synth/splits/eval_protocol.py --retrieval-preds \
-  detect/out/nirm3_retrieval_lsp.json | tee detect/out/nirm3_retrieval_score.txt
+python safeify-ai/score_frozen.py --report safeify-ai/out/nirm3_eval_lsp.json \
+  | tee safeify-ai/out/nirm3_eval_lsp_score.txt
 ```
 
 Artifacts:
 
-- [Combined score](../../research/detect/out/nirm3_eval_score.txt)
-- [LSP score report](../../research/detect/out/nirm3_eval_lsp_score.txt)
-- [No-LSP score report](../../research/detect/out/nirm3_eval_nolsp_score.txt)
-- [LSP raw JSON](../../research/detect/out/nirm3_eval_lsp.json)
-- [No-LSP raw JSON](../../research/detect/out/nirm3_eval_nolsp.json)
-- [Retrieval score](../../research/detect/out/nirm3_retrieval_score.txt)
+- [Combined score](../../safeify-ai/out/nirm3_eval_score.txt)
+- [LSP score report](../../safeify-ai/out/nirm3_eval_lsp_score.txt)
+- [No-LSP score report](../../safeify-ai/out/nirm3_eval_nolsp_score.txt)
+- [LSP raw JSON](../../safeify-ai/out/nirm3_eval_lsp.json)
+- [No-LSP raw JSON](../../safeify-ai/out/nirm3_eval_nolsp.json)
+- [Retrieval score](../../safeify-ai/out/nirm3_retrieval_score.txt)

@@ -1,0 +1,369 @@
+"""Verdict engine: deterministic Y/M/N per unsafe sink.
+
+Taxonomy matches safeify-data/synth/splits/kb_verdicts.json:
+  Y = replaceable (safe alternative exists, drop the unsafe op)
+  M = conditional (replaceability depends on dataflow/guards; may be encapsulated)
+  N = irreplaceable (no safe alternative in this frame; encapsulate only)
+
+Principles:
+  - Conservative defaults: when a pattern cannot be classified, emit M with a
+    low confidence. Never claim Y/N from pattern-level gold without evidence.
+  - The unchecked family is uniformly Y (KB: every unchecked API can be
+    replaced by keeping the check).
+"""
+
+from __future__ import annotations
+
+import re
+from dataclasses import dataclass, field
+
+from spec_db import SpecDB
+
+FAMILY = {
+    "get_unchecked": "unchecked", "get_unchecked_mut": "unchecked",
+    "unwrap_unchecked": "unchecked",
+    "unchecked_add": "checked_arith", "unchecked_mul": "checked_arith",
+    "mem::transmute": "transmute", "mem::transmute_copy": "transmute",
+    "mem::zeroed": "zeroed",
+    "ptr::read": "rawmem", "ptr::write": "rawmem", "ptr::copy": "rawmem",
+    "ptr::copy_nonoverlapping": "rawmem", "ptr::write_bytes": "rawmem",
+    "ptr::read_volatile": "rawmem", "ptr::write_volatile": "rawmem",
+    "ptr::deref": "rawmem",
+    "as_ref": "rawref", "as_mut": "rawref",
+    "set_len": "vec_len",
+    "offset_from": "ptr_arith",
+    "Box::from_raw": "reconstitute", "Rc::from_raw": "reconstitute",
+    "Arc::from_raw": "reconstitute", "Vec::from_raw_parts": "reconstitute",
+    "CString::from_raw": "reconstitute",
+    "CStr::from_ptr": "borrow_ffi",
+    "NonNull::dangling": "zeroed",
+}
+
+_PRIM_TY = re.compile(
+    r"^(u8|u16|u32|u64|usize|i8|i16|i32|i64|isize|f32|f64|bool|char)\b")
+_PTR_TY = re.compile(r"^\*?(const|mut)\b")
+_REF_TY = re.compile(r"^&")
+
+
+@dataclass
+class Verdict:
+    v: str  # Y / M / N
+    confidence: str  # high / low
+    reason: str
+    safe_alternative: str | None = None
+    encapsulate: bool = False
+    pattern_hint: int | None = None  # KB pattern id, only with real evidence
+    kb_gold: str | None  # gold verdict for (api, pattern_hint), if any
+    rules: list[str] = field(default_factory=list)
+
+
+def _type_of_hover(text: str | None) -> str | None:
+    """Best-effort type string from a hover blob (drops `name: ` prefix)."""
+    if not text:
+        return None
+    for line in text.splitlines():
+        line = line.strip().strip("`")
+        if not line or line.startswith("///"):
+            continue
+        m = re.match(r"^(?:let\s+|ref\s+)?[A-Za-z_]\w*:\s*(.+)$", line)
+        # `owner: &String` (param hover) / `let dest: *mut u8` (let-stmt hover)
+        if m:
+            line = m.group(1).strip()
+        return line
+    return None
+
+
+def _param_names(signature: str | None) -> set[str]:
+    """Formal parameter names of a fn signature (best effort; `self` included).
+
+    Used only to tell a LOCAL owner binding from a borrow that arrived as a
+    parameter. KB ptr::read p1/p5 Y-shapes read through a local
+    (`let this = ManuallyDrop::new(self)`, `let v = slice::from_raw_parts_mut`),
+    while the p2 N-shape reads through a `&`-borrow of an argument
+    (`&self.entries[i]`, `&v[0]` with `v: &mut [T]`, `&b.1` with `b: Self`).
+    """
+    if not signature:
+        return set()
+    i = signature.find("(")
+    if i < 0:
+        return set()
+    # scan to the matching close paren (types may nest `()`/`<>`/`[]`)
+    depth = 0
+    end = len(signature)
+    for j in range(i, len(signature)):
+        c = signature[j]
+        if c in "(<[":
+            depth += 1
+        elif c in ")>]":
+            depth -= 1
+            if depth == 0:
+                end = j
+                break
+    inner = signature[i + 1:end]
+    parts: list[str] = []
+    cur: list[str] = []
+    depth = 0
+    for c in inner:
+        if c in "(<[":
+            depth += 1
+        elif c in ")>]":
+            depth -= 1
+        if c == "," and depth == 0:
+            parts.append("".join(cur))
+            cur = []
+        else:
+            cur.append(c)
+    parts.append("".join(cur))
+    names: set[str] = set()
+    for p in parts:
+        p = p.strip()
+        if not p:
+            continue
+        if re.search(r"\bself\b", p):  # &self / &mut self / self / mut self
+            names.add("self")
+            continue
+        m = re.match(r"(?:mut\s+)?([A-Za-z_]\w*)\s*:", p)
+        if m:
+            names.add(m.group(1))
+    return names
+
+
+def _root_ident(expr: str) -> str | None:
+    """First identifier of an argument expression (`&self.entries[i]` -> self)."""
+    m = re.match(r"\s*[&*(\s]*(?:mut\s+)?([A-Za-z_]\w*)", expr)
+    return m.group(1) if m else None
+
+
+def _kb(db: SpecDB, api: str, pid: int | None) -> str | None:
+    if pid is None:
+        return None
+    return db.kb_verdicts.get(api, {}).get(str(pid))
+
+
+def _rules_for_pattern(db: SpecDB, api: str, pid: int | None) -> list[str]:
+    return [r.source for r in db.rules_for(api) if r.pattern_id == pid]
+
+
+def decide(db: SpecDB, api: str, *, call_text: str, args: list[str],
+           recv_type: str | None, arg_types: list[str | None],
+           ret_type: str | None, guards: list[str],
+           signature: str) -> Verdict:
+    # Normalize LSP hover blobs ("let dest: *mut u8" -> "*mut u8") once, so
+    # every family rule below matches on bare types (bug fix 2026-10-19:
+    # reconstitute/borrow_ffi/ptr::read matched raw hover text before).
+    recv_type = _type_of_hover(recv_type) if recv_type else recv_type
+    ret_type = _type_of_hover(ret_type) if ret_type else ret_type
+    arg_types = [_type_of_hover(t) if t else t for t in arg_types]
+
+    fam = FAMILY.get(api, "rawmem")
+    rules = [r.source for r in db.rules_for(api)]
+
+    if fam == "unchecked":
+        m = re.search(r"(\w+)\.(get_unchecked(?:_mut)?)\((.*)\)\s*$", call_text)
+        if api in ("get_unchecked", "get_unchecked_mut") and m:
+            recv, idx = m.group(1), m.group(3)
+            expr = (f"{recv}[{idx}]" if api == "get_unchecked_mut"
+                    else f"{recv}.get({idx})")
+            return Verdict("Y", "high",
+                           "unchecked family: keep the bounds check (KB: all "
+                           "unchecked APIs are replaceable).",
+                           safe_alternative=expr, pattern_hint=1,
+                           kb_gold=_kb(db, api, 1), rules=rules)
+        return Verdict("Y", "high",
+                       "unchecked family: keep the bounds/validity check.",
+                       safe_alternative="use the checked form "
+                                        "(`get`/`[]`/indexing/`+`)",
+                       pattern_hint=1, kb_gold=_kb(db, api, 1), rules=rules)
+
+    if fam == "checked_arith":
+        alt = "checked_add" if "add" in call_text else "checked_mul"
+        return Verdict("Y", "high",
+                       "unchecked arithmetic: use `+`/`*` (or checked_*/"
+                       "wrapping_* by contract).",
+                       safe_alternative=f"a.{alt}(b) or a + b",
+                       pattern_hint=1, kb_gold=_kb(db, api, 1), rules=rules)
+
+    if fam == "transmute":
+        slots = [recv_type, ret_type, *[a for a in arg_types]]
+        # non-empty slots AFTER entry normalization = hover actually resolved
+        known = [p for p in (_type_of_hover(t) or "" for t in slots) if p]
+        # Y requires src+dst type evidence (>= 2 known slots) and all of them
+        # primitive. Bug fix 2026-10-19: `for p in prim if p` used to skip
+        # missing types, so a fully evidence-free call matched vacuously and
+        # was claimed Y — violating "claims only with real evidence".
+        if len(known) >= 2 and all(_PRIM_TY.match(p) for p in known):
+            return Verdict("Y", "high",
+                           "scalar-to-scalar transmute with known primitive "
+                           "types: `as` cast is the safe form.",
+                           safe_alternative="x as T",
+                           pattern_hint=1, kb_gold=_kb(db, api, 1), rules=rules)
+        return Verdict("M", "low",
+                       "transmute of non-scalar/unknown types: replaceability "
+                       "depends on pattern (element-wise conversion may "
+                       "exist); classify p2/p3 before claiming Y.",
+                       encapsulate=True, rules=rules)
+
+    if fam == "rawmem":
+        # KB shape grounding (testdata + knowledgebase/ pattern files):
+        #   - p1 Y-shape (misuse): a CONCRETE owner value materialised in-frame
+        #     and read/copied behind its back (ptr::read(&s) on a local String,
+        #     copy(data.as_ptr(),...) on an owned slice, out.set_len + fill).
+        #   - p2 N-shape (borrowed): bare `&T`/`&mut T` param with NO concrete
+        #     owner in-frame (swap's ptr::read(a), ptr::read(&v[i])) — nothing
+        #     to replace with -> M, never Y.
+        # So `&T` hover alone never licenses Y: require a concrete ref type
+        # (not bare `T`, not `{unknown}`) or an owner-shaped call expression.
+        arg_shapes = " ".join(args)
+        # Concrete ref: `&T`/`&mut T` with a NON-generic, known pointee
+        # (bare `&T`/`&mut T` generics license nothing: nothing exists in-frame
+        # to read through instead — KB p2 shape, e.g. swap in testdata).
+        concrete_ref = (
+            arg_types
+            and arg_types[0]
+            and _REF_TY.match(arg_types[0].strip())
+            and not re.match(
+                r"^&\s*(mut\s+)?(T\b|{unknown}|\?)", arg_types[0].strip()
+            )
+            and args
+            and not re.match(r"^[A-Za-z_]\w*$", args[0].strip())
+        )
+        # Raw-ptr source outside this frame: `*const/*mut {unknown}` hover
+        # (FFI-style); in-frame minted raw ptrs flow through `_`/call args.
+        # (`&mut T` hover on a bare param is NOT raw evidence — it is the
+        # borrowed p2 shape and must not claim N either; it stays M.)
+        raw_evidence = (
+            arg_types
+            and arg_types[0]
+            and _PTR_TY.match(arg_types[0].strip())
+        )
+        # Owner-shaped call expression? KB p1 Y-shape needs a CONCRETE
+        # owner materialised in-frame: dotted path, index, or method call on
+        # the FIRST argument (bare identifiers are params -> borrowed shape).
+        # KB p2 N-shape (bug fix 2026-11-18): a `&`-borrow rooted at a formal
+        # parameter (or `self`) points into a place owned OUTSIDE this frame, so
+        # there is no in-frame owner to read through — `&self.entries[i]`,
+        # `&v[0]` with `v: &mut [T]`, `&b.1` with `b: Self` are all p2 -> N.
+        # The p1/p5 Y-shapes that must stay Y read through a LOCAL binding
+        # (`let this = ManuallyDrop::new(self); ptr::read(&this.inner)`), or
+        # re-derive a raw pointer (`&a as *const _`, KB p1 rawptr).
+        params = _param_names(signature)
+        arg0 = args[0].strip() if args else ""
+        ref_from_param = bool(
+            arg0.startswith("&")
+            and not re.search(r"\*\s*(const|mut)\b", arg0)  # raw-ptr re-derive
+            and not raw_evidence
+            and (_root_ident(arg0) == "self" or _root_ident(arg0) in params)
+        )
+        if api == "ptr::read" and ref_from_param:
+            return Verdict("N", "high",
+                           "reference borrowed from a parameter/self: the "
+                           "owner lives outside this frame, so the value "
+                           "cannot be replaced here (KB ptr::read p2 -> N); "
+                           "encapsulate.",
+                           encapsulate=True, pattern_hint=2,
+                           kb_gold=_kb(db, api, 2), rules=rules)
+        owner_shaped = (
+            args
+            and re.search(r"[.\[]|\(\)|as_ptr|as_mut_ptr", args[0])
+            and not (
+                arg_types
+                and arg_types[0]
+                and _PTR_TY.match(arg_types[0].strip())
+            )
+        )
+        owner_in_args = bool(
+            re.search(
+                r"\b[A-Za-z_]\w*(?:\.[A-Za-z_]\w*(?:\([^)]*\))?"
+                r"|\[[^\]]*\]\.?(?:as_ptr|as_mut_ptr)?\([^)]*\))",
+                arg_shapes,
+            )
+        )
+        if (
+            api == "ptr::read"
+            and (concrete_ref or owner_shaped)
+        ):
+            return Verdict("Y", "high",
+                           "owner/reference is present in this frame "
+                           "(KB ptr::read p1 -> Y): clone/read through the "
+                           "owner instead.",
+                           safe_alternative="owner.clone()",
+                           pattern_hint=1, kb_gold=_kb(db, api, 1), rules=rules)
+        if api == "ptr::deref" and "null_check" in guards:
+            return Verdict("M", "low",
+                           "raw deref behind a null check: the check does not "
+                           "prove provenance/aliasing; encapsulate.",
+                           encapsulate=True, rules=rules)
+        if api in ("ptr::copy", "ptr::copy_nonoverlapping") and \
+                "len_cap" in guards:
+            return Verdict("M", "low",
+                           "memcpy-style copy with length math present: "
+                           "replaceability needs dataflow (slice "
+                           "copy_from_slice may fit); classify before Y.",
+                           encapsulate=True, rules=rules)
+        return Verdict("M", "low",
+                       f"{api}: raw memory op; preconditions "
+                       "(provenance/validity/lifetime) must be verified. "
+                       "Encapsulate behind a documented unsafe fn, or find "
+                       "the owner in-frame (KB p1).",
+                       encapsulate=True, rules=rules)
+
+    if fam == "rawref":
+        if "owner" in signature or re.search(r":\s*&", signature):
+            return Verdict("Y", "high",
+                           "owner/ref appears in this frame (KB as_ref p1 -> "
+                           "Y): read through the owner directly.",
+                           safe_alternative="use the owner reference",
+                           pattern_hint=1, kb_gold=_kb(db, api, 1), rules=rules)
+        return Verdict("M", "low",
+                       "as_ref through a raw pointer without in-frame owner "
+                       "evidence; classify pattern before claiming Y.",
+                       encapsulate=True, rules=rules)
+
+    if fam == "vec_len":
+        return Verdict("M", "low",
+                       "set_len exposes uninitialized slots (KB p1/p2 -> M, "
+                       "p3 -> N): prefer push/resize; encapsulate with an "
+                       "initialization invariant if kept.",
+                       safe_alternative="v.push(..) / v.resize(..)",
+                       encapsulate=True, rules=rules)
+
+    if fam == "ptr_arith":
+        return Verdict("M", "low",
+                       "raw pointer arithmetic: replaceability needs "
+                       "provenance evidence; slice/window iterators may "
+                       "replace it.",
+                       encapsulate=True, rules=rules)
+
+    if fam == "reconstitute":
+        if arg_types and arg_types[0] and _PTR_TY.match(arg_types[0].strip()):
+            return Verdict("N", "high",
+                           "raw pointer arrives from outside this frame; no "
+                           "owner exists here to reconstruct ownership from "
+                           "(KB from_raw p1 -> N).",
+                           encapsulate=True, pattern_hint=1,
+                           kb_gold=_kb(db, api, 1), rules=rules)
+        return Verdict("M", "low",
+                       "from_raw* without type evidence: ownership source "
+                       "unknown; classify before claiming Y/N.",
+                       encapsulate=True, rules=rules)
+
+    if fam == "borrow_ffi":
+        if arg_types and arg_types[0] and _PTR_TY.match(arg_types[0].strip()):
+            return Verdict("N", "high",
+                           "C string pointer comes from FFI (parameter); the "
+                           "owner is not in this frame (KB from_ptr p1 -> N).",
+                           encapsulate=True, pattern_hint=1,
+                           kb_gold=_kb(db, api, 1), rules=rules)
+        return Verdict("M", "low",
+                       "CStr::from_ptr without evidence: classify pattern.",
+                       encapsulate=True, rules=rules)
+
+    if fam == "zeroed":
+        return Verdict("M", "low",
+                       "zeroed/invalid value creation: validity depends on "
+                       "the type; prefer Default or a zeroable derive.",
+                       encapsulate=True, rules=rules)
+
+    return Verdict("M", "low", f"unknown family for {api}", rules=rules)
+
+

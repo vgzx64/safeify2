@@ -1,22 +1,17 @@
 # Counterexamples in Safe Rust — detection design
 
-> **Status: prototype v1 · Updated 2026-11-19 · 39/39 lint checks,
-> 8/8 existing detector checks**
+> **Status: semantic prototype · Updated 2026-11-20**
 >
 > Source paper: M. Hassnain, C. Stanford, *Counterexamples in Safe Rust*,
 > ASEW '24, [doi:10.1145/3691621.3694943](https://doi.org/10.1145/3691621.3694943).
-> Code: [`research/detect/lint_safe.py`](../../research/detect/lint_safe.py),
-> [`provenance.py`](../../research/detect/provenance.py),
-> [`test_lint_safe.py`](../../research/detect/test_lint_safe.py).
+> Implementation: [`safeify-lint/`](../../safeify-lint/)
 
 ## 1. Why this is a separate analysis from NIRM 3's verdicts
 
 The paper's five attack patterns are **safe** Rust: `std::fs`, `std::process`,
-`std::env` are all safe APIs. NIRM 3's pipeline
-([`inventory.py`](../../research/detect/inventory.py)) only inventories
-`unsafe { }` regions, so none of these patterns enters it, and
-[`verdict.py`](../../research/detect/verdict.py)'s Y/M/N replaceability model
-has nothing to say about them. The consequence is a second front end:
+and `std::env` are all safe APIs. `safeify-ai` inventories `unsafe { }` regions
+and applies Y/M/N replaceability judging, while `safeify-lint` analyzes these
+safe-API counterexamples. They remain separate products:
 
 | | replaceability (existing) | counterexample lints (this note) |
 |---|---|---|
@@ -66,8 +61,7 @@ analysis, and is not implemented.
 ## 4. Provenance lattice
 
 `literal < param < tainted < unknown`. `unknown` never produces a finding;
-precision comes from refusing to guess. Implemented in
-[`provenance.py`](../../research/detect/provenance.py):
+precision comes from refusing to guess. Implemented in [`safeify-lint/src/prov.rs`](../../safeify-lint/src/prov.rs):
 
 - **literal** — string/byte/raw literal, `Path::new`, `PathBuf::from`,
   `Some(..)`/`Ok(..)`, `concat!` of literals;
@@ -143,7 +137,7 @@ parameter).
 251 findings in 91 of 8,426 files (1.1%); 26 are in `build.rs`, 41 in
 `tests/`+`examples/`. Concentration: `mdbook` 48, `openssl-src` 45,
 `slice-deque` 27, `bam` 24, `tough` 22, `arrayfire` 16. Artifact:
-[`lint_corpus_2026-11-19.json`](../../research/detect/out/lint_corpus_2026-11-19.json).
+[`lint_corpus_2026-11-19.json`](../../safeify-lint/out/lint_corpus_2026-11-19.json).
 
 Caveats: this is a *pilot* corpus, not the paper's crates.io selection, so the
 counts are not comparable with their Table 2 rates. `fs_tainted_path` dominates
@@ -159,9 +153,9 @@ and all 25 were labelled by reading each site with four lines of context. The
 sheet and labels are reproducible:
 
 ```
-python detect/audit_lint.py --corpus detect/out/lint_corpus_2026-11-19.json \
+python safeify-lint/audit_lint.py --corpus safeify-lint/out/lint_corpus_2026-11-19.json \
     --sheet detect/out/lint_audit_2026-11-19.jsonl --info-sample 0
-python detect/audit_lint.py --sheet detect/out/lint_audit_2026-11-19.jsonl \
+python safeify-lint/audit_lint.py --sheet detect/out/lint_audit_2026-11-19.jsonl \
     --labels detect/out/lint_audit_labels_2026-11-19.json --stats
 ```
 
@@ -284,8 +278,6 @@ Two honest readings:
   `unknown` — function returns and complex expressions — and are dropped
   silently. Any recall claim is bounded by that number, which is the strongest
   argument for the interprocedural step.
-
-Artifact: [`lint_ablation_2026-11-19.json`](../../research/detect/out/lint_ablation_2026-11-19.json).
 
 ## 8. Bugs found while building this
 

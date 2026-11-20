@@ -6,8 +6,8 @@
 > NIRM 3. The NIRM 3 detector is documented in
 > [nirm3/report.md](../nirm3/report.md).
 >
-> Data: [`research/synth`](../../research/synth/README.md), frozen split
-> [`research/synth/splits`](../../research/synth/splits/README.md).
+> Data: [`safeify-data/synth`](../../safeify-data/synth/README.md), frozen split
+> [`safeify-data/synth/splits`](../../safeify-data/synth/splits/README.md).
 
 ## Current state
 
@@ -108,8 +108,8 @@ What it does **not** solve:
 
 - [Transition dataset plan](transition-dataset.md)
 - [Pilot results](transition-dataset-pilot.md)
-- [Synthetic data and frozen split](../../research/synth/README.md)
-- [SafeNet frozen split protocol](../../research/synth/splits/README.md)
+- [Synthetic data and frozen split](../../safeify-data/synth/README.md)
+- [SafeNet frozen split protocol](../../safeify-data/synth/splits/README.md)
 - [NIRM 3 report §11 — NIRM 4 handoff](../nirm3/report.md#11-nirm-4-handoff-bert-pair-model-data-readiness)
 - [GNN-Coder evaluation](gnn-coder-evaluation.md) — a later augmentation, not the
   first baseline

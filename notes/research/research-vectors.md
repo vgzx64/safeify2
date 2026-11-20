@@ -21,7 +21,7 @@ not a change to make before the baseline exists.
 - Ye et al., 2025 — GNN-Coder is a good candidate. Evaluate this candidate.
 
 See the [GNN-Coder evaluation](gnn-coder-evaluation.md) and the
-[prototype README](../../research/gnn/README.md).
+[GNN experiment README](../../experiments/gnn/README.md).
 
 **Proposed architecture enhancement:**
 

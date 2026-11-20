@@ -5,9 +5,8 @@
 > Work window: `01.09.2026 – 08.11.2026`
 > Report window: `09.11.2026 – 22.11.2026`
 > Code under test: `00f83e9` (detector fix + evaluation artifacts); the
-> earlier data/report snapshot is `303e12d`. Unrelated `research/transitions/`
-> work is committed separately at `66e8dcf`. Frozen split hashes are in
-> `research/synth/splits/eval_manifest.json`.
+> earlier data/report snapshot is `303e12d`. `safeify-data/transitions/` work is committed separately at `66e8dcf`. Frozen split hashes are in
+> `safeify-data/synth/splits/eval_manifest.json`.
 >
 > This report supersedes the archived v1/v2/v3 notes. It reports the
 > 2026-11-18 rerun after the `ptr::read` fix, not the non-reproducible v3 table.
@@ -76,8 +75,8 @@ Do not present the re-scope as settled until it is accepted in writing.
                  syntactic guards (null_check, assert, with_capacity, ...)
   ra_client.py   stable rust-analyzer over stdio -> hover evidence
                  (receiver / argument / return types)
-  spec_db.py     42 rule cells from research/synth/rules/*.yaml + 19 APIs
-                 + gold Y/M/N from research/synth/splits/kb_verdicts.json
+  spec_db.py     42 rule cells from safeify-data/synth/rules/*.yaml + 19 APIs
+                 + gold Y/M/N from safeify-data/synth/splits/kb_verdicts.json
   verdict.py     family table + evidence -> Y/M/N, confidence, reason,
                  safe_alternative, encapsulate hint, pattern_hint
   verify.py      optional rustc --emit=metadata gate
@@ -113,7 +112,7 @@ evidence and is not turned into `N`.
   excluded as `api_mismatch` because the file contains more than one API.
   Gold verdicts are per file from the KB; 105 sinks come from 97 files and 68
   cells, so the sample is clustered, not independent.
-- Scorer: `research/detect/score_frozen.py`; metrics are per sink against the
+- Scorer: `safeify-ai/score_frozen.py`; metrics are per sink against the
   file-level gold.
 - **Test reuse caveat:** the test split was used for v1 -> v2 -> v3 bug fixes.
   “Report test once” and “nothing tuned on test” are not accurate. The current
@@ -308,54 +307,44 @@ Environment used for this run:
 - `rustc 1.100.0 (0ef1bc386 2026-11-09)`;
 - `rust-analyzer 0.3.3025-standalone` (2026-08-24 release), pinned under
   `.tools/ra-bin` (gitignored), with the `rust-src` shim from
-  `research/detect/setup_rust_src.sh`;
-- frozen split hashes in `research/synth/splits/eval_manifest.json`
+  `safeify-ai/setup_rust_src.sh`;
+- frozen split hashes in `safeify-data/synth/splits/eval_manifest.json`
   (train `589261…`, valid `cd9473…`, test `0b242a…`).
 
 Commands:
 
 ```bash
 cd research
-export PATH="$PWD/../.tools/ra-bin:$PATH"
-export HOME="$PWD/../.tools/ra-home"
+export PATH="$PWD/.tools/ra-bin:$PATH"
+export HOME="$PWD/.tools/ra-home"
 export RUSTUP_HOME=/home/user/.rustup CARGO_HOME=/home/user/.cargo
-source ../.venv/bin/activate
-python detect/test_detect.py                 # 8/8
-python synth/splits/make_splits.py --check   # OK, three times
-python synth/splits/check_train_leakage.py   # OK (NIRM 4 data gate)
+source .venv/bin/activate
+python safeify-ai/test_detect.py
+python safeify-data/synth/splits/make_splits.py --check
+python safeify-data/synth/splits/check_train_leakage.py
 
-T=synth/splits/test.txt
-sed "s|^|../vendors/SafeNet/testdata/|" "$T" | tr '\n' '\0' \
-  | xargs -0 python -u detect/detect.py --json detect/out/nirm3_eval_lsp.json
-sed "s|^|../vendors/SafeNet/testdata/|" "$T" | tr '\n' '\0' \
-  | xargs -0 python -u detect/detect.py --no-lsp --json detect/out/nirm3_eval_nolsp.json
+T=safeify-data/synth/splits/test.txt
+sed "s|^|vendors/SafeNet/testdata/|" "$T" | tr '\n' '\0' \
+  | xargs -0 python -u safeify-ai/detect.py --json safeify-ai/out/nirm3_eval_lsp.json
 
-# per-mode scores (also written by the combined score below)
-python detect/score_frozen.py --report detect/out/nirm3_eval_lsp.json \
-  | tee detect/out/nirm3_eval_lsp_score.txt
-python detect/score_frozen.py --report detect/out/nirm3_eval_nolsp.json \
-  | tee detect/out/nirm3_eval_nolsp_score.txt
-python detect/score_frozen.py --report detect/out/nirm3_eval_lsp.json \
-  --report2 detect/out/nirm3_eval_nolsp.json \
-  | tee detect/out/nirm3_eval_score.txt
-
-# DoD #3: detector pattern hints as retrieval predictions (lower bound)
-python detect/export_retrieval.py detect/out/nirm3_eval_lsp.json \
-  --out detect/out/nirm3_retrieval_lsp.json
-python synth/splits/eval_protocol.py --retrieval-preds \
-  detect/out/nirm3_retrieval_lsp.json | tee detect/out/nirm3_retrieval_score.txt
+python safeify-ai/score_frozen.py --report safeify-ai/out/nirm3_eval_lsp.json \
+  | tee safeify-ai/out/nirm3_eval_lsp_score.txt
+python safeify-ai/export_retrieval.py safeify-ai/out/nirm3_eval_lsp.json \
+  --out safeify-ai/out/nirm3_retrieval_lsp.json
+python safeify-data/synth/splits/eval_protocol.py --retrieval-preds \
+  safeify-ai/out/nirm3_retrieval_lsp.json | tee safeify-ai/out/nirm3_retrieval_score.txt
 ```
 
-Artifacts: [LSP raw JSON](../../research/detect/out/nirm3_eval_lsp.json),
-[no-LSP raw JSON](../../research/detect/out/nirm3_eval_nolsp.json),
-[combined score](../../research/detect/out/nirm3_eval_score.txt),
-[LSP score](../../research/detect/out/nirm3_eval_lsp_score.txt),
-[no-LSP score](../../research/detect/out/nirm3_eval_nolsp_score.txt),
-[LSP retrieval preds](../../research/detect/out/nirm3_retrieval_lsp.json),
-[retrieval score](../../research/detect/out/nirm3_retrieval_score.txt).
+Artifacts: [LSP raw JSON](../../safeify-ai/out/nirm3_eval_lsp.json),
+[no-LSP raw JSON](../../safeify-ai/out/nirm3_eval_nolsp.json),
+[combined score](../../safeify-ai/out/nirm3_eval_score.txt),
+[LSP score](../../safeify-ai/out/nirm3_eval_lsp_score.txt),
+[no-LSP score](../../safeify-ai/out/nirm3_eval_nolsp_score.txt),
+[LSP retrieval preds](../../safeify-ai/out/nirm3_retrieval_lsp.json),
+[retrieval score](../../safeify-ai/out/nirm3_retrieval_score.txt).
 
 The detector fix and these artifacts are committed at `00f83e9`; the earlier
-data/report snapshot is `303e12d`. `research/transitions/` work is committed
+data/report snapshot is `303e12d`. `safeify-data/transitions/` work is committed
 separately at `66e8dcf` and is not part of this result. The frozen split is
 stable; re-run if the pinned rust-analyzer or the split changes.
 

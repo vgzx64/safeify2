@@ -151,7 +151,7 @@ prompt/model, confidence, and human decision. A row cannot enter
 
 The `vul_safe_unsafe` table (332 rows) is a **candidate filter only**. It does
 not identify which block changed. Collected source counts are in
-[source_inventory.json](../../research/transitions/out/source_inventory.json).
+[source_inventory.json](../../safeify-data/transitions/out/source_inventory.json).
 
 **Collection has no date cutoff.** Use every available CVEfixes/RustSec/OSV/GHSA
 and commit example, including 2026 and earlier. Dates are used only to define an
@@ -357,7 +357,7 @@ Supporting results:
   gets 0.388. No model transfers yet.
 - Labels were verified by two independent blind spot-checks; the M/N boundary
   remains an explicitly non-trainable descriptor.
-- `research/synth` remains the synthetic pretraining corpus; `research/gnn` is
+- `safeify-data/synth` remains the synthetic pretraining corpus; `experiments/gnn` is
   still an unwired prototype.
 
 Full results: [transition dataset pilot](transition-dataset-pilot.md).
@@ -439,10 +439,11 @@ validate the plan; the full build belongs to NIRM 4.
 - [NIRM 3 results and protocol](../nirm3/results.md)
 - [Synthetic data theory](synthetic-data-theory.md)
 - [Research vectors](research-vectors.md)
-- [Synthetic pipeline](../../research/synth/README.md)
-- [Frozen SafeNet split](../../research/synth/splits/README.md)
+- [Synthetic pipeline](../../safeify-data/synth/README.md)
+- [Frozen SafeNet split](../../safeify-data/synth/splits/README.md)
+- [Transition pipeline](../../safeify-data/transitions/README.md)
+- [safeify-ai limitations](../../safeify-ai/README.md)
 - [Pilot results](transition-dataset-pilot.md)
-- [Transition pipeline](../../research/transitions/README.md)
 - [Detector limitations](../../research/detect/README.md)
 - [SafeNet corpus](../../vendors/SafeNet/README.md)
 - [Dissertation plan](../../papers/my_dissertation_plan.md)

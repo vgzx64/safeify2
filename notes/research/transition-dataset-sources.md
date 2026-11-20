@@ -137,7 +137,7 @@ fallback (`abox`, `atom`, `torvalds_linux`).
 2. Retrain with curated API/contract features; the raw 60-line context window
    scored 0.388 AUC on valid (worse than snippet-only 0.665), so raw code is
    not the missing input.
-3. Grow positives or pretrain on `research/synth`; 55 train positives cannot
+3. Grow positives or pretrain on `safeify-data/synth`; 55 train positives cannot
    support a neural encoder.
 4. Cap per-repo family weight (google/flatbuffers is 59 of 325 negative families).
 5. Finish the 91 remaining CVEfixes queue rows.

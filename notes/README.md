@@ -28,10 +28,10 @@ Working notes for the dissertation and the SafeNet experiments.
 | [research/transition-dataset.md](research/transition-dataset.md) | Active | Classification/retrieval dataset plan; `transitions-core` v0.2 frozen |
 | [research/transition-dataset-pilot.md](research/transition-dataset-pilot.md) | Frozen | v0.2 frozen: 433 rows; 8 gates pass; leakage 0; binary target verified (kappa 0.82); M/N not reproducible; one-sided model does not transfer |
 
-## Archive
+## Historical material
 
-[archive/README.md](archive/README.md) lists superseded documents. Archive files
-are read-only and are not authoritative.
+Historical snapshots have been removed from the working tree because git history
+preserves them. Only canonical active, frozen, or draft documents remain here.
 
 ## Conventions
 
@@ -42,3 +42,10 @@ are read-only and are not authoritative.
 - Keep the formal task and deadlines in
   [papers/my_dissertation_plan.md](../papers/my_dissertation_plan.md); notes may
   quote them but must not silently re-scope them.
+
+## Project layout
+
+- [`safeify-ai/`](../safeify-ai/README.md) — replaceability judgments
+- [`safeify-lint/`](../safeify-lint/README.md) — safe-Rust counterexample lints
+- [`safeify-data/`](../safeify-data/README.md) — mining and dataset work
+- [`experiments/gnn/`](../experiments/gnn/README.md) — non-production GNN experiment

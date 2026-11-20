@@ -1,8 +1,7 @@
 # GNN-Coder Evaluation for SafeNet Enhancement
 
 > **Status: historical · 2026-09-22 · Decision input, not implementation status.**
-> See the [GNN prototype README](../../research/gnn/README.md) for what is
-> actually implemented and tested. Current status is prototype-only, not
+> See the [GNN experiment README](../../experiments/gnn/README.md) for the implementation state. Current status is prototype-only, not
 > integrated, with no measured improvement.
 
 **Candidate:** Ye et al. (2025) - "GNN-Coder: Boosting Semantic Code Retrieval with Combined GNNs and Transformer" (arXiv:2502.15202)

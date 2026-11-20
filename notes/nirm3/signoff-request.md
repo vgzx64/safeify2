@@ -52,7 +52,7 @@ the clean result past the 25.11 paper slot.
 
 The DoD asks for `eval_protocol.py --retrieval-preds` on the test split. The
 detector has no retrieval model, so we exported its modal `pattern_hint` per
-file (`detect/export_retrieval.py`) and scored that: top-1 pattern accuracy
+file (`safeify-ai/export_retrieval.py`) and scored that: top-1 pattern accuracy
 **0.0928** (LSP), `N`-query recall 5/23 ([report.md §5.3](report.md#53-dod-3-retrieval-on-the-frozen-test-split)).
 
 **Requested:** either (a) accept the `pattern_hint` export as satisfying DoD #3,

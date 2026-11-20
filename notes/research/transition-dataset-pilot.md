@@ -3,7 +3,7 @@
 > **Status: v0.2 FROZEN · 2026-11-08 · 433 rows; split leakage 0; blind spot-checks pass on the binary target; M/N retained as descriptors only**
 >
 > Design: [transition dataset plan](transition-dataset.md)
-> Pipeline: [research/transitions/README.md](../../research/transitions/README.md)
+> Pipeline: [safeify-data/transitions/README.md](../../safeify-data/transitions/README.md)
 > Pair model: [bert-pair-model.md](bert-pair-model.md)
 
 ## Question
@@ -424,9 +424,8 @@ Result:
   near 50/20/30 (218/87/130 rows, 55/22/33 Y). The split is not
   source-stratified: every split contains CVEfixes, crates.io and RustSec rows,
   but the source mix is not forced.
-- `train_model.py` (2026-11-07) is the training harness; `research/synth`
-  remains the synthetic pretraining corpus and `research/gnn` is still an
-  unwired prototype.
+- `train_model.py` (2026-11-07) is the training harness; `safeify-data/synth` remains the
+  synthetic pretraining corpus and `experiments/gnn` is an optional experiment.
 
 ### Baseline smoke test (2026-11-07)
 
@@ -455,14 +454,8 @@ claim. Test is reported only after freeze.
 
 ### First training run (2026-11-07)
 
-`train_model.py` is the first supervised training harness. It compares two
-inputs on the same model (char TF-IDF + logistic regression), with grouped
-5-fold CV on `train` (groups = canonical repository) and then a held-out check
-on `valid`. The context input is a 60-line window of the pre-fix file around the
-hunk, recovered from the repo mirrors / crate tarballs (400/435 rows of the
-pre-freeze draft; all crates.io rows, 247/253 CVEfixes; RustSec has no snapshot
-and falls back to the snippet). The cache predates the freeze and is named after
-the frozen version only for convenience.
+`train_model.py` is the training harness; `safeify-data/synth` remains the
+synthetic pretraining corpus and `experiments/gnn` is an optional experiment.
 
 | Input | CV pooled AUC | CV F1 (Y) | Valid AUC | Valid F1 (Y) |
 |---|---:|---:|---:|---:|
@@ -529,7 +522,7 @@ actually needs.
 
 ## Next
 
-1. **Train the pair classifier** on `research/synth/out/train_mixed.csv`
+1. **Train the pair classifier** on `safeify-data/synth/out/train_mixed.csv`
    (8,580 clean SafeNet-style pairs after the 2026-11-18 rebuild; valid/test
    excluded, `splits/check_train_leakage.py` passes), using this frozen core as
    external validation on `(old, fix)` pairs. This is the next milestone; see
@@ -554,16 +547,13 @@ actually needs.
 - [v0.2 frozen core: 433](../../research/transitions/out/transitions_core_v0.2.jsonl)
 - [Quality gates and label verification](../../research/transitions/out/transitions_core_v0.2_quality.json)
 - [Freeze manifest (sha256)](../../research/transitions/out/manifest_v0.2.json)
-- [Label reliability report](../../research/transitions/out/label_reliability.json)
-- [Reviewer corrections](../../research/transitions/adjudication/corrections.jsonl)
-- [Splits](../../research/transitions/out/splits_v0.2.json)
-- [Batch manifest](../../research/transitions/adjudication/gate_batches.json)
-- [Spot-check corrections](../../research/transitions/out/spotcheck_gate.json)
-- [Split leakage audit](../../research/transitions/out/split_leakage.json)
-- [Canonical identity cache](../../research/transitions/out/repo_identity.json)
-- [Valid-split baseline](../../research/transitions/out/baseline_valid.json)
-- [Context feature cache](../../research/transitions/out/context_v0.2.jsonl)
-- [First training run](../../research/transitions/out/train_v0.2.json)
-- [crates.io candidates](../../research/transitions/out/cratesio_candidates.jsonl)
-- [Public docs contracts](../../research/transitions/out/docs_public_safety.jsonl)
-- [Rust-for-Linux sample](../../research/transitions/out/rust_for_linux_hunks.jsonl)
+- [Label reliability report](../../safeify-data/transitions/out/label_reliability.json)
+- [Reviewer corrections](../../safeify-data/transitions/adjudication/corrections.jsonl)
+- [Splits](../../safeify-data/transitions/out/splits_v0.2.json)
+- [Batch manifest](../../safeify-data/transitions/adjudication/gate_batches.json)
+- [Spot-check corrections](../../safeify-data/transitions/out/spotcheck_gate.json)
+- [Split leakage audit](../../safeify-data/transitions/out/split_leakage.json)
+- [Canonical identity cache](../../safeify-data/transitions/out/repo_identity.json)
+- [Valid-split baseline](../../safeify-data/transitions/out/baseline_valid.json)
+- [Context feature cache](../../safeify-data/transitions/out/context_v0.2.jsonl)
+- [First training run](../../safeify-data/transitions/out/train_v0.2.json)

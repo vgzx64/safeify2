@@ -119,7 +119,7 @@ Two additional readiness conditions are not in the original DoD:
 3. ~~Re-run the frozen test split after the fix and score it~~ — done
    2026-11-18; numbers in [report.md](report.md) and [results.md](results.md).
 4. ~~Run DoD #3 (`--retrieval-preds`)~~ — done via
-   `detect/export_retrieval.py`; table in [report §5.3](report.md#53-dod-3-retrieval-on-the-frozen-test-split).
+   `safeify-ai/export_retrieval.py`; table in [report §5.3](report.md#53-dod-3-retrieval-on-the-frozen-test-split).
 5. Decide explicitly whether to carve a fresh holdout or accept the disclosed
    test reuse.
 6. Get supervisor sign-off on the report, the AST/MIR re-scope, and the DoD #3
@@ -134,16 +134,16 @@ Two additional readiness conditions are not in the original DoD:
 ## Commands
 
 Sanity checks before any run (workspace-pinned RA; see
-[detect/README.md](../../research/detect/README.md)):
+[safeify-ai/README.md](../../safeify-ai/README.md)):
 
 ```bash
-export PATH="$PWD/../.tools/ra-bin:$PATH"      # from research/
-export HOME="$PWD/../.tools/ra-home"
+export PATH="$PWD/.tools/ra-bin:$PATH"
+export HOME="$PWD/.tools/ra-home"
 export RUSTUP_HOME=/home/user/.rustup CARGO_HOME=/home/user/.cargo
-cd research && source ../.venv/bin/activate
-python detect/test_detect.py                  # 8/8
-python synth/splits/make_splits.py --check    # OK
-python synth/splits/check_train_leakage.py    # OK
+source .venv/bin/activate
+python safeify-ai/test_detect.py                  # 4/4
+python safeify-data/synth/splits/make_splits.py --check
+python safeify-data/synth/splits/check_train_leakage.py
 ```
 
 Full frozen-test and scoring commands are kept in one place:
