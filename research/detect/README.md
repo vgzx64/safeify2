@@ -175,10 +175,23 @@ Suppress a rule with `#[allow(safeify::fs_special_path)]` on the function,
 module or crate (resolved by rust-analyzer, so `cfg_attr` and `#[expect]`
 work), or with a `// safeify: allow(fs_special_path)` comment in the function.
 
+Calls into the analyzed package are *interpreted at the call site*: the
+arguments are bound to the callee's parameters and its tail expression and
+`return`s are evaluated, so `fs::write(dest(root, name))` sees what `dest` does
+with `root` and `name` (calls are cut to `unknown` at recursion and at depth 8).
+`format!("{root}/{name}")` is read from rust-analyzer's `FORMAT_ARGS_EXPR`,
+including implicit captures.
+
+`--stats <FILE>` (or `--stats -` for one stderr line) writes classification
+counters: how many filesystem/exec sink calls were `literal`/`param`/`tainted`/
+`trusted`/`unknown`, and how many crate-local calls were interpreted or cut.
+`SAFEIFY_INTERPROC=0` turns the call-site interpretation off; the corpus driver
+(`--stats-out`) aggregates both, which is how the coverage numbers in
+[engine.md](../../notes/research/engine.md) §7 are produced.
+
 Known limits: calls whose callee lives in an unresolved dependency are
-invisible (`no_deps`); `format!`/`concat!` *arguments* are not modelled
-(the expansion is scanned, so `try!`/`assert!` bodies are); and code that no
-Cargo target includes is not analyzed at all.
+invisible (`no_deps`); a recursive return is cut to `unknown` (so its site goes
+silent); and code that no Cargo target includes is not analyzed at all.
 
 ## Verdict policy (v1)
 

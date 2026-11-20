@@ -122,10 +122,6 @@ fn cfg_overrides(root: &Path, extra: &[String]) -> project_model::CfgOverrides {
     }
 }
 
-pub fn load_crate(dir: &Path) -> Result<Loaded> {
-    load_crate_with_cfg(dir, &[])
-}
-
 /// Load a package, optionally enabling extra `cfg` atoms (for example
 /// `windows`, `target_family=windows`) so code compiled for another target is
 /// analysed too. Feature-gated modules are always enabled.

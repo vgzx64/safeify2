@@ -1227,6 +1227,7 @@ dependencies = [
  "anyhow",
  "base-db",
  "cfg",
+ "either",
  "hir",
  "hir-def",
  "hir-ty",

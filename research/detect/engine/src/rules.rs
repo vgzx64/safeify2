@@ -180,11 +180,14 @@ impl<'a, 'b> Scanner<'a, 'b> {
         match kind {
             SinkKind::FsWrite | SinkKind::FsRead => {
                 let write = kind == SinkKind::FsWrite;
-                for &index in arg_indices {
+                for (position, &index) in arg_indices.iter().enumerate() {
                     let Some(arg) = args.get(index) else {
                         continue;
                     };
                     let prov = self.eval.expr(arg);
+                    if position == 0 {
+                        self.eval.stats.fs_calls.add(prov.kind);
+                    }
                     let at = origin.unwrap_or_else(|| arg.syntax().text_range().start());
                     self.fs_sink(arg, &prov, at, write, out);
                 }
@@ -224,6 +227,7 @@ impl<'a, 'b> Scanner<'a, 'b> {
                     return;
                 };
                 let prov = self.eval.expr(arg);
+                self.eval.stats.exec_program_calls.add(prov.kind);
                 let at = origin.unwrap_or_else(|| arg.syntax().text_range().start());
                 self.exec_program(&prov, at, writes, out);
             }

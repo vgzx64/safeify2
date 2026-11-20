@@ -53,7 +53,7 @@ pub fn build<'a>(
     db: &'a RootDatabase,
     files: impl Iterator<Item = &'a ast::SourceFile>,
 ) -> FieldIndex {
-    let eval = Eval { sema, db, fields: None };
+    let eval = Eval::new(sema, db, None, false);
     let mut index = FieldIndex::default();
 
     for source_file in files {
@@ -67,10 +67,10 @@ pub fn build<'a>(
                     continue;
                 };
                 for field in fields.fields() {
-                    let (Some(name), Some(value)) = (field.name_ref(), field.expr()) else {
+                    let (Some(name), Some(value)) = (field_name(&field), field.expr()) else {
                         continue;
                     };
-                    index.insert(adt.clone(), name.text().to_string(), eval.expr(&value));
+                    index.insert(adt.clone(), name, eval.expr(&value));
                 }
                 continue;
             }
@@ -95,6 +95,23 @@ pub fn build<'a>(
         }
     }
     index
+}
+
+/// The field name of a record-expression field. The shorthand form (`S { f }`)
+/// has no name ref: the parser stores the bare path expression as the value,
+/// and the field is named by that path's last segment.
+fn field_name(field: &ast::RecordExprField) -> Option<String> {
+    if let Some(name) = field.name_ref() {
+        return Some(name.text().to_string());
+    }
+    let ast::Expr::PathExpr(path_expr) = field.expr()? else {
+        return None;
+    };
+    path_expr
+        .path()?
+        .segment()?
+        .name_ref()
+        .map(|name| name.text().to_string())
 }
 
 pub fn adt_name(

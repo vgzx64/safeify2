@@ -43,6 +43,8 @@ def main(argv: list[str]) -> int:
     ap.add_argument("--jobs", type=int, default=10, help="parallel engine processes")
     ap.add_argument("--restart", action="store_true", help="ignore partial results")
     ap.add_argument("--engine-args", default="", help="extra arguments for safeify-lint")
+    ap.add_argument("--stats-out", default=None,
+                    help="collect the engine's classification counters here (JSONL)")
     args = ap.parse_args(argv[1:])
     timeout = args.timeout
 
@@ -65,28 +67,34 @@ def main(argv: list[str]) -> int:
             findings.extend(record["findings"])
         print(f"resuming: {len(done)} crates already done", file=sys.stderr, flush=True)
     crates = [crate for crate in crates if str(crate) not in done]
+    stats_rows: list[dict] = []
 
     def analyze(crate: Path):
+        stats = ["--stats", "-"] if args.stats_out else []
         try:
             proc = subprocess.run(
-                [str(ENGINE), "--crate", str(crate),
+                [str(ENGINE), "--crate", str(crate), *stats,
                  *(["--extra-cfg"] if args.engine_args else []),
                  *([args.engine_args] if args.engine_args else [])],
                 capture_output=True, text=True, cwd=ROOT, timeout=timeout,
             )
         except subprocess.TimeoutExpired:
-            return crate, None, f"timeout after {timeout}s"
+            return crate, None, None, f"timeout after {timeout}s"
         if proc.returncode != 0:
-            return crate, None, proc.stderr.strip()[-200:]
+            return crate, None, None, proc.stderr.strip()[-200:]
+        counters = None
+        for line in proc.stderr.splitlines():
+            if line.startswith("STATS "):
+                counters = json.loads(line[len("STATS "):])
         try:
-            return crate, json.loads(proc.stdout or "[]"), None
+            return crate, json.loads(proc.stdout or "[]"), counters, None
         except json.JSONDecodeError:
-            return crate, None, "bad json"
+            return crate, None, None, "bad json"
 
     with concurrent.futures.ThreadPoolExecutor(max_workers=args.jobs) as pool:
         futures = {pool.submit(analyze, crate): crate for crate in crates}
         for done, future in enumerate(concurrent.futures.as_completed(futures), 1):
-            crate, rows, error = future.result()
+            crate, rows, counters, error = future.result()
             if error is not None:
                 failed.append(f"{crate}: {error}")
                 print(f"  FAIL {crate}: {error}", file=sys.stderr, flush=True)
@@ -94,6 +102,8 @@ def main(argv: list[str]) -> int:
                 findings.extend(rows)
                 with partial.open("a") as handle:
                     handle.write(json.dumps({"crate": str(crate), "findings": rows}) + "\n")
+                if counters is not None:
+                    stats_rows.append({"crate": str(crate), **counters})
             if done % 20 == 0:
                 print(f"  {done}/{len(crates)} crates, {len(findings)} findings",
                       file=sys.stderr, flush=True)
@@ -112,6 +122,19 @@ def main(argv: list[str]) -> int:
         partial.unlink()
 
     print(f"\n{len(unique)} findings across {len({r['path'] for r in unique})} files")
+    if args.stats_out and stats_rows:
+        Path(args.stats_out).write_text(
+            "\n".join(json.dumps(row) for row in stats_rows) + "\n")
+        totals: Counter = Counter()
+        for row in stats_rows:
+            for family in ("fs_calls", "exec_program_calls", "exec_arg_calls"):
+                for kind, count in row[family].items():
+                    totals[f"{family}.{kind}"] += count
+            for knob in ("local_calls", "recursion_cuts", "depth_cuts"):
+                totals[knob] += row[knob]
+        print("\nclassification counters (all crates):")
+        for key in sorted(totals):
+            print(f"  {key:28s} {totals[key]:6d}")
     if failed:
         print(f"{len(failed)} crates failed:")
         for line in failed[:10]:

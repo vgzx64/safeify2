@@ -106,22 +106,44 @@ fn field_initialised_from_out_dir_is_trusted() {
 }
 
 #[test]
-fn macro_bodies_are_scanned_but_format_arguments_are_a_known_gap() {
-    // `concat!("a","b")` collapses to a literal, so nothing fires.
-    // `format!(..)` arguments are still not modelled (see engine.md §5c), and
-    // the fixture records that: if this test starts failing, the gap closed.
-    let findings = analyze("macros");
-    assert!(
-        findings.iter().all(|(rule, _, _)| rule == "fs_tainted_path"),
-        "no exec findings expected while format! arguments are unknown: {findings:?}"
-    );
+fn macro_bodies_and_format_arguments_are_evaluated() {
+    // `concat!("a", "b")` collapses to a literal, so nothing fires (line 6).
+    // `format!` expands to `must_use({ fmt::format(format_args!(..)) })`; the
+    // arguments of the builtin are the caller's expressions, so both formatted
+    // sinks are reported (lines 2 and 10).
     assert_eq!(
-        findings
-            .iter()
-            .filter(|(_, line, _)| *line == 4 || *line == 13)
-            .count(),
-        0,
-        "format!-based sinks are expected to be missed today"
+        analyze("macros"),
+        expected(&[
+            ("fs_tainted_path", 2, "info"),
+            ("exec_tainted_cmd", 10, "warn"),
+            ("fs_tainted_path", 15, "info"),
+            ("fs_tainted_path", 21, "info"),
+            ("fs_tainted_path", 27, "info"),
+            ("fs_tainted_path", 43, "info"),
+            ("fs_tainted_path", 46, "info"),
+            // Implicit capture (`format!("{root}/{name}")`) resolves the same
+            // way as a positional argument.
+            ("fs_tainted_path", 51, "info"),
+        ])
+    );
+}
+
+#[test]
+fn crate_local_calls_are_evaluated_at_the_call_site() {
+    // The caller's value reaches the sink through a helper (`destination`), a
+    // two-hop chain (`wrap` -> `destination`) and a method (`Layout::out`).
+    // The literal return of `kernel_mem` is what the sink sees. `file_only`
+    // keeps only `file_name()`, so the guarded write stays silent, and a
+    // recursive return is cut to `unknown` (also silent).
+    assert_eq!(
+        analyze("interproc"),
+        expected(&[
+            ("fs_tainted_path", 12, "warn"),
+            ("fs_tainted_path", 22, "warn"),
+            ("fs_special_path", 31, "deny"),
+            ("fs_tainted_path", 50, "warn"),
+            ("exec_basename", 84, "warn"),
+        ])
     );
 }
 

@@ -6,19 +6,26 @@
 //! source pattern, a callee is a `hir::Function`, a method is the trait or
 //! inherent method it actually dispatches to.
 //!
-//! Two mechanisms make this deeper than name-based text matching:
+//! Three mechanisms make this deeper than name-based text matching:
 //! * pattern bindings (`if let`, `match`, `for`) inherit the scrutinee's
 //!   provenance, and
 //! * closure arguments are evaluated with their parameter bound to the
 //!   receiver's provenance, so `.map(|s| PathBuf::from(s).join(..))` keeps the
 //!   trust of what it started from.
+//! * a call into a crate-local function is evaluated at the call site: the
+//!   caller's argument provenance is bound to the callee's parameters and the
+//!   callee's return expressions are evaluated with that binding. That is a
+//!   context-sensitive interprocedural summary — `fs::write(dest(root, name))`
+//!   sees what `dest` does with `root` and `name` without any fixed-point
+//!   summary table.
 
+use std::cell::Cell;
 use std::collections::HashSet;
 
-use hir::{CallableKind, Local, PathResolution, Semantics};
+use hir::{CallableKind, Function, Local, PathResolution, Semantics};
 use ide_db::RootDatabase;
 use hir::HirFileId;
-use syntax::ast::{self, AstNode, HasArgList};
+use syntax::ast::{self, AstNode, AstToken, HasArgList};
 use syntax::TextRange;
 
 use crate::fields::{self, FieldIndex};
@@ -74,12 +81,112 @@ impl Prov {
     }
 }
 
-const MAX_DEPTH: usize = 12;
+const MAX_DEPTH: usize = 24;
+/// How many crate-local calls deep the evaluator follows before it gives up
+/// with `unknown`. Recursive helpers hit this cap instead of diverging.
+const MAX_CALL_DEPTH: usize = 8;
 
-/// Bindings whose value is being substituted (closure parameters).
+/// How a sink argument was classified, for the coverage metric in
+/// `notes/research/engine.md` §7 ("how many sink calls are still `unknown`").
+#[derive(Default)]
+pub struct ProvCounts {
+    literal: Cell<u64>,
+    param: Cell<u64>,
+    tainted: Cell<u64>,
+    trusted: Cell<u64>,
+    unknown: Cell<u64>,
+}
+
+impl ProvCounts {
+    pub fn add(&self, kind: Kind) {
+        let cell = match kind {
+            Kind::Literal => &self.literal,
+            Kind::Param => &self.param,
+            Kind::Tainted => &self.tainted,
+            Kind::Trusted => &self.trusted,
+            Kind::Unknown => &self.unknown,
+        };
+        cell.set(cell.get() + 1);
+    }
+
+    fn total(&self) -> u64 {
+        self.literal.get() + self.param.get() + self.tainted.get() + self.trusted.get() + self.unknown.get()
+    }
+
+    fn snapshot(&self) -> CountsSnapshot {
+        CountsSnapshot {
+            literal: self.literal.get(),
+            param: self.param.get(),
+            tainted: self.tainted.get(),
+            trusted: self.trusted.get(),
+            unknown: self.unknown.get(),
+            total: self.total(),
+        }
+    }
+}
+
+#[derive(serde::Serialize)]
+pub struct CountsSnapshot {
+    pub literal: u64,
+    pub param: u64,
+    pub tainted: u64,
+    pub trusted: u64,
+    pub unknown: u64,
+    pub total: u64,
+}
+
+/// Counters, written by `--stats`. Interior mutability because evaluation is
+/// `&self`: the counters are observation, not analysis state.
+#[derive(Default)]
+pub struct Stats {
+    /// One count per filesystem sink call, classified by its path argument.
+    pub fs_calls: ProvCounts,
+    pub exec_program_calls: ProvCounts,
+    pub exec_arg_calls: ProvCounts,
+    /// Crate-local calls whose body was interpreted.
+    pub local_calls: Cell<u64>,
+    /// Calls not interpreted because the function was already being evaluated.
+    pub recursion_cuts: Cell<u64>,
+    /// Calls not interpreted because the call-depth cap was reached.
+    pub depth_cuts: Cell<u64>,
+}
+
+#[derive(serde::Serialize)]
+pub struct StatsSnapshot {
+    pub fs_calls: CountsSnapshot,
+    pub exec_program_calls: CountsSnapshot,
+    pub exec_arg_calls: CountsSnapshot,
+    pub local_calls: u64,
+    pub recursion_cuts: u64,
+    pub depth_cuts: u64,
+}
+
+impl Stats {
+    pub fn snapshot(&self) -> StatsSnapshot {
+        StatsSnapshot {
+            fs_calls: self.fs_calls.snapshot(),
+            exec_program_calls: self.exec_program_calls.snapshot(),
+            exec_arg_calls: self.exec_arg_calls.snapshot(),
+            local_calls: self.local_calls.get(),
+            recursion_cuts: self.recursion_cuts.get(),
+            depth_cuts: self.depth_cuts.get(),
+        }
+    }
+}
+
+fn bump(cell: &Cell<u64>) {
+    cell.set(cell.get() + 1);
+}
+
+/// Bindings whose value is being substituted (closure parameters, and the
+/// parameters of a crate-local function being interpreted at its call site).
 #[derive(Default)]
 struct Subst {
     entries: Vec<((HirFileId, TextRange), Prov)>,
+    /// Crate-local functions currently being interpreted. A function already on
+    /// the stack is not expanded again: recursion becomes `unknown`, which the
+    /// lattice turns into silence rather than an invented verdict.
+    stack: Vec<Function>,
 }
 
 impl Subst {
@@ -104,6 +211,22 @@ pub struct Eval<'a> {
     pub sema: &'a Semantics<'a, RootDatabase>,
     pub db: &'a RootDatabase,
     pub fields: Option<&'a FieldIndex>,
+    /// Follow calls into crate-local function bodies. Off while building the
+    /// field index: that pass asks only "what is assigned here", and expanding
+    /// every call of every record literal buys nothing there.
+    pub interproc: bool,
+    pub stats: Stats,
+}
+
+impl<'a> Eval<'a> {
+    pub fn new(
+        sema: &'a Semantics<'a, RootDatabase>,
+        db: &'a RootDatabase,
+        fields: Option<&'a FieldIndex>,
+        interproc: bool,
+    ) -> Self {
+        Self { sema, db, fields, interproc, stats: Stats::default() }
+    }
 }
 
 impl<'a> Eval<'a> {
@@ -169,6 +292,11 @@ impl<'a> Eval<'a> {
             ast::Expr::MacroExpr(e) => e.macro_call().map_or(Prov::unknown(), |c| {
                 self.macro_prov(&c, depth + 1, seen, subst)
             }),
+            // `format_args!` lowers to a dedicated node whose arguments are
+            // real expressions and whose template captures resolve, so both
+            // `format!("{}/{}", root, name)` and `format!("{name}")` yield the
+            // pieces the result is built from.
+            ast::Expr::FormatArgsExpr(e) => self.format_args_prov(e, depth + 1, seen, subst),
             ast::Expr::ArrayExpr(e) => self.join_all(
                 e.exprs().map(Some),
                 depth,
@@ -384,6 +512,16 @@ impl<'a> Eval<'a> {
         };
         match callable.kind() {
             CallableKind::Function(function) => {
+                if self.interproc && self.is_local(function) {
+                    let args: Vec<Prov> = call
+                        .arg_list()
+                        .map(|list| list.args().collect::<Vec<_>>())
+                        .unwrap_or_default()
+                        .iter()
+                        .map(|arg| self.expr_inner(arg, depth + 1, seen, subst))
+                        .collect();
+                    return self.local_call(function, &args, depth, seen, subst);
+                }
                 let path = paths::qualified_path(self.db, function);
                 self.fn_call_prov(&path, call, depth, seen, subst)
             }
@@ -431,6 +569,16 @@ impl<'a> Eval<'a> {
         };
         match resolution {
             PathResolution::Def(hir::ModuleDef::Function(function)) => {
+                if self.interproc && self.is_local(function) {
+                    let args: Vec<Prov> = call
+                        .arg_list()
+                        .map(|list| list.args().collect::<Vec<_>>())
+                        .unwrap_or_default()
+                        .iter()
+                        .map(|arg| self.expr_inner(arg, depth + 1, seen, subst))
+                        .collect();
+                    return self.local_call(function, &args, depth, seen, subst);
+                }
                 let path = paths::qualified_path(self.db, function);
                 if std::env::var_os("SAFEIFY_DEBUG").is_some() {
                     eprintln!("  CALLPATH-FALLBACK {path}");
@@ -480,6 +628,96 @@ impl<'a> Eval<'a> {
         Prov::unknown()
     }
 
+    /// A definition that belongs to the analyzed package rather than to std or
+    /// a dependency. Dependency sources are not loaded (`no_deps`), so only
+    /// these can be interpreted.
+    fn is_local(&self, function: Function) -> bool {
+        function.module(self.db).krate(self.db).origin(self.db).is_local()
+    }
+
+    /// Evaluate a call into a crate-local function: bind the evaluated
+    /// arguments to the callee's parameters and evaluate what it returns.
+    ///
+    /// `args[0]` is the receiver for a method (the parameter list of a method
+    /// starts with `self`), matching `Function::assoc_fn_params`.
+    fn local_call(
+        &self,
+        function: Function,
+        args: &[Prov],
+        depth: usize,
+        seen: &mut HashSet<Local<'a>>,
+        subst: &mut Subst,
+    ) -> Prov {
+        if subst.stack.contains(&function) {
+            bump(&self.stats.recursion_cuts);
+            return Prov::unknown();
+        }
+        if subst.stack.len() >= MAX_CALL_DEPTH {
+            bump(&self.stats.depth_cuts);
+            return Prov::unknown();
+        }
+        let Some(fn_ast) = self.sema.source(function) else {
+            return Prov::unknown();
+        };
+        let Some(body) = fn_ast.value.body() else {
+            return Prov::unknown();
+        };
+        bump(&self.stats.local_calls);
+
+        let mark = subst.entries.len();
+        for param in function.assoc_fn_params(self.db) {
+            let Some(local) = param.as_local(self.db) else {
+                continue;
+            };
+            let source = local.primary_source(self.db);
+            let key = (
+                source.source.file_id,
+                source.source.value.syntax().text_range(),
+            );
+            let prov = args.get(param.index()).cloned().unwrap_or_else(Prov::unknown);
+            subst.push(key, prov);
+        }
+        subst.stack.push(function);
+        let prov = self.body_prov(&body, depth + 1, seen, subst);
+        subst.stack.pop();
+        subst.truncate(mark);
+        prov
+    }
+
+    /// The value a function body produces: its tail expression joined with
+    /// every `return` expression that belongs to it (a `return` inside a
+    /// nested closure or `fn` belongs to that closure).
+    fn body_prov(
+        &self,
+        body: &ast::BlockExpr,
+        depth: usize,
+        seen: &mut HashSet<Local<'a>>,
+        subst: &mut Subst,
+    ) -> Prov {
+        if depth > MAX_DEPTH {
+            return Prov::unknown();
+        }
+        let mut prov: Option<Prov> = None;
+        let mut add = |next: Prov| {
+            prov = Some(match prov.take() {
+                Some(prev) => Prov::join(prev, next),
+                None => next,
+            });
+        };
+        if let Some(tail) = body.tail_expr() {
+            add(self.expr_inner(&tail, depth + 1, seen, subst));
+        }
+        for ret in body.syntax().descendants().filter_map(ast::ReturnExpr::cast) {
+            if !return_belongs_to(&ret, body) {
+                continue;
+            }
+            if let Some(value) = ret.expr() {
+                add(self.expr_inner(&value, depth + 1, seen, subst));
+            }
+        }
+        prov.unwrap_or_else(Prov::unknown)
+    }
+
     fn method_call(
         &self,
         call: &ast::MethodCallExpr,
@@ -526,16 +764,34 @@ impl<'a> Eval<'a> {
             }
             return receiver;
         };
+        // Value-preserving adapters (`clone`, `into`, `to_string`, `unwrap`,
+        // `as_ref`, ...) come before interpretation: a derived `Clone` has no
+        // body of its own (its source is the core trait method), and a local
+        // `Display`/`From` impl would otherwise be cut to `unknown` where the
+        // receiver's provenance is the useful answer.
+        if sink::is_truthy_adapter(&name) {
+            return receiver;
+        }
+        if self.interproc && self.is_local(function) {
+            // A method of this crate: interpret its body with the receiver
+            // bound to `self`. Deeper than the name tables, and correct for a
+            // local helper that happens to share a name with a `Path` method.
+            let mut provs = vec![receiver];
+            for arg in &args {
+                provs.push(self.expr_inner(arg, depth + 1, seen, subst));
+            }
+            return self.local_call(function, &provs, depth, seen, subst);
+        }
         let path = paths::qualified_path(self.db, function);
         let name = path.rsplit("::").next().unwrap_or(&path);
 
-        if sink::is_truthy_adapter(name) {
-            return receiver;
-        }
-        if sink::is_trusted_producer(name) {
+        // The trusted/taint tables are keyed by qualified path (`path::Path::
+        // file_name`, `net::TcpStream::connect`), so a method must be looked up
+        // by the path it resolved to, not by its bare name.
+        if sink::is_trusted_producer(&path) {
             return Prov::with_detail(Kind::Trusted, name.to_string());
         }
-        if let Some(detail) = sink::taint_source(name) {
+        if let Some(detail) = sink::taint_source(&path) {
             return Prov::with_detail(Kind::Tainted, detail);
         }
         if sink::is_closure_adapter(name) {
@@ -618,6 +874,47 @@ impl<'a> Eval<'a> {
         prov
     }
 
+    /// A formatted string: the join of its explicit arguments and of the
+    /// implicit captures in its template (`{name}`), both resolved by
+    /// rust-analyzer. The result is a new string, so it carries no literal
+    /// value even when every piece is literal.
+    fn format_args_prov(
+        &self,
+        e: &ast::FormatArgsExpr,
+        depth: usize,
+        seen: &mut HashSet<Local<'a>>,
+        subst: &mut Subst,
+    ) -> Prov {
+        let mut prov: Option<Prov> = None;
+        let mut add = |next: Prov| {
+            prov = Some(match prov.take() {
+                Some(prev) => Prov::join(prev, next),
+                None => next,
+            });
+        };
+        for arg in e.args() {
+            if let Some(expr) = arg.expr() {
+                add(self.expr_inner(&expr, depth + 1, seen, subst));
+            }
+        }
+        if let Some(template) = e.template() {
+            if let Some(string) = template_string(&template) {
+                if let Some(parts) = self.sema.as_format_args_parts(&string) {
+                    for (_range, resolution) in parts {
+                        let Some(either::Either::Left(PathResolution::Local(local))) = resolution
+                        else {
+                            continue;
+                        };
+                        add(self.local_prov(local, seen, subst));
+                    }
+                }
+            }
+        }
+        let mut prov = prov.unwrap_or_else(|| Prov::new(Kind::Literal));
+        prov.value = None;
+        prov
+    }
+
     /// Macro expressions: let rust-analyzer expand the call and evaluate the
     /// expansion. Expression-macro expansion is not always available in
     /// `no_deps` mode; when it is not, the value is unknown rather than guessed.
@@ -648,6 +945,29 @@ fn last_segment(path: &ast::Path) -> Option<String> {
     path.segment()
         .and_then(|s| s.name_ref())
         .map(|n| n.text().to_string())
+}
+
+/// The string token of a `format_args!` template, when the template is a
+/// string literal (the only form that can carry implicit captures).
+fn template_string(template: &ast::Expr) -> Option<ast::String> {
+    template
+        .syntax()
+        .descendants_with_tokens()
+        .filter_map(|it| it.into_token())
+        .find_map(ast::String::cast)
+}
+
+/// Does this `return` leave `body`, or a closure / nested `fn` inside it?
+fn return_belongs_to(ret: &ast::ReturnExpr, body: &ast::BlockExpr) -> bool {
+    for ancestor in ret.syntax().ancestors() {
+        if ancestor == *body.syntax() {
+            return true;
+        }
+        if ast::ClosureExpr::can_cast(ancestor.kind()) || ast::Fn::can_cast(ancestor.kind()) {
+            return false;
+        }
+    }
+    false
 }
 
 fn first_arg_prov<'a>(

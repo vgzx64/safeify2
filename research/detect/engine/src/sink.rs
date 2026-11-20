@@ -235,6 +235,9 @@ pub fn is_constructor(path: &str) -> bool {
             | "option::Option::Some"
             | "result::Result::Ok"
             | "result::Result::Err"
+            // `format!` expands to `must_use({ fmt::format(format_args!(..)) })`;
+            // the wrapper returns its argument unchanged.
+            | "hint::must_use"
     )
 }
 

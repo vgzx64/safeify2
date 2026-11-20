@@ -46,3 +46,7 @@ pub fn variants(p: &str) {
         std::fs::write(y, "z").unwrap();
     }
 }
+
+pub fn implicit_capture(root: &str, name: &str) {
+    std::fs::write(format!("{root}/{name}"), "x").unwrap();
+}

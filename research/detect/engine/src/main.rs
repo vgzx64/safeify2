@@ -24,6 +24,7 @@ fn main() -> Result<()> {
     let mut crate_dir: Option<PathBuf> = None;
     let mut out_file: Option<PathBuf> = None;
     let mut debug_macro: Option<PathBuf> = None;
+    let mut stats_file: Option<PathBuf> = None;
     let mut extra_cfg: Vec<String> = Vec::new();
     let mut args = std::env::args().skip(1);
     while let Some(arg) = args.next() {
@@ -31,6 +32,7 @@ fn main() -> Result<()> {
             "--crate" | "-c" => crate_dir = args.next().map(PathBuf::from),
             "--out" | "-o" => out_file = args.next().map(PathBuf::from),
             "--debug-macro" => debug_macro = args.next().map(PathBuf::from),
+            "--stats" => stats_file = args.next().map(PathBuf::from),
             "--extra-cfg" => {
                 if let Some(spec) = args.next() {
                     extra_cfg.extend(spec.split(',').filter(|s| !s.trim().is_empty()).map(String::from));
@@ -48,6 +50,7 @@ options:\n\
   --extra-cfg <SPEC>   enable extra cfg atoms, comma separated\n\
                        (for example: windows,target_family=windows)\n\
   --debug-macro <FILE> print macro expansion status for one file\n\
+  --stats <FILE>       write classification counters here (JSON)\n\
 \n\
 Suppress a rule with #[allow(safeify::<rule>)] on the item or crate, or with\n\
 a '// safeify: allow(<rule>)' comment."
@@ -87,6 +90,23 @@ a '// safeify: allow(<rule>)' comment."
                         .as_ref()
                         .map(|e| e.value.text().to_string().chars().take(140).collect::<String>())
                 );
+                if let Some(exp) = &expanded {
+                    for nested in exp.value.descendants().filter_map(ast::MacroCall::cast) {
+                        let nested_text = nested.syntax().text().to_string();
+                        let nested_exp = sema.expand_macro_call(&nested);
+                        eprintln!(
+                            "  nested {:?} expand={:?}",
+                            nested_text.chars().take(40).collect::<String>(),
+                            nested_exp.as_ref().map(|e| e
+                                .value
+                                .text()
+                                .to_string()
+                                .chars()
+                                .take(180)
+                                .collect::<String>())
+                        );
+                    }
+                }
             }
         });
         return Ok(());
@@ -121,11 +141,10 @@ a '// safeify: allow(<rule>)' comment."
     let field_index = hir::attach_db(&loaded.db, || {
         fields::build(&sema, &loaded.db, files.iter().map(|f| &f.ast))
     });
-    let eval = prov::Eval {
-        sema: &sema,
-        db: &loaded.db,
-        fields: Some(&field_index),
-    };
+    // `SAFEIFY_INTERPROC=0` turns the call-site interpretation off, which is how
+    // the coverage numbers in engine.md §7 are measured (same binary, one knob).
+    let interproc = std::env::var("SAFEIFY_INTERPROC").map_or(true, |v| v != "0");
+    let eval = prov::Eval::new(&sema, &loaded.db, Some(&field_index), interproc);
 
     // Phase 3: rules.
     let mut findings: Vec<rules::Finding> = Vec::new();
@@ -156,6 +175,17 @@ a '// safeify: allow(<rule>)' comment."
             }
         }
     });
+
+    if let Some(file) = &stats_file {
+        let stats = eval.stats.snapshot();
+        if file.as_os_str() == "-" {
+            // One line, so a corpus driver can attribute it to its crate.
+            eprintln!("STATS {}", serde_json::to_string(&stats)?);
+        } else {
+            std::fs::write(file, serde_json::to_string_pretty(&stats)?)
+                .with_context(|| format!("cannot write {}", file.display()))?;
+        }
+    }
 
     let json = serde_json::to_string_pretty(&findings)?;
     match out_file {

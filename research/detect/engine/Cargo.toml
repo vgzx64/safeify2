@@ -28,6 +28,7 @@ span = { path = "../../../vendors/rust-analyzer/crates/span" }
 paths = { path = "../../../vendors/rust-analyzer/crates/paths" }
 cfg = { path = "../../../vendors/rust-analyzer/crates/cfg" }
 intern = { path = "../../../vendors/rust-analyzer/crates/intern" }
+either = "1"
 anyhow = "1"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
