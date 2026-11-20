@@ -31,14 +31,16 @@ import re
 import sqlite3
 import subprocess
 import sys
+import tempfile
 from collections import Counter
+from pathlib import Path
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 RESEARCH = os.path.dirname(HERE)
 if HERE not in sys.path:
     sys.path.insert(0, HERE)
 
-import inventory  # noqa: E402
+import semantic_inventory  # noqa: E402
 import spec_db  # noqa: E402
 
 DB = os.path.join(RESEARCH, "rust_ecosystem", "CVEfixes.db")
@@ -50,7 +52,7 @@ OUT_JSONL = os.path.join(OUT_DIR, "cve_pairs.jsonl")
 OUT_REPORT = os.path.join(OUT_DIR, "cve_pairs_report.json")
 
 SPEC = spec_db.load_spec_db()
-_FN_DEF_RX = re.compile(r"\bfn\s+([A-Za-z_][A-Za-z0-9_]*)")
+_FN_DEF_RX = re.compile(r"\bfn\s+([A-Za-z_][A-ZaLz0-9_]*)")
 
 
 # --------------------------------------------------------------- git access --
@@ -133,51 +135,60 @@ def find_fn_span(lines: list[str], short: str) -> tuple[int, int] | None:
 # ------------------------------------------------------------ sink analysis --
 
 def find_sinks(src: str) -> list[dict]:
-    """Detect-API sinks inside `unsafe` regions of a Rust snippet.
-
-    Reuses research/detect/inventory.py (masking + region + call finding) and
-    research/detect/spec_db.py (the 19-API registry), i.e. exactly the same
-    sink matcher that research/detect/detect.py uses.
-    """
+    """Detect API sinks in an arbitrary snippet via the rust-analyzer engine."""
     if not src or "unsafe" not in src:
         return []
+    fd, raw = tempfile.mkstemp(suffix=".rs")
+    path = Path(raw)
     try:
-        mask = inventory.mask_source(src)
-        regions = inventory.find_unsafe_regions(src, mask)
+        os.close(fd)
+        path.write_text(src, encoding="utf-8")
+        inv = semantic_inventory.for_file(path)
+        out: list[dict] = []
+        for region in inv.regions:
+            for call in inv.calls_in(region):
+                api = SPEC.match_api(call.callee, call.is_method)
+                if not api:
+                    continue
+                s, e = call.span
+                text = src[s:e].strip()
+                out.append({
+                    "api": api,
+                    "kind": "call",
+                    "callee": call.callee,
+                    "is_method": call.is_method,
+                    "text": text,
+                    "span": [s, e],
+                    "region": [region.start, region.end],
+                    "region_kind": region.kind,
+                })
+        return out
     except Exception:
         return []
-    out: list[dict] = []
-    for r in regions:
+    finally:
         try:
-            calls = inventory.find_calls(mask, r.body_start, r.body_end)
-        except Exception:
-            continue
-        for c in calls:
-            api = SPEC.match_api(c.callee, c.is_method)
-            if not api:
-                continue
-            out.append({
-                "api": api,
-                "kind": "call",
-                "callee": c.callee,
-                "is_method": c.is_method,
-                "text": src[c.span[0]:c.span[1]].strip(),
-                "span": list(c.span),
-                "region": [r.start, r.end],
-                "region_kind": r.kind,
-            })
-    return out
+            path.unlink()
+        except FileNotFoundError:
+            pass
 
 
 def unsafe_block_count(src: str) -> int:
-    """Number of `unsafe` regions in a snippet."""
+    """Count `unsafe` regions in a snippet via rust-analyzer."""
     if not src:
         return 0
+    fd, raw = tempfile.mkstemp(suffix=".rs")
+    path = Path(raw)
     try:
-        mask = inventory.mask_source(src)
-        return len(inventory.find_unsafe_regions(src, mask))
+        os.close(fd)
+        path.write_text(src, encoding="utf-8")
+        return len(semantic_inventory.for_file(path).regions)
     except Exception:
         return 0
+    finally:
+        try:
+            path.unlink()
+        except FileNotFoundError:
+            pass
 
 
 def normalize_code(src: str) -> str:

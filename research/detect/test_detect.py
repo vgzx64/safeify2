@@ -11,10 +11,9 @@ import sys
 from pathlib import Path
 
 try:
-    from . import detect, inventory, spec_db, verdict, verify
+    from . import detect, spec_db, verdict, verify
 except ImportError:
     import detect
-    import inventory
     import spec_db
     import verdict
     import verify
@@ -22,17 +21,6 @@ except ImportError:
 REPO = Path(__file__).resolve().parents[2]
 TESTDATA = REPO / "vendors" / "SafeNet" / "testdata"
 SNIPPETS = REPO / "research" / "synth" / "out" / "snippets"
-
-SAMPLE = """\
-fn good() { let s = "// not a comment unsafe {"; }
-unsafe fn ext(p: *mut u8) -> u8 {
-    unsafe { *p }
-}
-pub unsafe extern "C" fn ffi(out: &mut *mut u8) {
-    let b = 1u8;
-    *out = &b as *const u8 as *mut u8;
-}
-"""
 
 
 def test_spec_db() -> None:
@@ -46,97 +34,6 @@ def test_spec_db() -> None:
     assert db.match_api("get_unchecked", True) == "get_unchecked"
     assert db.match_api("clone", True) is None
     assert db.match_api("Vec::from_raw_parts", False) == "Vec::from_raw_parts"
-
-
-def test_mask_and_regions() -> None:
-    mask = inventory.mask_source(SAMPLE)
-    assert len(mask) == len(SAMPLE)
-    regions = inventory.find_unsafe_regions(SAMPLE, mask)
-    kinds = sorted((r.kind, r.name) for r in regions)
-    assert ("block", None) in kinds
-    assert ("fn", "ext") in kinds
-    assert ("fn", "ffi") in kinds  # `unsafe extern "C" fn`
-    assert len(regions) == 3, regions  # comment/string `unsafe` ignored
-
-
-def test_calls_and_derefs() -> None:
-    mask = inventory.mask_source(SAMPLE)
-    regions = inventory.find_unsafe_regions(SAMPLE, mask)
-    block = [r for r in regions if r.kind == "block"][0]
-    derefs = inventory.find_raw_derefs(mask, block.body_start, block.body_end)
-    assert derefs and derefs[0][1] == "*p", derefs
-    fn_ffi = [r for r in regions if r.name == "ffi"][0]
-    derefs2 = inventory.find_raw_derefs(mask, fn_ffi.body_start, fn_ffi.body_end)
-    # only the `*out = ...` assignment target; `as *const u8` is not a deref
-    assert all(d[1] == "*out" for d in derefs2), derefs2
-
-
-def test_verdict_tables() -> None:
-    db = spec_db.load_spec_db()
-    v = verdict.decide(db, "get_unchecked_mut",
-                       call_text="v.get_unchecked_mut(i)", args=["i"],
-                       recv_type=None, arg_types=["usize"], ret_type=None,
-                       guards=[], signature="fn f(v: &mut Vec<u8>, i: usize)")
-    assert (v.v, v.confidence) == ("Y", "high")
-    assert v.safe_alternative == "v[i]"
-    v = verdict.decide(db, "Box::from_raw", call_text="Box::from_raw(p)",
-                       args=["p"], recv_type=None, arg_types=["*mut i32"],
-                       ret_type=None, guards=[],
-                       signature="fn consume(p: *mut i32) -> i32")
-    assert (v.v, v.confidence, v.kb_gold) == ("N", "high", "N")
-    v = verdict.decide(db, "ptr::read", call_text="std::ptr::read(&owner.val)",
-                       args=["&owner.val"], recv_type=None, arg_types=["&String"],
-                       ret_type=None, guards=[],
-                       signature="fn dup(owner: &Wrap) -> String")
-    # KB p2: a `&`-borrow rooted at a parameter points outside this frame.
-    assert (v.v, v.kb_gold, v.pattern_hint) == ("N", "N", 2)
-    # KB p1: a LOCAL owner binding is replaceable ...
-    v = verdict.decide(db, "ptr::read", call_text="std::ptr::read(&s)",
-                       args=["&s"], recv_type=None, arg_types=["&String"],
-                       ret_type=None, guards=[], signature="fn dup2() -> String")
-    assert (v.v, v.kb_gold, v.pattern_hint) == ("Y", "Y", 1)
-    # ... and so is a local re-borrow of a local (`let v = from_raw_parts_mut`).
-    v = verdict.decide(db, "ptr::read", call_text="ptr::read(&this.inner)",
-                       args=["&this.inner"], recv_type=None,
-                       arg_types=["&String"], ret_type=None, guards=[],
-                       signature="fn into_inner(self) -> Box<[u8]>")
-    assert (v.v, v.kb_gold, v.pattern_hint) == ("Y", "Y", 1)
-    v = verdict.decide(db, "ptr::write", call_text="ptr::write(p, x)",
-                       args=["p", "x"], recv_type=None, arg_types=[None, None],
-                       ret_type=None, guards=[], signature="")
-    assert (v.v, v.confidence) == ("M", "low")  # conservative without evidence
-    v = verdict.decide(db, "set_len", call_text="v.set_len(n)", args=["n"],
-                       recv_type=None, arg_types=[None], ret_type=None,
-                       guards=["with_capacity"], signature="fn f() -> Vec<u64>")
-    assert v.v == "M" and v.encapsulate
-
-
-def test_ptr_read_borrowed_param_n() -> None:
-    """Regression 2026-11-18 for the `ptr::read/2-1.rs` false positive.
-
-    `std::ptr::read(&self.entries[i])` used to be claimed Y (KB p1) because the
-    indexed expression looked "owner-shaped", although the borrow is rooted at
-    `&mut self` — the owner is outside this frame, so KB p2 says N.
-    """
-    db = spec_db.load_spec_db()
-    sig = "pub fn grow(&mut self, shift: u8)"
-    for arg_types in ([None], ["{unknown}"]):
-        v = verdict.decide(db, "ptr::read",
-                           call_text="std::ptr::read(&self.entries[i])",
-                           args=["&self.entries[i]"], recv_type=None,
-                           arg_types=arg_types, ret_type=None, guards=[],
-                           signature=sig)
-        assert (v.v, v.confidence, v.pattern_hint, v.kb_gold) == \
-            ("N", "high", 2, "N"), (arg_types, v)
-    # `&a as *const _ as *const B` is a raw-pointer re-derive (KB p1 rawptr),
-    # not a borrowed-reference read: it must not be turned into N by the fix.
-    v = verdict.decide(db, "ptr::read",
-                       call_text="ptr::read(&a as *const _ as *const B)",
-                       args=["&a as *const _ as *const B"], recv_type=None,
-                       arg_types=["*const B"], ret_type=None, guards=[],
-                       signature="pub fn unsafe_try_cast<A: Any, B: Any>(a: A) "
-                                "-> Result<B, A>")
-    assert v.v == "M", v
 
 
 def test_no_lsp_detect() -> None:

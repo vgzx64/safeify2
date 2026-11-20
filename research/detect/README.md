@@ -21,8 +21,7 @@ CULPA build.
                     --inventory <file>`: unsafe { } / unsafe fn spans, the
                     calls inside them with resolved items, raw derefs (operand
                     type checked), guards (null_check, assert, ...) — all from
-                    rust-analyzer's syntax tree. inventory.py is the text
-                    reference the parity harness compares against.
+                    rust-analyzer's syntax tree.
   └─ ra_client.py   rust-analyzer over stdio: didOpen -> hover evidence
                     (arg types, e.g. `owner: &String` vs `*mut i32`)
   └─ spec_db.py     42 rule cells (research/synth/rules/*.yaml) + gold Y/M/N
@@ -105,88 +104,14 @@ synth/out/snippets/ptr::read/1-synth-1295-unsafe.rs: 1 sink(s), 1 unsafe region(
 A second, independent front end for the attack patterns of Hassnain & Stanford,
 "Counterexamples in Safe Rust" (ASEW '24): safe `std::fs` / `std::process` /
 `std::env` / `build.rs` code that violates memory safety through OS interfaces.
-These never enter `inventory.find_unsafe_regions` (they are not `unsafe`), so
-they are **not** part of the Y/M/N model and are **not** scored on the frozen
-split. Design, threat model, corpus numbers and limitations:
+These are implemented in the rust-analyzer semantic engine, not source-text
+regexes. They are **not** part of the Y/M/N model and are **not** scored on the
+frozen split. Design, threat model, corpus numbers and limitations:
 [notes/research/counterexamples.md](../../notes/research/counterexamples.md).
 
-```
-lint_safe.py     rules + severity + suppression (clippy-style levels)
-provenance.py    literal < param < tainted < unknown, guard recognition
-test_lint_safe.py 39 checks pinned to the paper's figures 1,2,3,6,7
-test_rustsec.py   3 advisory fixtures; records one gap and one out-of-scope
-```
-
 ```sh
-python detect/test_lint_safe.py                       # 39 checks
-python detect/test_rustsec.py                         # advisory regression
-python detect/lint_safe.py src/ --json                # one crate
-python detect/lint_safe.py crates/ --max-bytes 100000 --edition 2021
-```
-
-| rule | triggers |
-|---|---|
-| `fs_special_path` | literal `/proc/*/mem`, `/dev/mem`, `\\.\` namespaces (deny) |
-| `fs_traversal_literal` | absolute literal whose `..` normalises elsewhere |
-| `fs_tainted_path` | env/argv/io-derived path with no `starts_with`/components guard |
-| `exec_basename` | `Command::new("ls")` — PATH/CWD resolution (CWE-426) |
-| `exec_tainted_cmd` | program name not statically known: parameter, taint source, or struct field (`cmd.bin`) |
-| `exec_shell_tainted` | literal shell with a caller-controlled argument |
-| `exec_written_path` | executes a path this function wrote earlier (dropper) |
-| `env_set_dangerous` / `env_read_dangerous` | `set_var`/`var` on `PATH`, `LD_PRELOAD`, `RUSTC`, `RUSTFLAGS`, `TMPDIR`, … |
-| `build_outside_out_dir` | `build.rs` write outside `OUT_DIR`/`target` |
-
-Severity demotes to `info` outside `pub fn` and `build.rs` (an app's own
-`Command::new("git")` is not the threat model). Suppress with
-`#[allow(nirm::rule)]` or `// nirm: allow(rule)`; per-rule levels in
-`[lints.nirm]`. Corpus pilot (147 crates, 8,426 files): 251 findings, 31
-`warn`, 0 `deny` —
-[lint_corpus_2026-11-19.json](out/lint_corpus_2026-11-19.json). Precision
-audit (census of all 25 unique actionable sites): 1 false positive (a patched
-crate version), 12 actionable. Ablation: 1,374 enumerated side-effect call
-sites → 251 findings (31 at `warn`) —
-[lint_ablation_2026-11-19.json](out/lint_ablation_2026-11-19.json) — [audit sheet](out/lint_audit_2026-11-19.jsonl),
-[labels](out/lint_audit_labels_2026-11-19.json).
-
-## Semantic engine (counterexample lints)
-
-`engine/` is the rust-analyzer-based linter that replaces the text layer of
-[`lint_safe.py`](lint_safe.py). It links the vendored rust-analyzer
-(`vendors/rust-analyzer`) as a library, loads one Cargo package with
-`no_deps`, resolves every callee and binding through `Semantics`, and decides
-each rule on the resolved item plus the provenance of its arguments. Design,
-semantic mechanisms and measured parity: [engine.md](../../notes/research/engine.md).
-
-```sh
-# build (applies the checked-in rust-analyzer patch, uses .tools/cargo-home)
-engine/cargo.sh build --release
-
-# lint one package, JSON on stdout
-.tools/cargo-target/engine/release/safeify-lint --crate path/to/package
-
-# also analyze Windows-only code
-... --crate path/to/package --extra-cfg windows,target_family=windows,target_os=windows
-
-# regression suite (fixtures encode designed behaviour, not snapshots)
 engine/cargo.sh test --release
-
-# corpus differential against the text engine
-python3 detect/run_semantic_corpus.py --jobs 10 --stats-out stats.jsonl
-python3 detect/compare_engines.py path/to/package
-
-# the frozen NIRM-3 inventory for one detached file: unsafe regions, the calls
-# inside them, raw derefs and the enclosing fn's guards (what detect.py runs on)
-.tools/cargo-target/engine/release/safeify-lint --inventory path/to/file.rs
-
-# parity of that inventory against the text scanner on the frozen 288/69/97
-python3 detect/inventory_parity.py --jobs 8 --out detect/out/parity.json
-
-# union the cfg passes and diff against the census (the only supported way to
-# state corpus-level numbers)
-python3 detect/corpus_report.py \
-    --union detect/out/<host>.json detect/out/<win>.json \
-    --baseline detect/out/lint_corpus_2026-11-19.json \
-    --out detect/out/<union>.json
+.tools/cargo-target/engine/release/safeify-lint --crate path/to/package
 ```
 
 Suppress a rule with `#[allow(safeify::fs_special_path)]` on the function,
@@ -203,9 +128,8 @@ including implicit captures.
 The frozen NIRM-3 evaluation (`detect.py`) consumes this inventory through
 `semantic_inventory.py`, so the unsafe regions, calls, raw derefs and guard
 context there come from the syntax tree and resolved types, not from masked
-source text. [`inventory.py`](inventory.py) stays as the reference
-implementation the parity harness diffs against; measured parity over the
-frozen 288/69/97 files is in [engine.md](../../notes/research/engine.md) §6b.
+source text. Historical parity records are retained under
+`research/detect/out/` for provenance.
 
 `--stats <FILE>` (or `--stats -` for one stderr line) writes classification
 counters: how many filesystem/exec sink calls were `literal`/`param`/`tainted`/

@@ -15,8 +15,7 @@ Two conversions live here:
   regions repeat their children's calls, as the text scanner did); the detector
   keeps its own innermost-region attribution.
 
-`inventory.py` stays in the tree as the reference implementation that
-`inventory_parity.py` diffs against; this adapter is what the pipeline runs.
+This adapter is the only inventory implementation used by the pipeline.
 """
 
 from __future__ import annotations
