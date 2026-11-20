@@ -16,7 +16,7 @@ safe-API counterexamples. They remain separate products:
 | | replaceability (existing) | counterexample lints (this note) |
 |---|---|---|
 | input | sinks of 19 unsafe APIs | calls to 4 families of safe APIs |
-| evidence | `rust-analyzer` hover types | source-level provenance lattice |
+| evidence | `rust-analyzer` hover types | `rust-analyzer` resolved calls and types, provenance lattice |
 | output | `Y`/`M`/`N` + KB pattern | finding at `deny`/`warn`/`info` |
 | ground truth | vendor KB gold | none — hand audit needed |
 | evaluation | frozen 97-file split | corpus prevalence + audit |
@@ -60,8 +60,10 @@ analysis, and is not implemented.
 
 ## 4. Provenance lattice
 
-`literal < param < tainted < unknown`. `unknown` never produces a finding;
-precision comes from refusing to guess. Implemented in [`safeify-lint/src/prov.rs`](../../safeify-lint/src/prov.rs):
+`literal < param < tainted < unknown`, plus `trusted` for values Cargo
+provides (`OUT_DIR`, `CARGO_*`) that are safe whoever calls them. `unknown`
+never produces a finding; precision comes from refusing to guess. Implemented in
+[`safeify-lint/src/prov.rs`](../../safeify-lint/src/prov.rs):
 
 - **literal** — string/byte/raw literal, `Path::new`, `PathBuf::from`,
   `Some(..)`/`Ok(..)`, `concat!` of literals;
@@ -69,29 +71,48 @@ precision comes from refusing to guess. Implemented in [`safeify-lint/src/prov.r
   crate API;
 - **tainted** — `env::var`, `env::args`, `stdin`, `read_line`, `read_to_string`,
   `read_dir`, `TcpStream`/`UdpSocket`, `current_dir`;
-- **propagation** — one `let` chain (depth 3), `format!`, `+` concatenation,
-  `.join`, `.with_file_name`, `.to_string`/`.to_owned`/`.unwrap`/`.expect`
-  adapters.
+- **propagation** — one `let` chain (depth 3), `format!`/`format_args!`
+  (including implicit captures), `+` concatenation, `.to_string`/`.unwrap`/
+  `.expect` adapters, and **crate-local calls and methods interpreted at the
+  call site**: arguments are bound to parameters and the callee's tail
+  expression and `return`s are evaluated, so a helper that forwards or resolves
+  a path is seen through. Field reads use a crate-wide `(struct, field)`
+  summary; a recursive return is cut to `unknown`.
+
+  **Composition is not taint.** `join` (and the other path-composition
+  methods) yields a value as caller-controlled as its more caller-controlled
+  part: `param.join("payload")` stays `param` (`info`), `tainted.join("x")`
+  stays `tainted` (`warn`), and two literals concatenate, so
+  `Path::new("/etc").join("ld.so.preload")` is the literal danger path. An
+  absolute argument discards the base, as `Path::join` does. An unseen
+  component joined onto a safe base is `unknown` (it could be absolute).
+
+  **Collections are not scalars.** An array/tuple/record literal has the
+  joined class of its elements but no single literal value; `.iter()` keeps the
+  collection's class. A closure parameter bound by an adapter (`.map`,
+  `.and_then`, ...) takes the receiver's value; one that no adapter bound
+  (`for_each`, `find`, `sort_by`) takes the class of what it iterates, and is
+  `unknown` when the closure is not passed to a method (rather than claiming
+  the caller controls it).
 
 Guards are recognised only **before** the call in the same function:
 `canonicalize()` + `starts_with()`, `x.starts_with(root)` on the same
 identifier, `components()` + `ParentDir`/`RootDir`, `matches!`/`match`
 allowlists, and `.file_name()` extraction.
 
-## 5. Suppression and configuration
+## 5. Suppression
 
 Clippy conventions, because the audience already knows them:
 
 ```rust
-#[allow(nirm::exec_basename)]          // on the enclosing fn
-// nirm: allow(fs_special_path)        // on the line above the call
+#[allow(safeify::exec_basename)]     // enclosing fn, item, module or crate
+// safeify: allow(fs_special_path)   // on the line above the call
 ```
 
-```toml
-[lints.nirm]
-fs_tainted_path = "allow"   # exact rule id
-fs = "deny"                 # or a family prefix
-```
+Attributes are read through rust-analyzer, so module/crate inheritance and
+`cfg_attr` work. A Cargo `[lints.safeify]` table is *not* read: those are rustc
+flags, not source attributes, and the engine resolves source. (This is a
+deliberate limit; see §9.)
 
 ## 6. What this adds over Cargo Scan
 
@@ -109,17 +130,74 @@ and the paper's.
 
 ## 7. Evaluation
 
-### 7.1 Unit cases (done)
+### 7.1 Unit cases (current)
 
-`python detect/test_lint_safe.py` → **39/39**: Figures 1, 2, 3, 6, 7 plus
-negatives for each precision decision (guarded path, absolute command,
-allowlist, suppression, relative `..`, `/proc/sys` read, `pub fn` path
-parameter).
+`./safeify-lint/cargo.sh test --release` → **8 tests**: the rule fixtures
+(`rules`), interprocedural interpretation (`interproc`), macro and `format!`
+evaluation (`macros`), field summaries (`fields`), `build.rs` scoping
+(`buildscript`), semantic suppression (`suppress`, `suppress_crate`), the
+published-advisory shapes (`advisories`) and the inventory (`inventory`). Each
+fixture asserts the exact `(rule, line, level)` set, so a new finding on a
+fixture is a failure just like a missing one.
 
-### 7.2 Corpus prevalence (done, pilot)
+The original 39-case Python suite (`test_lint_safe.py`: Figures 1, 2, 3, 6, 7
+plus negatives for each precision decision) was retired together with the text
+engine. Its historical result was **39/39**; the behaviours this report relies
+on are pinned by the Rust fixtures above, and the two shapes that came from
+real advisories are `fixtures/advisories`.
 
-147 crates / 8,426 files under 100 KB (generated code excluded) from
-`research/transitions/external/crates`; `--edition 2021 --no-config`:
+### 7.2 Corpus prevalence (current)
+
+**Current measurement (semantic engine, 2026-11-20).** Host ∪ Windows pass over
+the same 329 package versions (147 crates, 8,426 files), findings deduplicated
+by `(rule, path, line)`:
+
+| Rule | deny | warn | info |
+|---|---|---|---|
+| `exec_basename` | 0 | 16 | 46 |
+| `exec_tainted_cmd` | 0 | 13 | 3 |
+| `build_outside_out_dir` | 0 | 4 | 0 |
+| `fs_tainted_path` | 0 | 2 | 172 |
+| `env_read_dangerous` | 0 | 0 | 5 |
+| `fs_special_path` | 0 | 0 | 0 |
+| `fs_traversal_literal` | 0 | 0 | 0 |
+| `env_set_dangerous` | 0 | 0 | 0 |
+| `exec_shell_tainted` | 0 | 0 | 0 |
+| **total** | **0** | **35** | **226** |
+
+**261 findings in 94 of 8,426 files** (1.1%). Artifacts:
+[`lint_corpus_semantic_2026-11-20_union.json`](../../safeify-lint/out/lint_corpus_semantic_2026-11-20_union.json)
+(host and Windows passes separately in `_host.json` / `_win.json`, and the
+`SAFEIFY_INTERPROC=0` A/B in `_nointerproc.json`); the per-rule diff against the
+frozen census is printed by
+[`run_semantic_corpus.py`](../../safeify-lint/corpus/run_semantic_corpus.py) and
+summarised in [engine.md §7](engine.md#7-measurements-the-engine-must-produce).
+
+Against the frozen census (249 distinct sites in 91 files) the union shares
+**218 sites**: 31 old-only and 43 new-only, all explained.
+
+- **Old-only, 27:** `slice-deque`'s
+  `ci/deploy_and_run_on_ios_simulator.rs` (3 versions, 8 `exec_basename` + 1
+  `fs_tainted_path` each) is not a Cargo target, so it is not in the crate
+  graph. The text engine globbed every `.rs` file; the semantic engine analyses
+  package code, which is the right surface for shipped code.
+- **Old-only, 4 / new-only, 4:** the same `simd-json` `examples/perf.rs` sites,
+  now reported at the *argument's* line rather than the multi-line call's first
+  line (the `format!` argument; see engine.md §5c).
+- **New-only, 34:** writes composed from a caller directory
+  (`out_dir.join(..)`, `parent.join(..)`, `self.write().join(file)`) that the
+  text engine left `unknown`: `mdbook` 14, `openssl-src` 10,
+  `trust-dns-server` 4, `temporary` 2, `lettre` 2, `xcb` 2 — all `info`.
+- **New-only, 2:** `cranelift-codegen`'s developer-only `regalloc-snapshot`
+  feature writes into the directory named by `SERIALIZE_REGALLOC`
+  (env-derived, unguarded) — a correct `warn`.
+- **New-only, 2:** `xcb`'s build script runs a formatter whose path is an
+  `Option<PathBuf>` parameter — a correct `warn`.
+- **New-only, 1:** `openssl-src`'s Windows-only `Command::new("cmd")`, which the
+  host-only census could not see.
+
+**Historical measurement (text engine, 2026-11-19).** The pilot census that
+justified the port, on the same corpus:
 
 | Rule | deny | warn | info |
 |---|---|---|---|
@@ -128,14 +206,10 @@ parameter).
 | `build_outside_out_dir` | 0 | 4 | 0 |
 | `fs_tainted_path` | 0 | 0 | 143 |
 | `env_read_dangerous` | 0 | 0 | 5 |
-| `fs_special_path` | 0 | 0 | 0 |
-| `fs_traversal_literal` | 0 | 0 | 0 |
-| `env_set_dangerous` | 0 | 0 | 0 |
-| `exec_shell_tainted` | 0 | 0 | 0 |
 | **total** | **0** | **31** | **220** |
 
-251 findings in 91 of 8,426 files (1.1%); 26 are in `build.rs`, 41 in
-`tests/`+`examples/`. Concentration: `mdbook` 48, `openssl-src` 45,
+251 findings in 91 of 8,426 files; 26 in `build.rs`, 41 in
+`tests/`+`examples/`; concentration `mdbook` 48, `openssl-src` 45,
 `slice-deque` 27, `bam` 24, `tough` 22, `arrayfire` 16. Artifact:
 [`lint_corpus_2026-11-19.json`](../../safeify-lint/out/lint_corpus_2026-11-19.json).
 
@@ -145,18 +219,21 @@ the `info` stratum because any library that writes to a caller-supplied path
 matches — that is why the parameter case is `info` and only writes are
 considered.
 
-### 7.3 Precision audit (done, 2026-11-19)
+### 7.3 Precision audit (current, 2026-11-20)
 
 **Frame.** Census, not a sample: after deduplicating the same code site across
-crate versions, the corpus has **25 unique `warn`/`deny` sites in 9 crates**,
-and all 25 were labelled by reading each site with four lines of context. The
-sheet and labels are reproducible:
+crate versions, the semantic census has **168 unique sites**, of which **28 are
+`warn`/`deny` in 10 crates** and 140 are `info`. All 28 were labelled by reading
+each site with four lines of context; 25 carry over from the 2026-11-19 sheet
+(same `rule|path|line`) and 3 are new. The sheet, labels and statistics are
+reproducible:
 
 ```
-python safeify-lint/audit_lint.py --corpus safeify-lint/out/lint_corpus_2026-11-19.json \
-    --sheet detect/out/lint_audit_2026-11-19.jsonl --info-sample 0
-python safeify-lint/audit_lint.py --sheet detect/out/lint_audit_2026-11-19.jsonl \
-    --labels detect/out/lint_audit_labels_2026-11-19.json --stats
+python3 safeify-lint/audit_lint.py \
+    --corpus safeify-lint/out/lint_corpus_semantic_2026-11-20_union.json \
+    --sheet safeify-lint/out/lint_audit_2026-11-20.jsonl --info-sample 0
+python3 safeify-lint/audit_lint.py --sheet safeify-lint/out/lint_audit_2026-11-20.jsonl \
+    --labels safeify-lint/out/lint_audit_labels_2026-11-20.json --stats
 ```
 
 **Results.** Two numbers, because "is it correct" and "is it worth a human's
@@ -165,30 +242,29 @@ attention" are different questions:
 | Rule | sites | correct (TP+TL) | strict TP (actionable) |
 |---|---|---|---|
 | `build_outside_out_dir` | 4 | 4 (1.00) | 4 (1.00) |
-| `exec_tainted_cmd` | 8 | 7 (0.88) | 5 (0.62) |
+| `exec_tainted_cmd` | 9 | 8 (0.89) | 5 (0.56) |
 | `exec_basename` | 13 | 13 (1.00) | 3 (0.23) |
-| **all** | **25** | **24 (0.96 [0.80, 0.99])** | **12 (0.48 [0.30, 0.67])** |
+| `fs_tainted_path` | 2 | 2 (1.00) | 0 (0.00) |
+| **all** | **28** | **27 (0.96 [0.82, 0.99])** | **12 (0.43 [0.27, 0.61])** |
 
 Interval on the correctness column: Wilson 95%; the crate-clustered bootstrap is
-[0.80, 1.00], which is the honest width — 9 crates, `arrayfire` contributing 12
-of the 25 sites.
+[0.84, 1.00]. The single false positive is unchanged: `grep-cli` **0.1.6**, the
+patched version. `resolve_binary()` returns an absolute `PathBuf`, but the call
+site reads `Command::new(&decomp_cmd.bin)` and the field is written from a value
+that comes from `which` in another crate — `no_deps` means the helper is
+`unknown`, and the may-join field summary keeps the field caller-controlled.
+The warning is right about the pattern and wrong about the version; cross-crate
+evidence is what would separate 0.1.5 from 0.1.6, and that is out of reach by
+design.
 
-The single false positive is `grep-cli` **0.1.6**, the patched version: the fix
-resolves the decompressor with `resolve_binary()` in the builder, so `bin` is an
-absolute `PathBuf`, but the call site still reads `Command::new(&decomp_cmd.bin)`
-and the linter cannot see the resolution across the function boundary. The
-warning is right about the pattern and wrong about the version. Cross-function
-evidence (or an interprocedural guard) is what would separate 0.1.5 from 0.1.6,
-and that is out of reach for this lattice.
-
-**What the census says.** After the fixes below, the lints produce **one false
-positive in 25** — the patched `grep-cli` 0.1.6 above. But only 48% of the
-actionable findings would change a reviewer's decision: the strict hits are
-`mdbook`'s `pub fn MDBook::test` spawning `rustdoc`, `sys-info`'s
+**What the census says.** The lints produce **one false positive in 28**, and
+only 43% of the actionable findings would change a reviewer's decision. The
+strict hits are `mdbook`'s `pub fn MDBook::test` spawning `rustdoc`, `sys-info`'s
 `pub fn hostname()` on Windows, the vulnerable `grep-cli` 0.1.5 line, and six
 environment-selected program names (`openssl-src`, `protobuf`, `pyo3`). The
 non-actionable ones are `cmake`/`make`/`MSBuild.exe`/`git` invocations in
-`build.rs`, 8 of them from a single crate (arrayfire, two versions).
+`build.rs` (8 from `arrayfire`, two versions), and the two `cranelift-codegen`
+snapshot writes behind a developer feature.
 
 That is the real result: **a `warn` on `Command::new("cmake")` inside
 `build.rs` is correct and useless at the same time.** The pattern is genuine
@@ -197,22 +273,26 @@ and it is so common that warning on it produces more noise than signal. The
 fix is not to demote it — that would hide the paper's own build-time attack —
 but to add an explicit allowlist of standard build tools (`cmake`, `make`,
 `ninja`, `git`, `rustc`, `cc`, `gcc`, `clang`, `pkg-config`, `install`, `cp`)
-that demotes only those names, leaving unusual ones at `warn`. That is the next
-change, and this census is its justification.
+that demotes only those names, leaving unusual ones at `warn`. That remains
+unimplemented: it changes the census and the strict-TP count, so it needs its
+own measurement and audit.
 
-**Not audited.** The 214 `info` findings were sanity-checked only (spot review
-of 40 while building the sheet; no obviously wrong instance) — no precision
-number is claimed for them, and it should not be: by construction they are the
-"library takes a caller path" class.
+**Not audited.** The 140 unique `info` sites were sanity-checked only (spot
+review while building the sheet); no precision number is claimed for them, and
+it should not be: by construction they are the "library takes a caller path"
+class.
 
 **Limitations of the audit itself.** Single reviewer (self-audit, not blind);
-23 sites in 8 crates, all from one vendored corpus; labels are a judgement about
-the pattern, not about exploitability in the crate's deployment.
+28 sites in 10 crates, all from one vendored corpus; labels are a judgement
+about the pattern, not about exploitability in the crate's deployment.
 
-### 7.4 Regression against known advisories (done, 2026-11-19)
+### 7.4 Regression against known advisories (current)
 
-`python detect/test_rustsec.py` → 3/3 expectations hold, including the
-deliberate negatives.
+`./safeify-lint/cargo.sh test --release advisory_shapes_fire` asserts three
+expectations, including the deliberate negative. The retired Python suite
+(`test_rustsec.py`) held the same three and recorded **3/3** on 2026-11-19; the
+positive shapes are reconstructed fixtures with the vulnerable call on the
+asserted line.
 
 | Advisory | Shape | Outcome |
 |---|---|---|
@@ -226,9 +306,9 @@ builder), so the lattice returned `unknown` and the linter stayed silent on the
 canonical PATH-hijack advisory. The fix is a principled widening: a field of a
 local or parameter value (`cmd.bin`, `self.config.program`) counts as
 caller-determined rather than unknown — which is exactly the class
-`exec_tainted_cmd` exists for. The suite now asserts the hit on the real line,
-so the coverage claim is checked against the vulnerable source, not a
-reconstruction.
+`exec_tainted_cmd` exists for. The regression fixture reproduces the shape (`fixtures/advisories`
+`run_decompressor`), so the coverage claim is checked against a call site with
+the same provenance structure.
 
 **`rustdecimal` needed a new rule, not a tweak.** It is not a PATH-resolution
 or path-taint problem: the binary name is an absolute literal, the payload is
@@ -249,9 +329,10 @@ later claims coverage.
 
 ### 7.5 Ablation: enumeration versus filtering (done, 2026-11-19)
 
-`python detect/ablate_lints.py transitions/external/crates --max-bytes 100000`
-counts every call to a sink family — what a Cargo-Scan-style enumerator
-reports — against what the lints actually emit:
+The original ablation script (`ablate_lints.py`) was retired with the text
+engine, and its numbers describe that engine. It counted every call to a sink
+family — what a Cargo-Scan-style enumerator reports — against what the lints
+emitted:
 
 | family | candidate call sites | findings | survives |
 |---|---|---|---|
@@ -274,10 +355,20 @@ Two honest readings:
   nothing removes them without a tool allowlist. This is the same conclusion as
   §7.3, measured differently: the family is barely filtered because the pattern
   *is* the common case.
-- **The blind spot is large.** 445 of 915 filesystem calls (49%) classify
-  `unknown` — function returns and complex expressions — and are dropped
-  silently. Any recall claim is bounded by that number, which is the strongest
+- **The blind spot is large.** 445 of 915 filesystem calls (49%) classified
+  `unknown` — function returns and complex expressions — and were dropped
+  silently. Any recall claim is bounded by that number, which was the strongest
   argument for the interprocedural step.
+
+**Current numbers (semantic engine, 2026-11-20).** The same counters, from the
+engine's `--stats` on 329 package versions: 519 of 821 filesystem sink calls are
+classified (63%), 302 remain `unknown`; 73 of 81 command-execution programs are
+classified; 390 crate-local calls are interpreted, 4 recursion cuts and 0 depth
+cuts. With `SAFEIFY_INTERPROC=0` and the same binary, `unknown` rises to 316:
+the call-site interpretation closes 14 filesystem sites, and the reported
+finding set is byte-identical, so the gain is coverage, not noise. The
+`unknown` remainder is dominated by dependency calls (`no_deps`), not by
+function depth.
 
 ## 8. Bugs found while building this
 
@@ -307,27 +398,70 @@ Two honest readings:
    the library contract, not the paper's counterexample (their figures write).
    Restricted to write sinks; the 137 remaining `info` findings are writes.
 
+### Bugs found in the semantic engine (2026-11-20)
+
+6. **`join` promoted a parameter to a taint source.** `join_prov` returned
+   `Tainted` whenever *either* side was caller-controlled, and `is_tainted()`
+   includes `param`, so `let out = PathBuf::from(p).join("build")` warned where
+   the lattice says `info` (`param`). In the corpus this was 20 of the 23
+   unlabelled actionable sites: `openssl-src` build dirs (13), `cranelift-codegen`
+   (2), `temporary` (2), `tough` (3). The same function also collapsed
+   `literal + literal` to `unknown`, so `Path::new("/etc").join("ld.so.preload")`
+   could never reach the danger table — a recall hole, not just noise. Fixed in
+   [`sink::join_prov`](../../safeify-lint/src/sink.rs) (composition keeps the
+   class of the more caller-controlled part and concatenates two literals),
+   pinned by `joined_caller_path` and `joined_special_path` in `fixtures/rules`.
+7. **A closure parameter claimed caller control.** `local_prov` classified any
+   parameter-shaped binding as `param`, including one bound by `for_each`/`find`,
+   so `["python", "python3"].iter().for_each(|bin| Command::new(bin))` warned on
+   a literal array (`pyo3` 0.11.1 and 0.12.4 build scripts). A closure parameter
+   now takes the class of what the closure iterates (`.iter()` keeps the
+   collection's class), and one not passed to a method is `unknown` rather than
+   caller-controlled. Pinned by `closure_literal_program` and
+   `closure_param_program`.
+
+Both were found by sizing the precision audit (reading every unlabelled
+actionable site), which is the argument for keeping the audit as the gate on
+engine changes: 22 of the 23 unlabelled sites were two defects, and only the
+third (`xcb`'s parameter-chosen `rustfmt`) was a genuine finding.
+
 ## 9. Known limitations
 
-- No interprocedural analysis: taint does not cross function boundaries, so a
-  wrapper that forwards an argument hides it (one call level would cover most
-  of the paper's `pkg_config` shape).
-- No macro expansion: `format!` is handled syntactically; other macros are
-  opaque, and proc-macro output is never seen.
-- `use`-imported bare calls (`write(..)` after `use std::fs::write`) are not
-  matched; only `fs::write`/`File::open` shapes are.
-- `OpenOptions` aliasing (`use OpenOptions as OO`) defeats the receiver check.
-- The danger tables are per-OS and incomplete by construction; Windows coverage
-  is a prefix list, not a semantic model.
-- Severity demotion is a syntactic proxy for reachability (`pub`, `build.rs`),
-  not a call-graph result.
+Semantic-analysis limits (the engine side is documented in
+[engine.md §4.3](engine.md#43-what-is-not-implemented-and-the-report-must-say-so)):
 
+- **Cross-crate depth is out of scope.** `no_deps` is deliberate: dependency
+  sources are not loaded, so a wrapper in another crate classifies `unknown`
+  and never fires. This is the dominant recall ceiling, not function depth.
+- **No branch-sensitive or heap/aliasing model.** Only the dominated-`if` guard
+  is modelled; fields are tracked per `(struct, field)`, not per object, so
+  interior mutability (`Cell`, `Mutex`) is invisible.
+- **One unseen branch silences the join.** An unresolved dependency call, an
+  unexpanded proc macro or a recursion cut makes the value `unknown`, and
+  `unknown` never fires. Proc macros are not expanded (declarative macros are).
+- **Composition is class-preserving, not value-tracked.** `param.join(x)` is
+  `info` even if `x` is a literal `../`; pointing a `param` at a danger-table
+  path stays `info`. Path *values* are only known for literals.
+- **Collections approximate.** An element has the collection's class; element
+  types are not tracked, so a `Vec<String>` and its `Vec<PathBuf>` sibling are
+  indistinguishable.
+- **A sink written inside a helper is reported where it is written**, with the
+  helper's parameter as `param`; it is not re-reported at each caller.
+- **Severity demotion is a syntactic proxy** for reachability (`pub`,
+  `build.rs`), not a call-graph result.
+- **Suppression only reads source attributes**; a Cargo `[lints.safeify]` table
+  has no effect (§5).
 
-- Test and example code inflates counts; `cargo-scan`-style filtering of
-  `tests/`, `examples/` may be needed before any "real defect rate" claim.
-- `exec_basename` on a standard build tool (`cmake`, `make`, `git`) is correct
-  and useless; needs a tool allowlist (see §7.3).
-- `exec_written_path` only sees a write and an exec in the same function.
-- 49% of filesystem call sites classify `unknown` (§7.5) and can never fire.
-- The `info` stratum has no precision number; the audit covers
-  the 25 actionable sites only, in 9 crates, by a single reviewer.
+Corpus and evaluation limits:
+
+- **Test and example code inflates counts**; filtering `tests/`/`examples/` may
+  be needed before any "real defect rate" claim.
+- **`exec_basename` on a standard build tool** (`cmake`, `make`, `git`) is
+  correct and useless; the proposed tool allowlist (§7.3) is not implemented —
+  it would change the audit numbers, so it needs its own measurement.
+- **`exec_written_path` only sees a write and an exec in the same function**;
+  a cross-function dropper is interpreted for provenance but not for this
+  def-use rule.
+- **The `info` stratum has no precision number**; the audit covers the
+  actionable (`warn`/`deny`) sites only, in one vendored corpus, by a single
+  reviewer.

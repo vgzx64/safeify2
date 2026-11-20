@@ -21,7 +21,7 @@ source masker and unsafe-region inventory plus rust-analyzer hover evidence
 (`type`/HIR-adjacent) and an optional `rustc --emit=metadata` gate. There is no
 direct AST traversal and no MIR.
 
-The internal decision was to treat `research/detect/` as an accepted
+The internal decision was to treat the semantic linter (now `safeify-lint/`) as an accepted
 `rust-analyzer`-based alternative and defer full MIR/borrowck to NIRM 4. That
 decision is documented in [report.md §2](report.md#2-scope-decision-requires-supervisor-approval)
 but is **not yet approved by the supervisor**, and NIRM 4's formal scope is ML
@@ -37,19 +37,23 @@ prototyped: lints for the safe-Rust attack patterns of Hassnain & Stanford,
 `/proc/*/mem`-style paths, `Command::new` PATH resolution, `build.rs` writes
 outside `OUT_DIR`, dangerous environment variables.
 
-It shares the source masker with this detector and **none** of the Y/M/N model:
-it is not scored on the frozen split, adds no number to
+It shares `rust-analyzer` (as a library) with this detector and **none** of the
+Y/M/N model: it is not scored on the frozen split, adds no number to
 [results.md](results.md), and does not touch the replaceability claim. Design,
-threat model, corpus pilot and limitations:
-[counterexamples.md](../research/counterexamples.md). Checks: 39/39
-(`test_lint_safe.py`), 3/3 advisory fixtures (`test_rustsec.py` — RUSTSEC-2021-0071
-covered, RUSTSEC-2022-0042 a documented gap, RUSTSEC-2022-0058 out of scope);
-`test_detect.py` remains 8/8.
+threat model, corpus measurement and precision audit:
+[counterexamples.md](../research/counterexamples.md). Checks:
+`./safeify-lint/cargo.sh test --release` → **8 tests**, including the two
+advisory shapes (RUSTSEC-2021-0071 covered by the field-summary rule,
+RUSTSEC-2022-0042 by `exec_written_path`, RUSTSEC-2022-0058 out of scope);
+`safeify-ai/test_detect.py` → **4/4** (the detector consumes
+`safeify-lint --inventory`).
 
-While building it, two pre-existing defects in `inventory.py` were found and
-fixed: literal-only call arguments were dropped from `arg_spans`, and `b"…"`
-byte literals blanked the rest of the line. Neither affects the frozen split
-(0 byte string literals in all 288/69/97 files), so no reported number changes.
+The 2026-11-19 text-engine checks (39/39 Python unit cases, 3/3 advisory
+fixtures) are historical: those Python suites were retired with the text
+engine. While building the lints, two defects in the old text inventory were
+found and fixed: literal-only call arguments were dropped from `arg_spans`, and
+`b"…"` byte literals blanked the rest of the line. Neither affected the frozen
+split (0 byte string literals in all 288/69/97 files).
 
 ## Deliverables and Definition of Done
 
@@ -154,7 +158,7 @@ Full frozen-test and scoring commands are kept in one place:
 
 - [Supervisor report (current)](report.md)
 - [Results and protocol](results.md)
-- [Archived NIRM 3 notes](../archive/README.md)
+- Archived NIRM 3 notes: removed in the 2026-11-20 reorganisation; Git history preserves them
 - [Research vectors](../research/research-vectors.md)
 - [Synthetic-data theory](../research/synthetic-data-theory.md)
 - [Formal dissertation plan](../../papers/my_dissertation_plan.md)

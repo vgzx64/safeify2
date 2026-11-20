@@ -10,10 +10,11 @@
 > regex-era Python files are no longer maintained or used for parity.
 >
 > Naming: the project is **Safeify**. The engine binary is `safeify-lint` and
-> the lint namespace is `safeify::<rule>` (`#[allow(safeify::fs_special_path)]`,
-> `[lints.safeify]`). "NIRM 3" survives only in historical note paths and
-> frozen evaluation artifacts, which are cited by filename and are not
-> rewritten.
+> the lint namespace is `safeify::<rule>` (`#[allow(safeify::fs_special_path)]`
+> or `// safeify: allow(fs_special_path)`; a Cargo `[lints]` table is not read
+> because the engine sees source attributes, not rustc flags). "NIRM 3"
+> survives only in historical note paths and frozen evaluation artifacts,
+> which are cited by filename and are not rewritten.
 
 ## 1. Why the regex front end has to go
 
@@ -43,10 +44,11 @@ labour.
 
 ## 2. What the engine is
 
-A Rust binary, `safeify-lint`, that links rust-analyzer **as a library**
-(`ra_ap_ide` 0.0.358, the 2026-08-24 release line that also produced the
-detector's pinned `rust-analyzer 0.3.3025-standalone`). It is not an LSP
-client: no JSON-RPC, no hover round-trips, no text parsing. The pipeline is:
+A Rust binary, `safeify-lint`, that links rust-analyzer **as a library**,
+from the vendored source tree (`vendors/rust-analyzer`, git `aa198229`) through
+path dependencies, so the analysis engine is pinned to code checked into this
+repository. It is not an LSP client: no JSON-RPC, no hover round-trips, no text
+parsing. The pipeline is:
 
 ```
 cargo metadata --no-deps        one shot per crate, ~50 ms, writes no Cargo.lock
@@ -55,7 +57,7 @@ cargo metadata --no-deps        one shot per crate, ~50 ms, writes no Cargo.lock
   → Semantics                     name resolution + type inference, the same
                                   code paths the `rust-analyzer` binary uses
   → rules                         AST visitor over *resolved* nodes
-  → findings.json                 same schema as lint_safe.py --json
+  → findings.json                 [{rule, level, path, line, col, message}]
 ```
 
 Why the library and not the LSP server: interprocedural analysis needs the
@@ -135,7 +137,7 @@ Interprocedural evaluation is switched off while the field index is built
 (§4.2), where the only question is "what is assigned to this field".
 
 Measured effect on the corpus is in §7; the regression fixture
-([`fixtures/interproc`](../../research/detect/engine/fixtures/interproc)) fixes
+([`fixtures/interproc`](../../safeify-lint/fixtures/interproc)) fixes
 five behaviours: a helper, a two-hop chain and a local method carry the
 caller's path into the sink; a literal return makes the sink see the literal; a
 callee that keeps only `file_name()` is trusted (silent); a recursive return is
@@ -189,27 +191,19 @@ collections, where the element provenance is `unknown` either way.
 
 ## 5. Migration, with the audit as the gate
 
-The 25-site census, the 24/25 precision, and the per-rule strict counts in
-[counterexamples.md](counterexamples.md) are the paper's evidence. Rewriting
-the engine must not quietly change them. So the rule IDs stay identical, the
-JSON schema stays identical, and every rule is ported behind a differential
-check:
-
-```
-python3 detect/compare_engines.py <crate-dir>...
-  for each rule: site set (rule, file, line) old vs new
-  → identical      : rule is ported, text implementation deleted
-  → additions      : inspect; either a bug in the new engine or a real
-                     capability gain (then re-audit the new sites)
-  → removals       : inspect; either a bug or the text engine's false
-                     positive finally exposed (then re-audit)
-```
-
-Nothing is deleted until its rule reaches an explained diff. The Python
-orchestration stays: corpus walking, the frozen NIRM 3 split, report
-generation and the audit sheet builder are I/O and bookkeeping, not analysis,
-and the 0.2000 accuracy on the 97-file split must keep reproducing from
-untouched code.
+The rule IDs, the JSON schema and the severity classes were fixed before the
+port so the corpus census stayed comparable. Every rule was ported behind a
+differential check: for each rule, the set of `(rule, file, line)` sites of the
+text engine versus the semantic engine, where a diff had to be *explained* as
+either a capability gain or the text engine's error before the text
+implementation was deleted. That harness (`compare_engines.py`) and the text
+engine it compared against were retired once every rule reached an explained
+diff; the results are the corpus tables in §7. What stays is the Python
+orchestration — corpus walking, the frozen split, report generation and the
+audit sheet builder are I/O and bookkeeping, not analysis — and the
+reproducible rule-level comparison against the frozen census that
+[`run_semantic_corpus.py`](../../safeify-lint/corpus/run_semantic_corpus.py)
+prints on every run.
 
 ## 5b. What the semantic engine does that text cannot
 
@@ -259,7 +253,7 @@ arguments are expressions, and `Semantics::as_format_args_parts` returns the
 resolution of every *implicit capture* in the template (`{name}`), so
 `format!("{root}/{name}")` and `format!("{}/{}", root, name)` are both "join of
 the pieces". The engine reads exactly that node
-([`prov.rs::format_args_prov`](../../research/detect/engine/src/prov.rs)).
+([`prov.rs::format_args_prov`](../../safeify-lint/src/prov.rs)).
 Two consequences worth recording: the result carries no literal *value* (the
 pieces are formatted into a new string, so a literal-path rule must not read the
 format string as the path), and a multi-line call is reported at the
@@ -305,14 +299,14 @@ recall hole, not a false positive).
 
 ## 6b. The frozen inventory is semantic now
 
-The frozen NIRM-3 evaluation never used `lint_safe.py`: it uses
-[`inventory.py`](../../research/detect/inventory.py), which found `unsafe`
-regions, the calls inside them, raw-pointer dereferences and the enclosing
-function's guard context by scanning masked text. That was the last regex
-analysis on the critical path.
-[`safeify-ai/semantic_inventory.py`](../../safeify-ai/semantic_inventory.py) now
+The frozen NIRM-3 evaluation never used `lint_safe.py`: it used `inventory.py`,
+which found `unsafe` regions, the calls inside them, raw-pointer dereferences
+and the enclosing function's guard context by scanning masked text. That was
+the last regex analysis on the critical path.
+[`safeify-ai/semantic_inventory.py`](../../safeify-ai/semantic_inventory.py)
 adapts `safeify-lint --inventory <file.rs>` into the same shape, and
-`detect.py` consumes it.
+`detect.py` consumes it; the text scanner and its parity harness were retired
+after the parity result below, with the artifacts kept for provenance.
 
 What the engine resolves where the text scanner guessed:
 
@@ -335,13 +329,13 @@ What the engine resolves where the text scanner guessed:
 
 ### Parity over the frozen 288 / 69 / 97 files
 
-[`inventory_parity.py`](../../research/detect/inventory_parity.py) diffs the two
-implementations on the site sets the detector acts on — region ranges, call
+The (now retired) `inventory_parity.py` harness diffed the two implementations
+on the site sets the detector acts on — region ranges, call
 callees/spans/arguments, deref offsets, and each region's function
 name/signature/guards — after converting the text scanner's character offsets to
 the engine's byte offsets (one non-ASCII character before a site shifts every
 offset by two). Artifact:
-[`inventory_parity_2026-11-20.json`](../../research/detect/out/inventory_parity_2026-11-20.json).
+[`inventory_parity_2026-11-20.json`](../../safeify-ai/out/inventory_parity_2026-11-20.json).
 
 **454 files, 217 with at least one difference, 452 differences. No site the
 detector acts on is lost**: zero text-only regions and zero text-only spec-DB
@@ -375,7 +369,7 @@ argument lists only.
 ### Re-measured frozen evaluation
 
 Same protocol as the NIRM-3 report, `detect.py` on the semantic inventory
-([`nirm3_eval_lsp_semantic_score.txt`](../../research/detect/out/nirm3_eval_lsp_semantic_score.txt)):
+([`nirm3_eval_lsp_semantic_score.txt`](../../safeify-ai/out/nirm3_eval_lsp_semantic_score.txt)):
 
 | Metric | text inventory | semantic inventory |
 |---|---:|---:|
@@ -401,41 +395,107 @@ report documents the sensitivity). Re-running the four files whose verdicts
 moved reproduced two of them (`Box::from_raw/1-8.rs` and
 `CStr::from_ptr/1-12.rs` are claimed `N`, matching the frozen gold) and one
 moved back (`Vec::from_raw_parts/3-2.rs` claims `N` again) —
-[recheck artifact](../../research/detect/out/nirm3_eval_semantic_recheck_2026-11-20.json)
+[recheck artifact](../../safeify-ai/out/nirm3_eval_semantic_recheck_2026-11-20.json)
 — so the per-site flips are hover variance, not the inventory.
 
 ## 7. Measurements the engine must produce
 
-Recorded here as they land, so the claim "semantic > text" is a number and
-not an assertion:
+Recorded here as they land, so the claim "semantic > text" is a number and not
+an assertion. The semantic column is the 2026-11-20 run after the composition
+fix (§7.1); the pre-fix artifacts are retained under `_prejoin_` names.
 
 | Metric | Text engine | Semantic engine |
 |---|---|---|
-| filesystem sink calls classified (not `unknown`) | 470/915 (51%) | **490/821 (60%)** |
-| — of which interprocedural analysis closes | — | 4 (335 → 331 `unknown`, same binary) |
+| filesystem sink calls classified (not `unknown`) | 470/915 (51%) | **519/821 (63%)** |
+| — of which the call-site interpretation closes | — | 14 (316 → 302 `unknown`, same binary) |
 | command-execution programs classified | not measured | 73/81 (90%) |
-| crate-local calls interpreted / recursion cuts / depth cuts | — | 389 / 4 / 0 |
+| crate-local calls interpreted / recursion cuts / depth cuts | — | 390 / 4 / 0 |
 | same-function-only limitations hit by the corpus | dropper class unmeasurable | 0 findings changed by the call-site interpretation |
-| audit precision on the 25-site census | 24/25 = 0.96 | not re-audited yet |
-| corpus findings / `warn` | 251 rows / 31 | 263 sites / 65 |
-| wall time, 329 packages | ~2.5–4 min | 13 min cold, 6–7 min warm (10 jobs) |
+| audit precision on the actionable census | 24/25 = 0.96 | **27/28 = 0.96** (§7.1) |
+| corpus findings / `warn` | 251 rows / 31 | **261 sites / 35** |
+| wall time, 329 packages (12 cores) | ~2.5–4 min | 8 min warm, 13 min cold (10 jobs) |
 
 Corpus-wide differential (329 crate versions, 8,426 files). Artifacts, all
-regenerated by [`corpus_report.py`](../../research/detect/corpus_report.py):
+regenerated by [`corpus_report.py`](../../safeify-lint/corpus/corpus_report.py):
 
-- [`lint_corpus_semantic_2026-11-20_union.json`](../../research/detect/out/lint_corpus_semantic_2026-11-20_union.json)
-  — host ∪ Windows pass, **263 findings in 94 files** (census: 251 rows, 249
-  distinct sites); severity 65 `warn` / 198 `info` (census: 31 `warn`).
-- [`lint_corpus_semantic_2026-11-20_host.json`](../../research/detect/out/lint_corpus_semantic_2026-11-20_host.json) /
-  [`_win.json`](../../research/detect/out/lint_corpus_semantic_2026-11-20_win.json)
-  — the two cfg passes (329 packages each, 250 / 255 sites).
-- [`lint_corpus_semantic_2026-11-20_nointerproc.json`](../../research/detect/out/lint_corpus_semantic_2026-11-20_nointerproc.json)
+- [`lint_corpus_semantic_2026-11-20_union.json`](../../safeify-lint/out/lint_corpus_semantic_2026-11-20_union.json)
+  — host ∪ Windows pass, **261 findings in 94 files** (census: 249 distinct
+  sites in 91 files); severity 35 `warn` / 226 `info` (census: 31 `warn`).
+  218 sites are shared with the census; the 31 old-only and 43 new-only sites
+  are each accounted for in
+  [counterexamples.md §7.2](counterexamples.md#72-corpus-prevalence-current)
+  (27 non-target `ci/` files, 4 argument-line shifts, 34 composed `param` writes
+  the text engine could not see, 4 new warnings, 1 Windows-only `cmd`).
+- [`lint_corpus_semantic_2026-11-20_host.json`](../../safeify-lint/out/lint_corpus_semantic_2026-11-20_host.json) /
+  [`_win.json`](../../safeify-lint/out/lint_corpus_semantic_2026-11-20_win.json)
+  — the two cfg passes (329 packages each, **248 / 253** sites; 8 host-only,
+  13 Windows-only).
+- [`lint_corpus_semantic_2026-11-20_nointerproc.json`](../../safeify-lint/out/lint_corpus_semantic_2026-11-20_nointerproc.json)
   — the same host pass with `SAFEIFY_INTERPROC=0`, the A/B for the call-site
-  interpretation.
+  interpretation: the finding set is identical, so the interpretation changes
+  only *coverage* (14 calls, below), not the report.
+- [`lint_corpus_semantic_2026-11-20_prejoin_union.json`](../../safeify-lint/out/lint_corpus_semantic_2026-11-20_prejoin_union.json)
+  — the pre-fix measurement (263 sites, 65 `warn`) kept for the delta:
+  `join` no longer promotes a `param` to `tainted`, so its false warnings are
+  now `info` (§7.1 and counterexamples §8).
 - the pre-interprocedural measurement (259 findings, commit `6c8f0d8`) stays at
-  [`lint_corpus_semantic_2026-11-20.json`](../../research/detect/out/lint_corpus_semantic_2026-11-20.json)
+  [`lint_corpus_semantic_2026-11-20.json`](../../safeify-lint/out/lint_corpus_semantic_2026-11-20.json)
   so the delta is reproducible: `corpus_report.py --union ...--baseline` on the
   two files.
-- [`stats_2026-11-20_host.jsonl`](../../research/detect/out/stats_2026-11-20_host.jsonl) /
-  [`_win.jsonl`](../../research/detect/out/stats_2026-11-20_win.jsonl) /
-  [`_nointerproc.jsonl`](../../research/detect/out/stats_2026-11-20_nointerproc.jsonl)
+- [`stats_2026-11-20_host.jsonl`](../../safeify-lint/out/stats_2026-11-20_host.jsonl) /
+  [`_win.jsonl`](../../safeify-lint/out/stats_2026-11-20_win.jsonl) /
+  [`_nointerproc.jsonl`](../../safeify-lint/out/stats_2026-11-20_nointerproc.jsonl)
+  — per-crate classification counters behind the first four rows (the corpus
+  driver aggregates them; the log is
+  [`corpus_run_2026-11-20.log`](../../safeify-lint/out/corpus_run_2026-11-20.log)).
+
+Reproduce the corpus numbers from the repository root:
+
+```sh
+R=safeify-lint/corpus/run_semantic_corpus.py; O=safeify-lint/out
+python3 $R --out $O/lint_corpus_semantic_2026-11-20_host.json --jobs 10
+python3 $R --out $O/lint_corpus_semantic_2026-11-20_win.json --jobs 10 \
+    --engine-args windows,target_family=windows
+SAFEIFY_INTERPROC=0 python3 $R --out $O/lint_corpus_semantic_2026-11-20_nointerproc.json --jobs 10
+python3 safeify-lint/corpus/corpus_report.py \
+    --union $O/lint_corpus_semantic_2026-11-20_host.json $O/lint_corpus_semantic_2026-11-20_win.json \
+    --baseline $O/lint_corpus_2026-11-19.json \
+    --out $O/lint_corpus_semantic_2026-11-20_union.json
+```
+
+### 7.1 Precision audit of the semantic census
+
+The gate for every engine change is the labelled census, not the finding count.
+Of the 168 unique sites, 28 are actionable (`warn`/`deny`) in 10 crates; all 28
+were read with four lines of context (25 labels carry over from the text-era
+sheet, 3 are new), and the labels live in
+[`lint_audit_labels_2026-11-20.json`](../../safeify-lint/out/lint_audit_labels_2026-11-20.json):
+
+| Rule | sites | correct (TP+TL) | strict TP |
+|---|---|---|---|
+| `build_outside_out_dir` | 4 | 4 (1.00) | 4 (1.00) |
+| `exec_tainted_cmd` | 9 | 8 (0.89) | 5 (0.56) |
+| `exec_basename` | 13 | 13 (1.00) | 3 (0.23) |
+| `fs_tainted_path` | 2 | 2 (1.00) | 0 (0.00) |
+| **all** | **28** | **27 (0.96 [0.82, 0.99])** | **12 (0.43 [0.27, 0.61])** |
+
+The crate-clustered bootstrap interval on the correctness column is
+[0.84, 1.00]. The one false positive is `grep-cli` 0.1.6 (patched), unchanged
+from the text-engine audit: the program path is produced by a helper in another
+crate (`which`), which `no_deps` cannot see, and the field summary is a
+may-join. The complete argument — including why 13 correct `exec_basename`
+warnings only yield 3 strict hits — is in
+[counterexamples.md §7.3](counterexamples.md#73-precision-audit-current-2026-11-20).
+
+```sh
+python3 safeify-lint/audit_lint.py \
+    --corpus safeify-lint/out/lint_corpus_semantic_2026-11-20_union.json \
+    --sheet safeify-lint/out/lint_audit_2026-11-20.jsonl --info-sample 0
+python3 safeify-lint/audit_lint.py \
+    --sheet safeify-lint/out/lint_audit_2026-11-20.jsonl \
+    --labels safeify-lint/out/lint_audit_labels_2026-11-20.json --stats
+```
+
+Statistics and the sheet are committed next to the labels
+(`lint_audit_stats_2026-11-20.txt`), so the precision and its intervals are
+reproducible without re-reading the sites.

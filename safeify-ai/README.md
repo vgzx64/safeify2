@@ -3,8 +3,8 @@
 > **Status: experimental replaceability judge · Updated: 2026-11-20**
 >
 > Evaluation protocol and current caveats:
-> [notes/nirm3/report.md](../../notes/nirm3/report.md) and
-> [notes/nirm3/results.md](../../notes/nirm3/results.md). This README documents
+> [notes/nirm3/report.md](../notes/nirm3/report.md) and
+> [notes/nirm3/results.md](../notes/nirm3/results.md). This README documents
 > the detector itself; it does not claim a final result.
 
 `safeify-ai` judges replaceable unsafe Rust code and emits Y/M/N verdicts. It uses
@@ -85,7 +85,7 @@ transiently and three consecutive reruns passed. The same timeouts affect
 verdicts: six `from_raw`/`CStr` sinks changed between two full test-split runs
 with no code change, and a three-times re-run of the affected files produced
 one flip. Treat a single LSP run as non-deterministic by a few sinks; see
-[report.md §7.6](../../notes/nirm3/report.md#7-failure-analysis).
+[report.md §7.6](../notes/nirm3/report.md#7-failure-analysis).
 
 Example (synth `ptr::read` p1 snippet, LSP mode):
 
@@ -102,7 +102,7 @@ A second, independent front end for the attack patterns of Hassnain & Stanford,
 These are implemented in the rust-analyzer semantic engine, not source-text
 regexes. They are **not** part of the Y/M/N model and are **not** scored on the
 frozen split. Design, threat model, corpus numbers and limitations:
-[notes/research/counterexamples.md](../../notes/research/counterexamples.md).
+[notes/research/counterexamples.md](../notes/research/counterexamples.md).
 
 ```sh
 engine/cargo.sh test --release
@@ -131,7 +131,7 @@ counters: how many filesystem/exec sink calls were `literal`/`param`/`tainted`/
 `trusted`/`unknown`, and how many crate-local calls were interpreted or cut.
 `SAFEIFY_INTERPROC=0` turns the call-site interpretation off; the corpus driver
 (`--stats-out`) aggregates both, which is how the coverage numbers in
-[engine.md](../../notes/research/engine.md) §7 are produced.
+[engine.md](../notes/research/engine.md) §7 are produced.
 
 Known limits: calls whose callee lives in an unresolved dependency are
 invisible (`no_deps`); a recursive return is cut to `unknown` (so its site goes

@@ -139,8 +139,8 @@ This is the BERT-only control; it does not use graph inputs.
 - No Rust-specific edges (ownership, borrowing, lifetimes).
 - No measured comparison against the BERT-only baseline.
 - `ast_to_graph.py` has a stale import and is not part of the verified path.
-- Older implementation notes are kept in the
-  [archive](../../notes/archive/README.md).
+- Older implementation notes were removed in the 2026-11-20 reorganisation;
+  Git history preserves them.
 
 ## References
 
@@ -155,4 +155,4 @@ This is the BERT-only control; it does not use graph inputs.
 
 - [Research rationale](../../notes/research/gnn-coder-evaluation.md)
 - [Research vectors](../../notes/research/research-vectors.md)
-- [Research index](../README.md)
+- [Repository index](../../README.md)

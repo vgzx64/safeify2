@@ -101,7 +101,7 @@ evidence and is not turned into `N`.
 
 - Corpus: `vendors/SafeNet/testdata/` — 474 `.rs` files; 454 usable after
   `syn` parsing and baseline preprocessing; 20 excluded (documented per file in
-  [splits/README.md](../../research/synth/splits/README.md)).
+  [splits/README.md](../../safeify-data/synth/splits/README.md)).
 - Frozen split: seed 1234, stratified by `(api, pattern_id)`, 70/10/20 ->
   train **288** / valid **69** / test **97** usable files.
   `make_splits.py --check` prints `OK`; same-API leakage is 0; six cross-API

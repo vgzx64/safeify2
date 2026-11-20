@@ -118,7 +118,7 @@ the same rubric.
 ### 3.5 Label adjudication
 
 Labels are decided by an LLM reviewer with the
-[adjudication rubric](../../research/transitions/adjudication/RUBRIC.md), not by
+[adjudication rubric](../../safeify-data/transitions/adjudication/RUBRIC.md), not by
 a compiler:
 
 1. Quote the old unsafe operation and the proposed replacement.
@@ -141,7 +141,7 @@ prompt/model, confidence, and human decision. A row cannot enter
 | `rust_ecosystem` vulnerable snapshots | Context and controls | function/file context, control sampling | treating "untouched" as `N` |
 | SafeNet `testdata` (474; 97 test) | External benchmark | final test only | training after freeze |
 | SafeNet `knowledgebase` (142) | Retrieval gallery | safe/unsafe examples | query/test leakage |
-| `research/synth` (333 distinct) | Pretraining/curriculum | train only | valid/test |
+| `safeify-data/synth` (333 distinct) | Pretraining/curriculum | train only | valid/test |
 | RustSec / OSV / GHSA | Provenance and gap filling | advisory IDs, patched versions, missing commits | duplicate counting |
 | crates.io / docs.rs / `rust-src` | API contracts and alternatives | gallery candidates, guard rules | automatic labels |
 | rustc test suite / Miri / UCG | Optional verification | compile/Miri/UB cases for selected full-crate rows | replacement labels |
@@ -416,7 +416,7 @@ accuracy is below a constant-`Y` baseline, so accuracy alone is misleading.
 | 2026-11-08 | Second + focused M/N spot-checks; 3 corrections; M/N shown non-reproducible; **v0.2 frozen** (433 rows, binary target) |
 | 2026-10-29–11-08 | NIRM 3 report is the priority; do not start the full build |
 | 2026-11-08 | Freeze `transitions-core` v0.2 |
-| NIRM 4 | Train the SafeNet-style pair classifier on `research/synth/out/train_mixed.csv` (8,580 clean pairs after the 2026-11-18 rebuild; `splits/check_train_leakage.py` must pass); evaluate on the frozen core as external validation. First path: frozen-BERT cache + pair head, see [bert-pair-model.md](bert-pair-model.md) |
+| NIRM 4 | Train the SafeNet-style pair classifier on `safeify-data/synth/out/train_mixed.csv` (8,580 clean pairs after the 2026-11-18 rebuild; `splits/check_train_leakage.py` must pass); evaluate on the frozen core as external validation. First path: frozen-BERT cache + pair head, see [bert-pair-model.md](bert-pair-model.md) |
 
 The dataset build must not delay the NIRM 3 report. The pilot is enough to
 validate the plan; the full build belongs to NIRM 4.
@@ -444,6 +444,6 @@ validate the plan; the full build belongs to NIRM 4.
 - [Transition pipeline](../../safeify-data/transitions/README.md)
 - [safeify-ai limitations](../../safeify-ai/README.md)
 - [Pilot results](transition-dataset-pilot.md)
-- [Detector limitations](../../research/detect/README.md)
+- [Detector limitations](../../safeify-lint/README.md)
 - [SafeNet corpus](../../vendors/SafeNet/README.md)
 - [Dissertation plan](../../papers/my_dissertation_plan.md)

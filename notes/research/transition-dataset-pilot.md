@@ -235,7 +235,7 @@ The curation queue is now separate from the strict miner:
   121 safe candidates, 366 unsafe-retained, 285 unsafe-added.
 - **458 queued rows**: 92 safe candidates and 366 retained-unsafe rows.
 - A 30-row pilot was adjudicated with the rubric in
-  [adjudication/RUBRIC.md](../../research/transitions/adjudication/RUBRIC.md).
+  [adjudication/RUBRIC.md](../../safeify-data/transitions/adjudication/RUBRIC.md).
 
 206 CVEfixes + 16 RustSec + 54 crates.io rows were adjudicated:
 
@@ -320,7 +320,7 @@ built with `adjudication/build_batches.py`:
   family), to add hard-negative families.
 
 Eleven LLM batches (27-29 rows each) were adjudicated against
-[`RUBRIC.md`](../../research/transitions/adjudication/RUBRIC.md), merged with
+[`RUBRIC.md`](../../safeify-data/transitions/adjudication/RUBRIC.md), merged with
 strict id-set validation, and QC'd for evidence quotes and Y-with-unsafe-new.
 One new Y claim (RUSTSEC-2021-0144 pointer cast) was demoted to `M` on
 spot-check because the shown cast keeps `T: ?Sized`; the correction is recorded
@@ -542,11 +542,11 @@ actually needs.
 
 ## Artifacts
 
-- [Positive union: 119](../../research/transitions/out/positive_union.jsonl)
-- [Negative core: 425](../../research/transitions/out/negative_core.jsonl)
-- [v0.2 frozen core: 433](../../research/transitions/out/transitions_core_v0.2.jsonl)
-- [Quality gates and label verification](../../research/transitions/out/transitions_core_v0.2_quality.json)
-- [Freeze manifest (sha256)](../../research/transitions/out/manifest_v0.2.json)
+- [Positive union: 119](../../safeify-data/transitions/out/positive_union.jsonl)
+- [Negative core: 425](../../safeify-data/transitions/out/negative_core.jsonl)
+- [v0.2 frozen core: 433](../../safeify-data/transitions/out/transitions_core_v0.2.jsonl)
+- [Quality gates and label verification](../../safeify-data/transitions/out/transitions_core_v0.2_quality.json)
+- [Freeze manifest (sha256)](../../safeify-data/transitions/out/manifest_v0.2.json)
 - [Label reliability report](../../safeify-data/transitions/out/label_reliability.json)
 - [Reviewer corrections](../../safeify-data/transitions/adjudication/corrections.jsonl)
 - [Splits](../../safeify-data/transitions/out/splits_v0.2.json)
