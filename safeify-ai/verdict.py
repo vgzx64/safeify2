@@ -53,7 +53,7 @@ class Verdict:
     safe_alternative: str | None = None
     encapsulate: bool = False
     pattern_hint: int | None = None  # KB pattern id, only with real evidence
-    kb_gold: str | None  # gold verdict for (api, pattern_hint), if any
+    kb_gold: str | None = None  # gold verdict for (api, pattern_hint), if any
     rules: list[str] = field(default_factory=list)
 
 
