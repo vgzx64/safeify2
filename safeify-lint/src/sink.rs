@@ -285,26 +285,59 @@ pub fn is_truthy_adapter(name: &str) -> bool {
     )
 }
 
-/// `base.join(arg)` in the text engine's terms: an absolute argument discards
-/// the base; otherwise the two provenances join.
+/// `base.join(arg)` and the other path-composition methods.
+///
+/// An absolute argument discards the base (`Path::join` semantics). Otherwise
+/// the result is as caller-controlled as the *more* caller-controlled piece:
+/// composing does not launder a `Tainted` value, but it does not promote a
+/// `Param` to `Tainted` either — a caller-supplied component under a trusted
+/// base is still the informational `param` class. Two literals concatenate
+/// into one literal path, so the danger table can see
+/// `Path::new("/etc").join("ld.so.preload")`.
 pub fn join_prov(base: &Prov, arg: &Prov) -> Prov {
     if let Some(value) = &arg.value {
         if value.starts_with('/') || value.starts_with('\\') {
             return Prov::literal(value.clone());
         }
     }
-    if base.kind == Kind::Trusted && arg.kind == Kind::Literal {
-        return Prov::with_detail(Kind::Trusted, base.detail.clone());
+    let kind = match (base.kind, arg.kind) {
+        // An unseen component could be absolute or walk out of the base, so a
+        // known-safe base joined with an unknown one is not a known path. A
+        // caller-controlled base is already what the finding reports.
+        (Kind::Unknown, _) | (_, Kind::Unknown) => {
+            if base.is_tainted() {
+                base.kind
+            } else if arg.is_tainted() {
+                arg.kind
+            } else {
+                Kind::Unknown
+            }
+        }
+        (Kind::Tainted, _) | (_, Kind::Tainted) => Kind::Tainted,
+        (Kind::Param, _) | (_, Kind::Param) => Kind::Param,
+        (Kind::Trusted, _) | (_, Kind::Trusted) => Kind::Trusted,
+        (Kind::Literal, Kind::Literal) => Kind::Literal,
+    };
+    let detail = if kind == base.kind && !base.detail.is_empty() {
+        base.detail.clone()
+    } else if kind == arg.kind && !arg.detail.is_empty() {
+        arg.detail.clone()
+    } else if !base.detail.is_empty() {
+        base.detail.clone()
+    } else {
+        arg.detail.clone()
+    };
+    match (kind, &base.value, &arg.value) {
+        (Kind::Literal, Some(base_value), Some(arg_value)) => {
+            let separator = if base_value.ends_with('/') || base_value.ends_with('\\') {
+                ""
+            } else {
+                "/"
+            };
+            Prov::literal(format!("{base_value}{separator}{arg_value}"))
+        }
+        _ => Prov::with_detail(kind, detail),
     }
-    if base.is_tainted() || arg.is_tainted() {
-        let detail = if base.is_tainted() {
-            base.detail.clone()
-        } else {
-            arg.detail.clone()
-        };
-        return Prov::with_detail(Kind::Tainted, detail);
-    }
-    Prov::unknown()
 }
 
 /// Danger-table lookup for an already-resolved literal path.

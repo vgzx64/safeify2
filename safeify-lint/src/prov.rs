@@ -285,7 +285,7 @@ impl<'a> Eval<'a> {
                 }
             }
             ast::Expr::BinExpr(e) => self.bin_expr(e, depth, seen, subst),
-            ast::Expr::PathExpr(e) => self.path_expr(e, seen, subst),
+            ast::Expr::PathExpr(e) => self.path_expr(e, depth, seen, subst),
             ast::Expr::CallExpr(e) => self.call_expr(e, depth, seen, subst),
             ast::Expr::MethodCallExpr(e) => self.method_call(e, depth, seen, subst),
             ast::Expr::MacroExpr(e) => e.macro_call().map_or(Prov::unknown(), |c| {
@@ -296,19 +296,13 @@ impl<'a> Eval<'a> {
             // `format!("{}/{}", root, name)` and `format!("{name}")` yield the
             // pieces the result is built from.
             ast::Expr::FormatArgsExpr(e) => self.format_args_prov(e, depth + 1, seen, subst),
-            ast::Expr::ArrayExpr(e) => self.join_all(
-                e.exprs().map(Some),
-                depth,
-                seen,
-                subst,
-            ),
-            ast::Expr::TupleExpr(e) => self.join_all(
-                e.fields().map(Some),
-                depth,
-                seen,
-                subst,
-            ),
-            ast::Expr::RecordExpr(e) => self.join_all(
+            ast::Expr::ArrayExpr(e) => {
+                self.collection_prov(e.exprs().map(Some), depth, seen, subst)
+            }
+            ast::Expr::TupleExpr(e) => {
+                self.collection_prov(e.fields().map(Some), depth, seen, subst)
+            }
+            ast::Expr::RecordExpr(e) => self.collection_prov(
                 e.record_expr_field_list()
                     .into_iter()
                     .flat_map(|l| l.fields())
@@ -345,6 +339,22 @@ impl<'a> Eval<'a> {
         prov.unwrap_or_else(Prov::unknown)
     }
 
+    /// A collection (`[a, b]`, `(a, b)`, `S { f: v, .. }`) is not a scalar: the
+    /// kind is the join of its elements, but no single literal value represents
+    /// it, so value-carrying rules (the danger table, `exec_basename`) must not
+    /// fire on one arbitrary element.
+    fn collection_prov(
+        &self,
+        exprs: impl Iterator<Item = Option<ast::Expr>>,
+        depth: usize,
+        seen: &mut HashSet<Local<'a>>,
+        subst: &mut Subst,
+    ) -> Prov {
+        let mut prov = self.join_all(exprs, depth, seen, subst);
+        prov.value = None;
+        prov
+    }
+
     fn bin_expr(
         &self,
         e: &ast::BinExpr,
@@ -375,6 +385,7 @@ impl<'a> Eval<'a> {
     fn path_expr(
         &self,
         e: &ast::PathExpr,
+        depth: usize,
         seen: &mut HashSet<Local<'a>>,
         subst: &mut Subst,
     ) -> Prov {
@@ -386,7 +397,7 @@ impl<'a> Eval<'a> {
                 if !seen.insert(local) {
                     return Prov::new(Kind::Param);
                 }
-                self.local_prov(local, seen, subst)
+                self.local_prov(local, depth, seen, subst)
             }
             Some(PathResolution::Def(hir::ModuleDef::Const(_))) => Prov::new(Kind::Literal),
             _ => Prov::unknown(),
@@ -399,6 +410,7 @@ impl<'a> Eval<'a> {
     fn local_prov(
         &self,
         local: Local<'a>,
+        depth: usize,
         seen: &mut HashSet<Local<'a>>,
         subst: &mut Subst,
     ) -> Prov {
@@ -410,8 +422,19 @@ impl<'a> Eval<'a> {
         let Some(ident_pat) = ast::IdentPat::cast(node.clone()) else {
             return Prov::new(Kind::Param); // `self`
         };
-        if ident_pat.syntax().ancestors().any(|a| ast::Param::cast(a).is_some()) {
-            return Prov::new(Kind::Param);
+        if let Some(param) = ident_pat.syntax().ancestors().find_map(ast::Param::cast) {
+            // A closure parameter that no adapter bound (`for_each`, `find`,
+            // `sort_by`, ...): its value comes from what the closure iterates,
+            // i.e. the receiver of the call it is passed to. Saying "the
+            // caller controls it" here is how a literal array turned into a
+            // tainted program name, so an unattached closure is `unknown`.
+            let Some(closure) = param.syntax().ancestors().find_map(ast::ClosureExpr::cast)
+            else {
+                return Prov::new(Kind::Param);
+            };
+            return closure_receiver(&closure).map_or_else(Prov::unknown, |receiver| {
+                self.expr_inner(&receiver, depth + 1, seen, subst)
+            });
         }
         if let Some(init) = ident_pat
             .syntax()
@@ -793,6 +816,12 @@ impl<'a> Eval<'a> {
         if let Some(detail) = sink::taint_source(&path) {
             return Prov::with_detail(Kind::Tainted, detail);
         }
+        // Iterating a collection yields its elements. At five lattice points
+        // the element's provenance is the collection's provenance, which is
+        // what lets a closure over a caller-supplied collection stay `param`.
+        if matches!(name, "iter" | "iter_mut" | "into_iter") {
+            return receiver;
+        }
         if sink::is_closure_adapter(name) {
             return self.closure_adapter(name, &receiver, &args, depth, seen, subst);
         }
@@ -904,7 +933,7 @@ impl<'a> Eval<'a> {
                         else {
                             continue;
                         };
-                        add(self.local_prov(local, seen, subst));
+                        add(self.local_prov(local, depth, seen, subst));
                     }
                 }
             }
@@ -967,6 +996,14 @@ fn return_belongs_to(ret: &ast::ReturnExpr, body: &ast::BlockExpr) -> bool {
         }
     }
     false
+}
+
+/// The receiver of the method call a closure is an argument of:
+/// `names.iter().for_each(|n| ..)` → `names.iter()`.
+fn closure_receiver(closure: &ast::ClosureExpr) -> Option<ast::Expr> {
+    let arg_list = closure.syntax().parent().and_then(ast::ArgList::cast)?;
+    let call = arg_list.syntax().parent().and_then(ast::MethodCallExpr::cast)?;
+    call.receiver()
 }
 
 fn first_arg_prov<'a>(

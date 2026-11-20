@@ -5,8 +5,10 @@ engine's census.
 Usage (from the repository root):
     python3 safeify-lint/corpus/run_semantic_corpus.py [--limit N] [--out FILE]
 
-Emits one JSON array of findings (same schema as `lint_safe.py --json`) and
-prints per-rule counts against the recorded baseline.
+Emits one JSON array of findings and prints per-rule counts against the recorded
+baseline. Finding paths are relative to `safeify-data/` (the engine is run with
+that directory as its working directory), which is the convention of the frozen
+census and the audit labels.
 """
 
 from __future__ import annotations
@@ -76,7 +78,10 @@ def main(argv: list[str]) -> int:
                 [str(ENGINE), "--crate", str(crate), *stats,
                  *(["--extra-cfg"] if args.engine_args else []),
                  *([args.engine_args] if args.engine_args else [])],
-                capture_output=True, text=True, cwd=ROOT, timeout=timeout,
+                # Paths in the findings are displayed relative to cwd; using the
+                # corpus root keeps them in the frozen census convention
+                # (`transitions/...`), so census diffs and audit labels match.
+                capture_output=True, text=True, cwd=CORPUS.parents[2], timeout=timeout,
             )
         except subprocess.TimeoutExpired:
             return crate, None, None, f"timeout after {timeout}s"

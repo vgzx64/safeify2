@@ -75,6 +75,33 @@ fn filesystem_command_and_environment_rules() {
             ("env_set_dangerous", 50, "warn"),
             ("env_read_dangerous", 54, "info"),
             // `MY_UNRELATED_VAR` is not dangerous: silent (line 58).
+            // `PathBuf::from(p).join("payload")` composes, so the caller's path
+            // stays `param`: informational, not a tainted-path warning.
+            ("fs_tainted_path", 69, "info"),
+            // Joining two literals yields the full literal path, so the danger
+            // table sees `/proc/self/mem` built by `Path::new(..).join(..)`.
+            ("fs_special_path", 74, "deny"),
+            // A closure over a literal array: `bin` is a literal element, not a
+            // caller value, so nothing fires (lines 79-83).
+            // A closure over a caller-supplied collection keeps its class.
+            ("exec_tainted_cmd", 88, "warn"),
+        ])
+    );
+}
+
+#[test]
+fn advisory_shapes_fire() {
+    // The published-advisory shapes are the regression net for the lattice:
+    // each fires on the vulnerable line and the deliberate negative stays
+    // silent. RUSTSEC-2022-0058 (`inconceivable`) is out of scope by design.
+    assert_eq!(
+        analyze("advisories"),
+        expected(&[
+            // grep-cli 0.1.5: program name is a field written from a caller
+            // value two functions away.
+            ("exec_tainted_cmd", 18, "warn"),
+            // rustdecimal: the executed absolute path was written just before.
+            ("exec_written_path", 25, "warn"),
         ])
     );
 }
@@ -132,16 +159,18 @@ fn macro_bodies_and_format_arguments_are_evaluated() {
 fn crate_local_calls_are_evaluated_at_the_call_site() {
     // The caller's value reaches the sink through a helper (`destination`), a
     // two-hop chain (`wrap` -> `destination`) and a method (`Layout::out`).
+    // Composition keeps it the informational `param` class, so the level is
+    // `info`: `join` does not promote a plain parameter to a taint source.
     // The literal return of `kernel_mem` is what the sink sees. `file_only`
     // keeps only `file_name()`, so the guarded write stays silent, and a
     // recursive return is cut to `unknown` (also silent).
     assert_eq!(
         analyze("interproc"),
         expected(&[
-            ("fs_tainted_path", 12, "warn"),
-            ("fs_tainted_path", 22, "warn"),
+            ("fs_tainted_path", 12, "info"),
+            ("fs_tainted_path", 22, "info"),
             ("fs_special_path", 31, "deny"),
-            ("fs_tainted_path", 50, "warn"),
+            ("fs_tainted_path", 50, "info"),
             ("exec_basename", 84, "warn"),
         ])
     );

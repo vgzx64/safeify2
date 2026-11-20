@@ -1229,8 +1229,6 @@ dependencies = [
  "cfg",
  "either",
  "hir",
- "hir-def",
- "hir-ty",
  "ide-db",
  "intern",
  "load-cargo",
@@ -1238,7 +1236,6 @@ dependencies = [
  "project-model",
  "serde",
  "serde_json",
- "span",
  "syntax",
  "vfs",
 ]

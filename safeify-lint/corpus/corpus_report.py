@@ -10,11 +10,11 @@ The census is the frozen text-engine artifact (`lint_corpus_2026-11-19.json`).
 This script is the only supported way to state corpus-level numbers, so every
 number in `notes/research/engine.md` can be regenerated from committed files.
 
-Usage (from `research/`):
-    python3 detect/corpus_report.py \
-        --union detect/out/a.json detect/out/b.json \
-        --baseline detect/out/lint_corpus_2026-11-19.json \
-        --out detect/out/union.json
+Usage (from the repository root):
+    python3 safeify-lint/corpus/corpus_report.py \
+        --union safeify-lint/out/host.json safeify-lint/out/win.json \
+        --baseline safeify-lint/out/lint_corpus_2026-11-19.json \
+        --out safeify-lint/out/union.json
 """
 
 from __future__ import annotations

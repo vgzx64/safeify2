@@ -24,8 +24,8 @@ use vfs::VfsPath;
 fn main() -> Result<()> {
     let mut crate_dir: Option<PathBuf> = None;
     let mut out_file: Option<PathBuf> = None;
-    let mut debug_macro: Option<PathBuf> = None;
     let mut stats_file: Option<PathBuf> = None;
+    let mut min_level: Option<String> = None;
     let mut inventory_file: Option<PathBuf> = None;
     let mut extra_cfg: Vec<String> = Vec::new();
     let mut args = std::env::args().skip(1);
@@ -34,7 +34,7 @@ fn main() -> Result<()> {
             "--crate" | "-c" => crate_dir = args.next().map(PathBuf::from),
             "--inventory" => inventory_file = args.next().map(PathBuf::from),
             "--out" | "-o" => out_file = args.next().map(PathBuf::from),
-            "--debug-macro" => debug_macro = args.next().map(PathBuf::from),
+            "--min-level" => min_level = args.next(),
             "--stats" => stats_file = args.next().map(PathBuf::from),
             "--extra-cfg" => {
                 if let Some(spec) = args.next() {
@@ -77,51 +77,6 @@ a '// safeify: allow(<rule>)' comment."
     let cwd = std::env::current_dir()?;
     let loaded = load::load_crate_with_cfg(&dir, &extra_cfg)?;
     let sema = Semantics::new(&loaded.db);
-    if let Some(file) = &debug_macro {
-        let vpath = VfsPath::new_real_path(
-            file.canonicalize()?.to_string_lossy().into_owned(),
-        );
-        let (file_id, _) = loaded.vfs.file_id(&vpath).expect("file in vfs");
-        hir::attach_db(&loaded.db, || {
-            let source = sema.parse_guess_edition(file_id);
-            for call in source
-                .syntax()
-                .descendants()
-                .filter_map(ast::MacroCall::cast)
-            {
-                let text = call.syntax().text().to_string();
-                let def = sema.to_def(&call);
-                let expanded = sema.expand_macro_call(&call);
-                eprintln!(
-                    "macro {:?} to_def={} expand={:?}",
-                    text.chars().take(48).collect::<String>(),
-                    def.is_some(),
-                    expanded
-                        .as_ref()
-                        .map(|e| e.value.text().to_string().chars().take(140).collect::<String>())
-                );
-                if let Some(exp) = &expanded {
-                    for nested in exp.value.descendants().filter_map(ast::MacroCall::cast) {
-                        let nested_text = nested.syntax().text().to_string();
-                        let nested_exp = sema.expand_macro_call(&nested);
-                        eprintln!(
-                            "  nested {:?} expand={:?}",
-                            nested_text.chars().take(40).collect::<String>(),
-                            nested_exp.as_ref().map(|e| e
-                                .value
-                                .text()
-                                .to_string()
-                                .chars()
-                                .take(180)
-                                .collect::<String>())
-                        );
-                    }
-                }
-            }
-        });
-        return Ok(());
-    }
-
     // Phase 1: parse every file that belongs to a crate target, once.
     struct ParsedFile {
         path: PathBuf,
@@ -197,6 +152,27 @@ a '// safeify: allow(<rule>)' comment."
         }
     }
 
+    if let Some(threshold) = min_level {
+        let wanted = level_rank(&threshold)
+            .ok_or_else(|| anyhow::anyhow!("unknown --min-level `{threshold}` (info, warn, deny)"))?;
+        if findings
+            .iter()
+            .any(|finding| level_rank(&finding.level).is_some_and(|rank| rank >= wanted))
+        {
+            // Print the findings first for a pipe (`--out -`/stdout) and only
+            // then fail the process: exit codes are the CI contract, the JSON is
+            // the report.
+            let json = serde_json::to_string_pretty(&findings)?;
+            match out_file {
+                Some(file) => std::fs::write(&file, json)
+                    .with_context(|| format!("cannot write {}", file.display()))?,
+                None => println!("{json}"),
+            }
+            eprintln!("safeify-lint: findings at or above `{threshold}`");
+            std::process::exit(1);
+        }
+    }
+
     let json = serde_json::to_string_pretty(&findings)?;
     match out_file {
         Some(file) => std::fs::write(&file, json)
@@ -239,6 +215,16 @@ fn inventory_mode(file: &std::path::Path, out: Option<&std::path::Path>) -> Resu
         None => println!("{json}"),
     }
     Ok(())
+}
+
+/// Severity ordering for `--min-level`: info < warn < deny.
+fn level_rank(level: &str) -> Option<u8> {
+    match level {
+        "info" => Some(1),
+        "warn" => Some(2),
+        "deny" => Some(3),
+        _ => None,
+    }
 }
 
 /// Lint attributes that allow a rule for this function, resolved by

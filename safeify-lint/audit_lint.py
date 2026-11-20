@@ -1,9 +1,10 @@
 """Deterministic precision audit for the safe-Rust lints.
 
-Reads a `lint_safe.py --json` corpus report, deduplicates findings that are the
-same code site repeated across crate versions, builds an audit sheet with the
-source window of each site, and (with `--stats`) computes precision with
-Wilson 95% intervals from the labels recorded in the sheet.
+Reads a `safeify-lint --crate` corpus report (a JSON array of findings),
+deduplicates findings that are the same code site repeated across crate
+versions, builds an audit sheet with the source window of each site, and (with
+`--stats`) computes precision with Wilson 95% intervals from the labels
+recorded in the sheet.
 
 Labels:
   TP   correct detection, actionable
@@ -11,10 +12,11 @@ Labels:
   FP   wrong: the code is not an instance of the pattern
   FX   out of scope / cannot judge from source
 
-Run from research/:
-  python detect/audit_lint.py --corpus detect/out/lint_corpus_2026-11-19.json \
-      --sheet detect/out/lint_audit_2026-11-19.jsonl --info-sample 40
-  python detect/audit_lint.py --sheet detect/out/lint_audit_2026-11-19.jsonl --stats
+Run from the repository root:
+  python3 safeify-lint/audit_lint.py --corpus safeify-lint/out/lint_corpus_semantic.json \
+      --sheet safeify-lint/out/lint_audit_2026-11-20.jsonl --info-sample 40
+  python3 safeify-lint/audit_lint.py --sheet safeify-lint/out/lint_audit_2026-11-20.jsonl \
+      --labels safeify-lint/out/lint_audit_labels_2026-11-20.json --stats
 """
 
 from __future__ import annotations
@@ -61,16 +63,21 @@ def window(src: str, line: int, before: int = 4, after: int = 4) -> str:
     return "\n".join(out)
 
 
-def build(corpus: Path, sheet: Path, info_sample: int, seed: int) -> None:
+def build(corpus: Path, sheet: Path, info_sample: int, seed: int,
+          corpus_root: Path) -> None:
     data = json.loads(corpus.read_text())
     seen: set[tuple] = set()
     sites: list[dict] = []
+    missing: list[str] = []
     for f in data:
         rel = Path(f["path"])
-        abs_path = ROOT / "research" / rel
+        abs_path = corpus_root / rel
         try:
             src = abs_path.read_text(errors="replace")
         except OSError:
+            # A finding whose source cannot be read cannot be labelled; silently
+            # dropping it would shrink the census without saying so.
+            missing.append(str(abs_path))
             continue
         win = window(src, f["line"])
         crate, rest = strip_versions(f["path"])
@@ -89,6 +96,12 @@ def build(corpus: Path, sheet: Path, info_sample: int, seed: int) -> None:
                 "label": "",
                 "note": "",
             }
+        )
+
+    if missing:
+        raise SystemExit(
+            f"{len(missing)} finding source(s) unreadable under {corpus_root}; "
+            f"first: {missing[0]}"
         )
 
     actionable = [s for s in sites if s["level"] in AUDITABLE]
@@ -194,6 +207,8 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--corpus")
     ap.add_argument("--sheet", required=True)
     ap.add_argument("--info-sample", type=int, default=40)
+    ap.add_argument("--corpus-root", default="safeify-data",
+                    help="root the finding paths are relative to")
     ap.add_argument("--seed", type=int, default=1234)
     ap.add_argument("--stats", action="store_true")
     ap.add_argument("--labels", help="JSON labels keyed by rule|path|line")
@@ -201,7 +216,8 @@ def main(argv: list[str] | None = None) -> int:
     args = ap.parse_args(argv)
     sheet = Path(args.sheet)
     if args.corpus:
-        build(Path(args.corpus), sheet, args.info_sample, args.seed)
+        build(Path(args.corpus), sheet, args.info_sample, args.seed,
+              ROOT / args.corpus_root)
     if args.stats:
         stats(sheet, Path(args.labels) if args.labels else None)
     if args.show:
