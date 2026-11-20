@@ -1,0 +1,44 @@
+union: 261 findings in 94 files from 2 passes
+  by rule:  build_outside_out_dir 4, env_read_dangerous 5, exec_basename 62, exec_tainted_cmd 16, fs_tainted_path 174
+  by level: info 226, warn 35
+wrote safeify-lint/out/lint_corpus_semantic_2026-11-20_union.json
+
+baseline: 249 findings in 91 files
+  common 218  old-only 31  new-only 43
+
+by rule (baseline / union / common / old-only / new-only):
+  build_outside_out_dir         4    4    4    0    0
+  env_read_dangerous            5    5    5    0    0
+  exec_basename                85   62   61   24    1
+  exec_tainted_cmd             14   16   14    0    2
+  fs_tainted_path             141  174  134    7   40
+
+old-only (31):
+  exec_basename              transitions/external/crates/slice-deque/0.1.15/slice-deque-0.1.15/ci/deploy_and_run_on_ios_simulator.rs:61
+  exec_basename              transitions/external/crates/slice-deque/0.1.15/slice-deque-0.1.15/ci/deploy_and_run_on_ios_simulator.rs:81
+  exec_basename              transitions/external/crates/slice-deque/0.1.15/slice-deque-0.1.15/ci/deploy_and_run_on_ios_simulator.rs:90
+  exec_basename              transitions/external/crates/slice-deque/0.1.15/slice-deque-0.1.15/ci/deploy_and_run_on_ios_simulator.rs:100
+  exec_basename              transitions/external/crates/slice-deque/0.1.15/slice-deque-0.1.15/ci/deploy_and_run_on_ios_simulator.rs:101
+  exec_basename              transitions/external/crates/slice-deque/0.1.15/slice-deque-0.1.15/ci/deploy_and_run_on_ios_simulator.rs:107
+  exec_basename              transitions/external/crates/slice-deque/0.1.15/slice-deque-0.1.15/ci/deploy_and_run_on_ios_simulator.rs:118
+  exec_basename              transitions/external/crates/slice-deque/0.1.15/slice-deque-0.1.15/ci/deploy_and_run_on_ios_simulator.rs:141
+  exec_basename              transitions/external/crates/slice-deque/0.1.16/slice-deque-0.1.16/ci/deploy_and_run_on_ios_simulator.rs:61
+  exec_basename              transitions/external/crates/slice-deque/0.1.16/slice-deque-0.1.16/ci/deploy_and_run_on_ios_simulator.rs:81
+  exec_basename              transitions/external/crates/slice-deque/0.1.16/slice-deque-0.1.16/ci/deploy_and_run_on_ios_simulator.rs:90
+  exec_basename              transitions/external/crates/slice-deque/0.1.16/slice-deque-0.1.16/ci/deploy_and_run_on_ios_simulator.rs:100
+  ... 19 more
+
+new-only (43):
+  exec_basename              transitions/external/crates/openssl-src/111.15.0+1.1.1k/openssl-src-111.15.0+1.1.1k/src/lib.rs:101
+  exec_tainted_cmd           transitions/external/crates/xcb/0.10.1/xcb-0.10.1/build/output.rs:19
+  exec_tainted_cmd           transitions/external/crates/xcb/1.0.0-beta.0/xcb-1.0.0-beta.0/build/output.rs:19
+  fs_tainted_path            transitions/external/crates/cranelift-codegen/0.72.0/cranelift-codegen-0.72.0/src/machinst/compile.rs:60
+  fs_tainted_path            transitions/external/crates/cranelift-codegen/0.74.0/cranelift-codegen-0.74.0/src/machinst/compile.rs:63
+  fs_tainted_path            transitions/external/crates/lettre/0.10.0-alpha.1/lettre-0.10.0-alpha.1/src/transport/file/mod.rs:97
+  fs_tainted_path            transitions/external/crates/lettre/0.9.3/lettre-0.9.3/src/file/mod.rs:57
+  fs_tainted_path            transitions/external/crates/mdbook/0.4.4/mdbook-0.4.4/src/book/init.rs:130
+  fs_tainted_path            transitions/external/crates/mdbook/0.4.4/mdbook-0.4.4/src/book/init.rs:132
+  fs_tainted_path            transitions/external/crates/mdbook/0.4.4/mdbook-0.4.4/src/book/init.rs:135
+  fs_tainted_path            transitions/external/crates/mdbook/0.4.4/mdbook-0.4.4/src/book/init.rs:139
+  fs_tainted_path            transitions/external/crates/mdbook/0.4.4/mdbook-0.4.4/src/book/init.rs:143
+  ... 31 more

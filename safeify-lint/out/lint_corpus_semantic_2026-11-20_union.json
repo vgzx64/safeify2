@@ -672,25 +672,9 @@
     "message": "program name comes from caller-controlled; PATH/CWD decides what runs"
   },
   {
-    "path": "transitions/external/crates/pyo3/0.11.1/pyo3-0.11.1/build.rs",
-    "line": 404,
-    "col": 51,
-    "rule": "exec_tainted_cmd",
-    "level": "warn",
-    "message": "program name comes from caller-controlled; PATH/CWD decides what runs"
-  },
-  {
     "path": "transitions/external/crates/pyo3/0.12.4/pyo3-0.12.4/build.rs",
     "line": 532,
     "col": 28,
-    "rule": "exec_tainted_cmd",
-    "level": "warn",
-    "message": "program name comes from caller-controlled; PATH/CWD decides what runs"
-  },
-  {
-    "path": "transitions/external/crates/pyo3/0.12.4/pyo3-0.12.4/build.rs",
-    "line": 645,
-    "col": 47,
     "rule": "exec_tainted_cmd",
     "level": "warn",
     "message": "program name comes from caller-controlled; PATH/CWD decides what runs"
@@ -1332,7 +1316,7 @@
     "line": 74,
     "col": 32,
     "rule": "fs_tainted_path",
-    "level": "warn",
+    "level": "info",
     "message": "path written by this call comes from a caller-supplied path"
   },
   {
@@ -1340,7 +1324,7 @@
     "line": 77,
     "col": 32,
     "rule": "fs_tainted_path",
-    "level": "warn",
+    "level": "info",
     "message": "path written by this call comes from a caller-supplied path"
   },
   {
@@ -1348,7 +1332,7 @@
     "line": 81,
     "col": 28,
     "rule": "fs_tainted_path",
-    "level": "warn",
+    "level": "info",
     "message": "path written by this call comes from a caller-supplied path"
   },
   {
@@ -1356,7 +1340,7 @@
     "line": 402,
     "col": 28,
     "rule": "fs_tainted_path",
-    "level": "warn",
+    "level": "info",
     "message": "path written by this call comes from a caller-supplied path"
   },
   {
@@ -1365,7 +1349,7 @@
     "col": 32,
     "rule": "fs_tainted_path",
     "level": "info",
-    "message": "path written by this call comes from a caller-supplied path"
+    "message": "path written by this call comes from `file_name`"
   },
   {
     "path": "transitions/external/crates/openssl-src/111.13.0+1.1.1i/openssl-src-111.13.0+1.1.1i/src/lib.rs",
@@ -1373,7 +1357,7 @@
     "col": 37,
     "rule": "fs_tainted_path",
     "level": "info",
-    "message": "path written by this call comes from a caller-supplied path"
+    "message": "path written by this call comes from `file_name`"
   },
   {
     "path": "transitions/external/crates/openssl-src/111.13.0+1.1.1i/openssl-src-111.13.0+1.1.1i/src/lib.rs",
@@ -1381,7 +1365,7 @@
     "col": 29,
     "rule": "fs_tainted_path",
     "level": "info",
-    "message": "path written by this call comes from a caller-supplied path"
+    "message": "path written by this call comes from `file_name`"
   },
   {
     "path": "transitions/external/crates/openssl-src/111.13.0+1.1.1i/openssl-src-111.13.0+1.1.1i/src/lib.rs",
@@ -1396,7 +1380,7 @@
     "line": 76,
     "col": 32,
     "rule": "fs_tainted_path",
-    "level": "warn",
+    "level": "info",
     "message": "path written by this call comes from a caller-supplied path"
   },
   {
@@ -1404,7 +1388,7 @@
     "line": 79,
     "col": 32,
     "rule": "fs_tainted_path",
-    "level": "warn",
+    "level": "info",
     "message": "path written by this call comes from a caller-supplied path"
   },
   {
@@ -1412,7 +1396,7 @@
     "line": 83,
     "col": 28,
     "rule": "fs_tainted_path",
-    "level": "warn",
+    "level": "info",
     "message": "path written by this call comes from a caller-supplied path"
   },
   {
@@ -1420,7 +1404,7 @@
     "line": 400,
     "col": 28,
     "rule": "fs_tainted_path",
-    "level": "warn",
+    "level": "info",
     "message": "path written by this call comes from a caller-supplied path"
   },
   {
@@ -1429,7 +1413,7 @@
     "col": 32,
     "rule": "fs_tainted_path",
     "level": "info",
-    "message": "path written by this call comes from a caller-supplied path"
+    "message": "path written by this call comes from `file_name`"
   },
   {
     "path": "transitions/external/crates/openssl-src/111.14.0+1.1.1j/openssl-src-111.14.0+1.1.1j/src/lib.rs",
@@ -1437,7 +1421,7 @@
     "col": 37,
     "rule": "fs_tainted_path",
     "level": "info",
-    "message": "path written by this call comes from a caller-supplied path"
+    "message": "path written by this call comes from `file_name`"
   },
   {
     "path": "transitions/external/crates/openssl-src/111.14.0+1.1.1j/openssl-src-111.14.0+1.1.1j/src/lib.rs",
@@ -1445,7 +1429,7 @@
     "col": 29,
     "rule": "fs_tainted_path",
     "level": "info",
-    "message": "path written by this call comes from a caller-supplied path"
+    "message": "path written by this call comes from `file_name`"
   },
   {
     "path": "transitions/external/crates/openssl-src/111.14.0+1.1.1j/openssl-src-111.14.0+1.1.1j/src/lib.rs",
@@ -1460,7 +1444,7 @@
     "line": 123,
     "col": 32,
     "rule": "fs_tainted_path",
-    "level": "warn",
+    "level": "info",
     "message": "path written by this call comes from a caller-supplied path"
   },
   {
@@ -1468,7 +1452,7 @@
     "line": 126,
     "col": 32,
     "rule": "fs_tainted_path",
-    "level": "warn",
+    "level": "info",
     "message": "path written by this call comes from a caller-supplied path"
   },
   {
@@ -1476,7 +1460,7 @@
     "line": 130,
     "col": 28,
     "rule": "fs_tainted_path",
-    "level": "warn",
+    "level": "info",
     "message": "path written by this call comes from a caller-supplied path"
   },
   {
@@ -1484,7 +1468,7 @@
     "line": 456,
     "col": 28,
     "rule": "fs_tainted_path",
-    "level": "warn",
+    "level": "info",
     "message": "path written by this call comes from a caller-supplied path"
   },
   {
@@ -1493,7 +1477,7 @@
     "col": 32,
     "rule": "fs_tainted_path",
     "level": "info",
-    "message": "path written by this call comes from a caller-supplied path"
+    "message": "path written by this call comes from `file_name`"
   },
   {
     "path": "transitions/external/crates/openssl-src/111.15.0+1.1.1k/openssl-src-111.15.0+1.1.1k/src/lib.rs",
@@ -1501,7 +1485,7 @@
     "col": 37,
     "rule": "fs_tainted_path",
     "level": "info",
-    "message": "path written by this call comes from a caller-supplied path"
+    "message": "path written by this call comes from `file_name`"
   },
   {
     "path": "transitions/external/crates/openssl-src/111.15.0+1.1.1k/openssl-src-111.15.0+1.1.1k/src/lib.rs",
@@ -1509,7 +1493,7 @@
     "col": 29,
     "rule": "fs_tainted_path",
     "level": "info",
-    "message": "path written by this call comes from a caller-supplied path"
+    "message": "path written by this call comes from `file_name`"
   },
   {
     "path": "transitions/external/crates/openssl-src/111.15.0+1.1.1k/openssl-src-111.15.0+1.1.1k/src/lib.rs",
@@ -1524,7 +1508,7 @@
     "line": 74,
     "col": 32,
     "rule": "fs_tainted_path",
-    "level": "warn",
+    "level": "info",
     "message": "path written by this call comes from a caller-supplied path"
   },
   {
@@ -1532,7 +1516,7 @@
     "line": 77,
     "col": 32,
     "rule": "fs_tainted_path",
-    "level": "warn",
+    "level": "info",
     "message": "path written by this call comes from a caller-supplied path"
   },
   {
@@ -1540,7 +1524,7 @@
     "line": 81,
     "col": 28,
     "rule": "fs_tainted_path",
-    "level": "warn",
+    "level": "info",
     "message": "path written by this call comes from a caller-supplied path"
   },
   {
@@ -1548,7 +1532,7 @@
     "line": 366,
     "col": 28,
     "rule": "fs_tainted_path",
-    "level": "warn",
+    "level": "info",
     "message": "path written by this call comes from a caller-supplied path"
   },
   {
@@ -1557,7 +1541,7 @@
     "col": 32,
     "rule": "fs_tainted_path",
     "level": "info",
-    "message": "path written by this call comes from a caller-supplied path"
+    "message": "path written by this call comes from `file_name`"
   },
   {
     "path": "transitions/external/crates/openssl-src/111.8.1+1.1.1f/openssl-src-111.8.1+1.1.1f/src/lib.rs",
@@ -1565,7 +1549,7 @@
     "col": 37,
     "rule": "fs_tainted_path",
     "level": "info",
-    "message": "path written by this call comes from a caller-supplied path"
+    "message": "path written by this call comes from `file_name`"
   },
   {
     "path": "transitions/external/crates/openssl-src/111.8.1+1.1.1f/openssl-src-111.8.1+1.1.1f/src/lib.rs",
@@ -1573,7 +1557,7 @@
     "col": 29,
     "rule": "fs_tainted_path",
     "level": "info",
-    "message": "path written by this call comes from a caller-supplied path"
+    "message": "path written by this call comes from `file_name`"
   },
   {
     "path": "transitions/external/crates/openssl-src/111.8.1+1.1.1f/openssl-src-111.8.1+1.1.1f/src/lib.rs",
@@ -1588,7 +1572,7 @@
     "line": 74,
     "col": 32,
     "rule": "fs_tainted_path",
-    "level": "warn",
+    "level": "info",
     "message": "path written by this call comes from a caller-supplied path"
   },
   {
@@ -1596,7 +1580,7 @@
     "line": 77,
     "col": 32,
     "rule": "fs_tainted_path",
-    "level": "warn",
+    "level": "info",
     "message": "path written by this call comes from a caller-supplied path"
   },
   {
@@ -1604,7 +1588,7 @@
     "line": 81,
     "col": 28,
     "rule": "fs_tainted_path",
-    "level": "warn",
+    "level": "info",
     "message": "path written by this call comes from a caller-supplied path"
   },
   {
@@ -1612,7 +1596,7 @@
     "line": 366,
     "col": 28,
     "rule": "fs_tainted_path",
-    "level": "warn",
+    "level": "info",
     "message": "path written by this call comes from a caller-supplied path"
   },
   {
@@ -1621,7 +1605,7 @@
     "col": 32,
     "rule": "fs_tainted_path",
     "level": "info",
-    "message": "path written by this call comes from a caller-supplied path"
+    "message": "path written by this call comes from `file_name`"
   },
   {
     "path": "transitions/external/crates/openssl-src/111.9.0+1.1.1g/openssl-src-111.9.0+1.1.1g/src/lib.rs",
@@ -1629,7 +1613,7 @@
     "col": 37,
     "rule": "fs_tainted_path",
     "level": "info",
-    "message": "path written by this call comes from a caller-supplied path"
+    "message": "path written by this call comes from `file_name`"
   },
   {
     "path": "transitions/external/crates/openssl-src/111.9.0+1.1.1g/openssl-src-111.9.0+1.1.1g/src/lib.rs",
@@ -1637,7 +1621,7 @@
     "col": 29,
     "rule": "fs_tainted_path",
     "level": "info",
-    "message": "path written by this call comes from a caller-supplied path"
+    "message": "path written by this call comes from `file_name`"
   },
   {
     "path": "transitions/external/crates/openssl-src/111.9.0+1.1.1g/openssl-src-111.9.0+1.1.1g/src/lib.rs",
@@ -1836,7 +1820,7 @@
     "line": 68,
     "col": 34,
     "rule": "fs_tainted_path",
-    "level": "warn",
+    "level": "info",
     "message": "path written by this call comes from a caller-supplied path"
   },
   {
@@ -1852,7 +1836,7 @@
     "line": 68,
     "col": 34,
     "rule": "fs_tainted_path",
-    "level": "warn",
+    "level": "info",
     "message": "path written by this call comes from a caller-supplied path"
   },
   {
@@ -1900,7 +1884,7 @@
     "line": 45,
     "col": 26,
     "rule": "fs_tainted_path",
-    "level": "warn",
+    "level": "info",
     "message": "path written by this call comes from a caller-supplied path"
   },
   {
@@ -1908,7 +1892,7 @@
     "line": 56,
     "col": 31,
     "rule": "fs_tainted_path",
-    "level": "warn",
+    "level": "info",
     "message": "path written by this call comes from a caller-supplied path"
   },
   {
@@ -1924,7 +1908,7 @@
     "line": 150,
     "col": 24,
     "rule": "fs_tainted_path",
-    "level": "warn",
+    "level": "info",
     "message": "path written by this call comes from a caller-supplied path"
   },
   {
@@ -1988,7 +1972,7 @@
     "line": 45,
     "col": 26,
     "rule": "fs_tainted_path",
-    "level": "warn",
+    "level": "info",
     "message": "path written by this call comes from a caller-supplied path"
   },
   {
@@ -1996,7 +1980,7 @@
     "line": 56,
     "col": 31,
     "rule": "fs_tainted_path",
-    "level": "warn",
+    "level": "info",
     "message": "path written by this call comes from a caller-supplied path"
   },
   {
@@ -2012,7 +1996,7 @@
     "line": 150,
     "col": 24,
     "rule": "fs_tainted_path",
-    "level": "warn",
+    "level": "info",
     "message": "path written by this call comes from a caller-supplied path"
   },
   {

@@ -1,0 +1,114 @@
+{
+  "build_outside_out_dir|transitions/external/crates/arrayfire/3.5.0/arrayfire-3.5.0/build.rs|122": {
+    "label": "TP",
+    "note": "writes into CARGO_MANIFEST_DIR/arrayfire/build, not OUT_DIR"
+  },
+  "build_outside_out_dir|transitions/external/crates/arrayfire/3.5.0/arrayfire-3.5.0/build.rs|275": {
+    "label": "TP",
+    "note": "writes into CARGO_MANIFEST_DIR/arrayfire/build, not OUT_DIR"
+  },
+  "build_outside_out_dir|transitions/external/crates/arrayfire/3.6.0/arrayfire-3.6.0/build.rs|206": {
+    "label": "TP",
+    "note": "writes into CARGO_MANIFEST_DIR/arrayfire/build, not OUT_DIR"
+  },
+  "build_outside_out_dir|transitions/external/crates/arrayfire/3.6.0/arrayfire-3.6.0/build.rs|240": {
+    "label": "TP",
+    "note": "writes into CARGO_MANIFEST_DIR/arrayfire/build, not OUT_DIR"
+  },
+  "exec_basename|transitions/external/crates/arrayfire/3.5.0/arrayfire-3.5.0/build.rs|241": {
+    "label": "TL",
+    "note": "cmake/make/MSBuild invoked by basename in build.rs; correct pattern, ubiquitous"
+  },
+  "exec_basename|transitions/external/crates/arrayfire/3.5.0/arrayfire-3.5.0/build.rs|317": {
+    "label": "TL",
+    "note": "cmake/make/MSBuild invoked by basename in build.rs; correct pattern, ubiquitous"
+  },
+  "exec_basename|transitions/external/crates/arrayfire/3.5.0/arrayfire-3.5.0/build.rs|332": {
+    "label": "TL",
+    "note": "cmake/make/MSBuild invoked by basename in build.rs; correct pattern, ubiquitous"
+  },
+  "exec_basename|transitions/external/crates/arrayfire/3.6.0/arrayfire-3.6.0/build.rs|210": {
+    "label": "TL",
+    "note": "cmake/make/MSBuild invoked by basename in build.rs; correct pattern, ubiquitous"
+  },
+  "exec_basename|transitions/external/crates/arrayfire/3.6.0/arrayfire-3.6.0/build.rs|222": {
+    "label": "TL",
+    "note": "cmake/make/MSBuild invoked by basename in build.rs; correct pattern, ubiquitous"
+  },
+  "exec_basename|transitions/external/crates/arrayfire/3.6.0/arrayfire-3.6.0/build.rs|230": {
+    "label": "TL",
+    "note": "cmake/make/MSBuild invoked by basename in build.rs; correct pattern, ubiquitous"
+  },
+  "exec_basename|transitions/external/crates/arrayfire/3.6.0/arrayfire-3.6.0/build.rs|245": {
+    "label": "TL",
+    "note": "cmake/make/MSBuild invoked by basename in build.rs; correct pattern, ubiquitous"
+  },
+  "exec_basename|transitions/external/crates/arrayfire/3.6.0/arrayfire-3.6.0/build.rs|254": {
+    "label": "TL",
+    "note": "cmake/make/MSBuild invoked by basename in build.rs; correct pattern, ubiquitous"
+  },
+  "exec_basename|transitions/external/crates/cranelift-codegen/0.72.0/cranelift-codegen-0.72.0/build.rs|103": {
+    "label": "TL",
+    "note": "git by basename in build.rs; ubiquitous"
+  },
+  "exec_basename|transitions/external/crates/lucet-runtime-internals/0.4.3/lucet-runtime-internals-0.4.3/build.rs|36": {
+    "label": "TL",
+    "note": "git by basename in build.rs; ubiquitous"
+  },
+  "exec_basename|transitions/external/crates/mdbook/0.4.4/mdbook-0.4.4/src/book/mod.rs|269": {
+    "label": "TP",
+    "note": "pub fn MDBook::test spawns `rustdoc` by name: library API on PATH"
+  },
+  "exec_basename|transitions/external/crates/sys-info/0.7.0/sys-info-0.7.0/lib.rs|610": {
+    "label": "TP",
+    "note": "pub fn hostname() execs `hostname` by name in a published library"
+  },
+  "exec_basename|transitions/external/crates/sys-info/0.8.0/sys-info-0.8.0/lib.rs|800": {
+    "label": "TP",
+    "note": "pub fn hostname() execs `hostname` by name in a published library"
+  },
+  "exec_tainted_cmd|transitions/external/crates/grep-cli/0.1.5/grep-cli-0.1.5/src/decompress.rs|143": {
+    "label": "TP",
+    "note": "real vulnerable line (RUSTSEC-2021-0071): decompressor name from a struct field, resolved by the Windows API"
+  },
+  "exec_tainted_cmd|transitions/external/crates/grep-cli/0.1.6/grep-cli-0.1.6/src/decompress.rs|180": {
+    "label": "FP",
+    "note": "patched version: bin is an absolute PathBuf from resolve_binary() in another fn; the finding is right about the pattern, wrong about the version"
+  },
+  "exec_tainted_cmd|transitions/external/crates/openssl-src/111.13.0+1.1.1i/openssl-src-111.13.0+1.1.1i/src/lib.rs|87": {
+    "label": "TP",
+    "note": "program name selected by environment (OPENSSL_SRC_PERL/PERL)"
+  },
+  "exec_tainted_cmd|transitions/external/crates/openssl-src/111.14.0+1.1.1j/openssl-src-111.14.0+1.1.1j/src/lib.rs|89": {
+    "label": "TP",
+    "note": "program name selected by environment (OPENSSL_SRC_PERL/PERL)"
+  },
+  "exec_tainted_cmd|transitions/external/crates/openssl-src/111.15.0+1.1.1k/openssl-src-111.15.0+1.1.1k/src/lib.rs|136": {
+    "label": "TP",
+    "note": "program name selected by environment (OPENSSL_SRC_PERL/PERL)"
+  },
+  "exec_tainted_cmd|transitions/external/crates/protobuf/2.5.0/protobuf-2.5.0/build.rs|18": {
+    "label": "TP",
+    "note": "program name selected by RUSTC env; Cargo sets it but a wrapper can redirect it"
+  },
+  "exec_tainted_cmd|transitions/external/crates/pyo3/0.11.1/pyo3-0.11.1/build.rs|277": {
+    "label": "TL",
+    "note": "build.rs runs a discovered interpreter path passed as a parameter"
+  },
+  "exec_tainted_cmd|transitions/external/crates/pyo3/0.12.4/pyo3-0.12.4/build.rs|532": {
+    "label": "TL",
+    "note": "build.rs runs a discovered interpreter path passed as a parameter"
+  },
+  "exec_tainted_cmd|transitions/external/crates/xcb/0.10.1/xcb-0.10.1/build/output.rs|19": {
+    "label": "TL",
+    "note": "build script runs a formatter path supplied by the build (Option<PathBuf> parameter); correct pattern, low value"
+  },
+  "fs_tainted_path|transitions/external/crates/cranelift-codegen/0.72.0/cranelift-codegen-0.72.0/src/machinst/compile.rs|60": {
+    "label": "TL",
+    "note": "developer-only regalloc-snapshot feature writes into the directory named by SERIALIZE_REGALLOC; env-derived, unguarded, low value"
+  },
+  "fs_tainted_path|transitions/external/crates/cranelift-codegen/0.74.0/cranelift-codegen-0.74.0/src/machinst/compile.rs|63": {
+    "label": "TL",
+    "note": "developer-only regalloc-snapshot feature writes into the directory named by SERIALIZE_REGALLOC; env-derived, unguarded, low value"
+  }
+}

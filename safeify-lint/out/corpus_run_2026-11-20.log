@@ -1,0 +1,193 @@
+=== host ===
+  20/329 crates, 8 findings
+  40/329 crates, 34 findings
+  60/329 crates, 40 findings
+  80/329 crates, 40 findings
+  100/329 crates, 44 findings
+  120/329 crates, 47 findings
+  140/329 crates, 58 findings
+  160/329 crates, 60 findings
+  180/329 crates, 124 findings
+  200/329 crates, 172 findings
+  220/329 crates, 185 findings
+  240/329 crates, 189 findings
+  260/329 crates, 195 findings
+  280/329 crates, 197 findings
+  300/329 crates, 214 findings
+  320/329 crates, 244 findings
+
+248 findings across 92 files
+
+classification counters (all crates):
+  depth_cuts                        0
+  exec_arg_calls.literal          305
+  exec_arg_calls.param             88
+  exec_arg_calls.tainted            0
+  exec_arg_calls.total            440
+  exec_arg_calls.trusted            3
+  exec_arg_calls.unknown           44
+  exec_program_calls.literal       57
+  exec_program_calls.param          9
+  exec_program_calls.tainted        7
+  exec_program_calls.total         81
+  exec_program_calls.trusted        0
+  exec_program_calls.unknown        8
+  fs_calls.literal                151
+  fs_calls.param                  339
+  fs_calls.tainted                  5
+  fs_calls.total                  821
+  fs_calls.trusted                 24
+  fs_calls.unknown                302
+  local_calls                     390
+  recursion_cuts                    4
+
+rule                       old   new  common  old-only  new-only
+build_outside_out_dir        4     2       0         4         2
+env_read_dangerous           5     5       0         5         5
+exec_basename               85    55       0        85        55
+exec_tainted_cmd            14    16       0        14        16
+fs_tainted_path            141   170       0       141       170
+=== win ===
+  20/329 crates, 8 findings
+  40/329 crates, 34 findings
+  60/329 crates, 40 findings
+  80/329 crates, 40 findings
+  100/329 crates, 44 findings
+  120/329 crates, 47 findings
+  140/329 crates, 58 findings
+  160/329 crates, 60 findings
+  180/329 crates, 124 findings
+  200/329 crates, 173 findings
+  220/329 crates, 188 findings
+  240/329 crates, 192 findings
+  260/329 crates, 196 findings
+  280/329 crates, 198 findings
+  300/329 crates, 219 findings
+  320/329 crates, 249 findings
+
+253 findings across 94 files
+
+classification counters (all crates):
+  depth_cuts                        0
+  exec_arg_calls.literal          312
+  exec_arg_calls.param             96
+  exec_arg_calls.tainted            0
+  exec_arg_calls.total            456
+  exec_arg_calls.trusted            3
+  exec_arg_calls.unknown           45
+  exec_program_calls.literal       62
+  exec_program_calls.param          9
+  exec_program_calls.tainted        7
+  exec_program_calls.total         86
+  exec_program_calls.trusted        0
+  exec_program_calls.unknown        8
+  fs_calls.literal                149
+  fs_calls.param                  349
+  fs_calls.tainted                  5
+  fs_calls.total                  839
+  fs_calls.trusted                 24
+  fs_calls.unknown                312
+  local_calls                     402
+  recursion_cuts                    4
+
+rule                       old   new  common  old-only  new-only
+build_outside_out_dir        4     2       0         4         2
+env_read_dangerous           5     5       0         5         5
+exec_basename               85    58       0        85        58
+exec_tainted_cmd            14    16       0        14        16
+fs_tainted_path            141   172       0       141       172
+=== nointerproc ===
+  20/329 crates, 8 findings
+  40/329 crates, 34 findings
+  60/329 crates, 40 findings
+  80/329 crates, 40 findings
+  100/329 crates, 44 findings
+  120/329 crates, 47 findings
+  140/329 crates, 58 findings
+  160/329 crates, 60 findings
+  180/329 crates, 124 findings
+  200/329 crates, 172 findings
+  220/329 crates, 187 findings
+  240/329 crates, 191 findings
+  260/329 crates, 197 findings
+  280/329 crates, 197 findings
+  300/329 crates, 214 findings
+  320/329 crates, 244 findings
+
+248 findings across 92 files
+
+classification counters (all crates):
+  depth_cuts                        0
+  exec_arg_calls.literal          305
+  exec_arg_calls.param             86
+  exec_arg_calls.tainted            0
+  exec_arg_calls.total            440
+  exec_arg_calls.trusted            3
+  exec_arg_calls.unknown           46
+  exec_program_calls.literal       57
+  exec_program_calls.param          9
+  exec_program_calls.tainted        7
+  exec_program_calls.total         81
+  exec_program_calls.trusted        0
+  exec_program_calls.unknown        8
+  fs_calls.literal                141
+  fs_calls.param                  335
+  fs_calls.tainted                  5
+  fs_calls.total                  821
+  fs_calls.trusted                 24
+  fs_calls.unknown                316
+  local_calls                       0
+  recursion_cuts                    0
+
+rule                       old   new  common  old-only  new-only
+build_outside_out_dir        4     2       0         4         2
+env_read_dangerous           5     5       0         5         5
+exec_basename               85    55       0        85        55
+exec_tainted_cmd            14    16       0        14        16
+fs_tainted_path            141   170       0       141       170
+=== union ===
+union: 261 findings in 94 files from 2 passes
+  by rule:  build_outside_out_dir 4, env_read_dangerous 5, exec_basename 62, exec_tainted_cmd 16, fs_tainted_path 174
+  by level: info 226, warn 35
+wrote safeify-lint/out/lint_corpus_semantic_2026-11-20_union.json
+
+baseline: 249 findings in 91 files
+  common 0  old-only 249  new-only 261
+
+by rule (baseline / union / common / old-only / new-only):
+  build_outside_out_dir         4    4    0    4    4
+  env_read_dangerous            5    5    0    5    5
+  exec_basename                85   62    0   85   62
+  exec_tainted_cmd             14   16    0   14   16
+  fs_tainted_path             141  174    0  141  174
+
+old-only (249):
+  build_outside_out_dir      transitions/external/crates/arrayfire/3.5.0/arrayfire-3.5.0/build.rs:122
+  build_outside_out_dir      transitions/external/crates/arrayfire/3.5.0/arrayfire-3.5.0/build.rs:275
+  build_outside_out_dir      transitions/external/crates/arrayfire/3.6.0/arrayfire-3.6.0/build.rs:206
+  build_outside_out_dir      transitions/external/crates/arrayfire/3.6.0/arrayfire-3.6.0/build.rs:240
+  env_read_dangerous         transitions/external/crates/grep-cli/0.1.6/grep-cli-0.1.6/src/decompress.rs:439
+  env_read_dangerous         transitions/external/crates/protobuf/2.5.0/protobuf-2.5.0/build.rs:16
+  env_read_dangerous         transitions/external/crates/protobuf/2.6.0/protobuf-2.6.0/build.rs:16
+  env_read_dangerous         transitions/external/crates/xcb/0.10.1/xcb-0.10.1/build/main.rs:87
+  env_read_dangerous         transitions/external/crates/xcb/1.0.0-beta.0/xcb-1.0.0-beta.0/build/main.rs:100
+  exec_basename              transitions/external/crates/arrayfire/3.5.0/arrayfire-3.5.0/build.rs:241
+  exec_basename              transitions/external/crates/arrayfire/3.5.0/arrayfire-3.5.0/build.rs:317
+  exec_basename              transitions/external/crates/arrayfire/3.5.0/arrayfire-3.5.0/build.rs:332
+  ... 237 more
+
+new-only (261):
+  build_outside_out_dir      safeify-data/transitions/external/crates/arrayfire/3.5.0/arrayfire-3.5.0/build.rs:122
+  build_outside_out_dir      safeify-data/transitions/external/crates/arrayfire/3.5.0/arrayfire-3.5.0/build.rs:275
+  build_outside_out_dir      safeify-data/transitions/external/crates/arrayfire/3.6.0/arrayfire-3.6.0/build.rs:206
+  build_outside_out_dir      safeify-data/transitions/external/crates/arrayfire/3.6.0/arrayfire-3.6.0/build.rs:240
+  env_read_dangerous         safeify-data/transitions/external/crates/grep-cli/0.1.6/grep-cli-0.1.6/src/decompress.rs:439
+  env_read_dangerous         safeify-data/transitions/external/crates/protobuf/2.5.0/protobuf-2.5.0/build.rs:16
+  env_read_dangerous         safeify-data/transitions/external/crates/protobuf/2.6.0/protobuf-2.6.0/build.rs:16
+  env_read_dangerous         safeify-data/transitions/external/crates/xcb/0.10.1/xcb-0.10.1/build/main.rs:87
+  env_read_dangerous         safeify-data/transitions/external/crates/xcb/1.0.0-beta.0/xcb-1.0.0-beta.0/build/main.rs:100
+  exec_basename              safeify-data/transitions/external/crates/arrayfire/3.5.0/arrayfire-3.5.0/build.rs:241
+  exec_basename              safeify-data/transitions/external/crates/arrayfire/3.5.0/arrayfire-3.5.0/build.rs:317
+  exec_basename              safeify-data/transitions/external/crates/arrayfire/3.5.0/arrayfire-3.5.0/build.rs:332
+  ... 249 more
+=== done ===
