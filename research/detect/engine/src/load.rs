@@ -157,6 +157,37 @@ pub fn load_crate_with_cfg(dir: &Path, extra_cfg: &[String]) -> Result<Loaded> {
     Ok(Loaded { db, vfs, root })
 }
 
+/// Load one standalone `.rs` file as its own crate.
+///
+/// The frozen NIRM-3 split is a directory of detached snippets
+/// (`vendors/SafeNet/testdata/<api>/<n>.rs`), not Cargo targets, so this is the
+/// loading mode the inventory parity harness uses. rust-analyzer resolves the
+/// sysroot the same way the LSP evidence path does, which is what lets
+/// `std::ptr::read` resolve in a file that has no `use` statement.
+pub fn load_file(path: &Path) -> Result<Loaded> {
+    let root = path
+        .canonicalize()
+        .with_context(|| format!("cannot resolve {}", path.display()))?;
+    let manifest = ProjectManifest::from_manifest_file(AbsPathBuf::assert_utf8(root.clone()))?;
+    let cargo_config = CargoConfig {
+        no_deps: true,
+        sysroot: Some(RustLibSource::Path(AbsPathBuf::assert_utf8(sysroot_dir()?))),
+        ..CargoConfig::default()
+    };
+    let load_config = LoadCargoConfig {
+        load_out_dirs_from_check: false,
+        with_proc_macro_server: ProcMacroServerChoice::None,
+        prefill_caches: true,
+        num_worker_threads: 2,
+        proc_macro_processes: 0,
+    };
+    let progress = |_msg: String| {};
+    let workspace = ProjectWorkspace::load(manifest, &cargo_config, &progress)?;
+    let (db, vfs, _proc_macro) =
+        load_workspace(workspace, &cargo_config.extra_env, &load_config)?;
+    Ok(Loaded { db, vfs, root })
+}
+
 /// Every `.rs` file under the package, skipping build output and VCS metadata.
 pub fn collect_rs_files(root: &Path) -> Vec<PathBuf> {
     fn walk(dir: &Path, out: &mut Vec<PathBuf>) {

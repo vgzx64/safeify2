@@ -16,9 +16,13 @@ CULPA build.
 
 ```
 .rs file
-  └─ inventory.py   unsafe { } / unsafe fn spans (offset-preserving masker),
-                    sink calls matched against the spec DB, raw-deref fallback,
-                    syntactic guards (null_check, assert, with_capacity, ...)
+  └─ semantic_inventory.py
+                    engine/cargo.sh build --release, then `safeify-lint
+                    --inventory <file>`: unsafe { } / unsafe fn spans, the
+                    calls inside them with resolved items, raw derefs (operand
+                    type checked), guards (null_check, assert, ...) — all from
+                    rust-analyzer's syntax tree. inventory.py is the text
+                    reference the parity harness compares against.
   └─ ra_client.py   rust-analyzer over stdio: didOpen -> hover evidence
                     (arg types, e.g. `owner: &String` vs `*mut i32`)
   └─ spec_db.py     42 rule cells (research/synth/rules/*.yaml) + gold Y/M/N
@@ -170,6 +174,13 @@ engine/cargo.sh test --release
 python3 detect/run_semantic_corpus.py --jobs 10 --stats-out stats.jsonl
 python3 detect/compare_engines.py path/to/package
 
+# the frozen NIRM-3 inventory for one detached file: unsafe regions, the calls
+# inside them, raw derefs and the enclosing fn's guards (what detect.py runs on)
+.tools/cargo-target/engine/release/safeify-lint --inventory path/to/file.rs
+
+# parity of that inventory against the text scanner on the frozen 288/69/97
+python3 detect/inventory_parity.py --jobs 8 --out detect/out/parity.json
+
 # union the cfg passes and diff against the census (the only supported way to
 # state corpus-level numbers)
 python3 detect/corpus_report.py \
@@ -188,6 +199,13 @@ arguments are bound to the callee's parameters and its tail expression and
 with `root` and `name` (calls are cut to `unknown` at recursion and at depth 8).
 `format!("{root}/{name}")` is read from rust-analyzer's `FORMAT_ARGS_EXPR`,
 including implicit captures.
+
+The frozen NIRM-3 evaluation (`detect.py`) consumes this inventory through
+`semantic_inventory.py`, so the unsafe regions, calls, raw derefs and guard
+context there come from the syntax tree and resolved types, not from masked
+source text. [`inventory.py`](inventory.py) stays as the reference
+implementation the parity harness diffs against; measured parity over the
+frozen 288/69/97 files is in [engine.md](../../notes/research/engine.md) §6b.
 
 `--stats <FILE>` (or `--stats -` for one stderr line) writes classification
 counters: how many filesystem/exec sink calls were `literal`/`param`/`tainted`/

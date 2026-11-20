@@ -304,33 +304,106 @@ recall hole, not a false positive).
   `CARGO_HOME` at `.tools/cargo-home` (the global one is read-only here) and
   the target dir at `.tools/cargo-target`, outside the repository tree.
 
-## 6b. Porting the frozen inventory (next)
+## 6b. The frozen inventory is semantic now
 
-The frozen NIRM-3 evaluation does not use `lint_safe.py`: it uses
-[`inventory.py`](../../research/detect/inventory.py), which finds `unsafe`
-regions, the calls inside them, raw-pointer dereferences and the function's
-guard context by scanning masked text. That is the last regex analysis on the
-critical path, and it feeds `detect.py` → `verdict.py` → the 0.2000 accuracy on
-the 97-file split.
+The frozen NIRM-3 evaluation never used `lint_safe.py`: it uses
+[`inventory.py`](../../research/detect/inventory.py), which found `unsafe`
+regions, the calls inside them, raw-pointer dereferences and the enclosing
+function's guard context by scanning masked text. That was the last regex
+analysis on the critical path.
+[`semantic_inventory.py`](../../research/detect/semantic_inventory.py) now
+adapts `safeify-lint --inventory <file.rs>` into the same shape, and
+`detect.py` consumes it.
 
-Port plan, with the same discipline as the rules:
+What the engine resolves where the text scanner guessed:
 
-1. `safeify-lint --inventory <crate>` emits one JSON object per file:
-   regions (`block`/`fn`), their call sites (resolved path, argument spans),
-   raw-pointer derefs (`ast::PrefixExpr` with `UnaryOp::Deref` whose operand
-   type is `*const`/`*mut`, which the text engine guessed from the preceding
-   word), and the enclosing function's context (name, params, visibility,
-   guards: `is_null`, `assert`, `with_capacity`, `len`/`capacity`,
-   `saturating_*`/`checked_*`, `matches!` — each a resolved call).
-2. A parity harness diffs the per-file `(region range, call callee, deref
-   offset)` sets against `inventory.py` on the frozen 288/69/97 files.
-3. Only when the diff is empty or explained does `detect.py` switch its
-   `inventory.*` calls to the adapter; then the frozen evaluation is re-run and
-   the 0.2000 / FP-on-N 0/27 / M-rate numbers are re-measured. If the inventory
-   changes, the numbers change and the report says by how much.
+- **regions**: `BlockExpr` and `Fn` nodes carrying an `unsafe` token, so nested
+  blocks, `unsafe extern "C" fn`, `unsafe impl` and `unsafe trait` are
+  classified by syntax rather than by matching `unsafe` against brace positions;
+- **calls**: `CallExpr` (path callee) and `MethodCallExpr` with argument spans
+  from the AST, the written path without turbofish (`Box::<T>::from_raw` is
+  `Box::from_raw`) and the resolved item (`core::intrinsics::transmute`) when a
+  detached snippet can resolve it at all;
+- **calls written inside a macro invocation**: the macro is expanded and every
+  node is mapped back to its original source range; when the macro itself does
+  not resolve (`log::warn!` under `no_deps`) its parenthesised argument list is
+  parsed as an expression, so `warn!("{}", CStr::from_ptr(p))` is inventoried;
+- **derefs**: `PrefixExpr` with `UnaryOp::Deref`, operand type classified raw
+  pointer / not a raw pointer / unknown. `unknown` is kept (a frozen snippet is
+  full of types nothing in the file defines), `not a raw pointer` is excluded;
+- **guards**: resolved call names and macro invocations, including calls found
+  in macro expansions, so `assert!(p.is_null())` is a `null_check`.
 
-Until that lands, the frozen numbers keep describing the text implementation
-and no claim in this note applies to them.
+### Parity over the frozen 288 / 69 / 97 files
+
+[`inventory_parity.py`](../../research/detect/inventory_parity.py) diffs the two
+implementations on the site sets the detector acts on — region ranges, call
+callees/spans/arguments, deref offsets, and each region's function
+name/signature/guards — after converting the text scanner's character offsets to
+the engine's byte offsets (one non-ASCII character before a site shifts every
+offset by two). Artifact:
+[`inventory_parity_2026-11-20.json`](../../research/detect/out/inventory_parity_2026-11-20.json).
+
+**454 files, 217 with at least one difference, 452 differences. No site the
+detector acts on is lost**: zero text-only regions and zero text-only spec-DB
+calls. 24 spec-DB calls are found that the regex could not match — turbofish
+(`mem::transmute::<A, B>(..)`, `collect::<Vec<_>>()`) and absolute paths
+(`::std::ptr::write_bytes(..)`, whose leading `::` the regex's lookbehind
+rejects). Three text derefs are not recovered, each explained: one `*mut` in a
+*type* position (`let (p, ..): (*mut T, ..)` — a text false positive) and two
+`*cx` inside `rooted!(in(*cx) let ..)`, whose token list is not an expression.
+
+The remaining buckets are conventions, not disagreements about a site:
+
+| bucket | count | what it is |
+|---|---:|---|
+| `signature-brace` | 122 | the text scanner's unsafe-fn signature includes the `{` |
+| `call-args-trailing-comma` | 75 | `copy(a, b, c,\n)`: the text scanner adds an empty fourth argument |
+| `text-nonspec` / `semantic-nonspec` | 75 / 72 | calls outside the spec DB: `Some(x) =>` is a pattern, `collect::<Vec<_>>()` needs turbofish |
+| `deref-snippet-truncated` | 30 | the text snippet stops at the first non-identifier character (`*ptr.offset` vs `*ptr.offset(1)`) |
+| `semantic-spec-only` | 24 | the turbofish / absolute-path sites above |
+| `text-junk` | 16 | the regex matched a keyword or a type fragment (`mut (`, `const (`) |
+| `deref-new` | 15 | derefs the text position heuristic missed (`&mut *env`, `while *ptr`) |
+| `guard-text` | 8 | the guard regex matched identifier text (`import_assertions`, `assert_abort`) or a call inside a `cfg_if!` braced body |
+| `deref-not-raw` | 7 | derefs of references or `Box`, excluded by the adapter |
+| `call-args` | 3 | a masked string literal moves the argument start the text scanner reports |
+| `signature` | 2 | the text scanner's `rfind("fn")` lands inside a `fn(T)` parameter type |
+
+Known limit: a braced macro body (`cfg_if! { .. }`, `lazy_static! { .. }`) that
+does not resolve is skipped; the argument fallback handles parenthesised
+argument lists only.
+
+### Re-measured frozen evaluation
+
+Same protocol as the NIRM-3 report, `detect.py` on the semantic inventory
+([`nirm3_eval_lsp_semantic_score.txt`](../../research/detect/out/nirm3_eval_lsp_semantic_score.txt)):
+
+| Metric | text inventory | semantic inventory |
+|---|---:|---:|
+| detected sinks / evaluated | 136 / 105 | **139 / 109** |
+| accuracy | 0.2000 (21/105) | **0.1927 (21/109)** |
+| FP-on-N (gold N → predicted Y) | 0/27 | **0/28** |
+| N recall | 0.3704 | 0.3571 |
+| claim rate (Y/N, M abstains) | 0.1619 | 0.1560 |
+| macro-F1 | 0.2394 | 0.2325 |
+
+Six evaluated sites are added — three turbofish `mem::transmute::<A, B>` calls,
+one `::std::ptr::write_bytes`, and two raw derefs the text position heuristic
+missed — and two are dropped: `ptr::deref/1-6.rs` used to report two `*ptr`
+derefs of a `&mut *const u128`, i.e. derefs of a reference that the operand
+type excludes. Net +4 evaluated (105 -> 109); all six new arrivals abstain
+(`M low`), so 21/109 are correct instead of 21/105.
+The deterministic `--no-lsp` mode tells the same story (13/105 → 13/109,
+0.1238 → 0.1193, FP-on-N 0/27 → 0/28), without hover evidence in play.
+
+Per-site verdicts in LSP mode are not attributable one-for-one: `arg_types`
+comes from hover, which retries for 0.9 s and then gives up (§7.6 of the NIRM-3
+report documents the sensitivity). Re-running the four files whose verdicts
+moved reproduced two of them (`Box::from_raw/1-8.rs` and
+`CStr::from_ptr/1-12.rs` are claimed `N`, matching the frozen gold) and one
+moved back (`Vec::from_raw_parts/3-2.rs` claims `N` again) —
+[recheck artifact](../../research/detect/out/nirm3_eval_semantic_recheck_2026-11-20.json)
+— so the per-site flips are hover variance, not the inventory.
 
 ## 7. Measurements the engine must produce
 

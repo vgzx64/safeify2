@@ -1,0 +1,64 @@
+parity over 454 files, 8 jobs, engine /home/user/Code/safeify2/.tools/cargo-target/engine/release/safeify-lint
+  25/454 files
+  50/454 files
+  75/454 files
+  100/454 files
+  125/454 files
+  150/454 files
+  175/454 files
+  200/454 files
+  225/454 files
+  250/454 files
+  275/454 files
+  300/454 files
+  325/454 files
+  350/454 files
+  375/454 files
+  400/454 files
+  425/454 files
+  450/454 files
+  454/454 files
+
+files=454 files-with-diffs=217 diffs=452
+bucket                    count  spec-api hits
+call-args                     3              1
+    vendors/SafeNet/testdata/offset_from/4-2.rs @373  {"at": ["starts"], "kind": "call-args", "region": ["block", 373], "semantic": {"arg_starts": [556], "args": 1, "callee": "Err", "is_method": false, "resolved": null, "span": [552, 601]}, "spec_api": null, "text": {"arg_s
+    vendors/SafeNet/testdata/assume_init /4-3.rs @210  {"at": ["starts"], "kind": "call-args", "region": ["block", 210], "semantic": {"arg_starts": [358], "args": 1, "callee": "new_os_error", "is_method": true, "resolved": null, "span": [344, 396]}, "spec_api": null, "text":
+call-args-trailing-comma     75             35
+    vendors/SafeNet/testdata/Box::from_raw/1-1.rs @4  {"call": {"arg_starts": [343, 358, 379, 396, 431, 454], "args": 6, "callee": "wasmtime_instance_new", "is_method": false, "resolved": null, "span": [312, 470]}, "kind": "call-args-trailing-comma", "region": ["fn", 4], "s
+    vendors/SafeNet/testdata/CStr::from_ptr/1-3.rs @0  {"call": {"arg_starts": [587, 639], "args": 2, "callee": "RelativePath::make", "is_method": false, "resolved": null, "span": [555, 781]}, "kind": "call-args-trailing-comma", "region": ["fn", 0], "spec_api": null}
+deref-new                    15              0
+    vendors/SafeNet/testdata/CStr::from_ptr/1-10.rs @4  {"deref": {"offset": 192, "raw_ptr": true, "snippet": "*(llvm_self_profiler as *mut LlvmSelfProfiler<'_>)"}, "kind": "deref-only-semantic", "raw_ptr": true, "region": ["fn", 4]}
+    vendors/SafeNet/testdata/assume_init /1-8.rs @317  {"deref": {"offset": 337, "raw_ptr": null, "snippet": "*self.value.get()"}, "kind": "deref-only-semantic", "raw_ptr": null, "region": ["block", 317]}
+deref-not-raw                 7              0
+    vendors/SafeNet/testdata/CString::from_raw/4-1.rs @268  {"deref": {"offset": 1416, "raw_ptr": false, "snippet": "**context"}, "kind": "deref-only-semantic", "raw_ptr": false, "region": ["block", 268]}
+    vendors/SafeNet/testdata/CString::from_raw/4-1.rs @268  {"deref": {"offset": 1417, "raw_ptr": false, "snippet": "*context"}, "kind": "deref-only-semantic", "raw_ptr": false, "region": ["block", 268]}
+deref-snippet-truncated      30              0
+    vendors/SafeNet/testdata/CStr::from_ptr/3-2.rs @208  {"kind": "deref-snippet-truncated", "region": ["block", 208], "text": {"offset": 241, "snippet": "*android_injected_glue"}}
+    vendors/SafeNet/testdata/CStr::from_ptr/3-6.rs @249  {"kind": "deref-snippet-truncated", "region": ["block", 249], "text": {"offset": 298, "snippet": "*_NSGetArgc"}}
+deref-text-only               3              3
+    vendors/SafeNet/testdata/ptr::deref/4-5.rs @322  {"deref": {"offset": 848, "snippet": "*cx"}, "kind": "deref-only-text", "region": ["block", 322], "spec_api": "ptr::deref"}
+    vendors/SafeNet/testdata/ptr::deref/4-5.rs @322  {"deref": {"offset": 883, "snippet": "*cx"}, "kind": "deref-only-text", "region": ["block", 322], "spec_api": "ptr::deref"}
+guard-text                    8              0
+    vendors/SafeNet/testdata/as_ref/3-7.rs  {"kind": "guards", "offset": 361, "semantic": [], "text": ["assert"]}
+    vendors/SafeNet/testdata/as_ref/3-7.rs  {"kind": "guards", "offset": 530, "semantic": [], "text": ["assert"]}
+semantic-nonspec             72              0
+    vendors/SafeNet/testdata/CStr::from_ptr/3-6.rs @249  {"call": {"arg_starts": [], "args": 0, "callee": "collect", "is_method": true, "resolved": "core::iter::traits::iterator::Iterator::collect", "span": [571, 591]}, "kind": "call-only-semantic", "region": ["block", 249], "
+    vendors/SafeNet/testdata/CString::from_raw/4-1.rs @268  {"call": {"arg_starts": [], "args": 0, "callee": "collect", "is_method": true, "resolved": "core::iter::traits::iterator::Iterator::collect", "span": [1038, 1071]}, "kind": "call-only-semantic", "region": ["block", 268],
+semantic-spec-only           24             24
+    vendors/SafeNet/testdata/assume_init /1-16.rs @86  {"call": {"arg_starts": [127, 143, 146], "args": 3, "callee": "std::ptr::write_bytes", "is_method": false, "resolved": "core::ptr::write_bytes", "span": [103, 148]}, "kind": "call-only-semantic", "region": ["block", 86],
+    vendors/SafeNet/testdata/mem::transmute/1-14.rs @87  {"call": {"arg_starts": [131], "args": 1, "callee": "core::mem::transmute", "is_method": false, "resolved": "core::intrinsics::transmute", "span": [96, 135]}, "kind": "call-only-semantic", "region": ["block", 87], "spec_
+signature                     2              0
+    vendors/SafeNet/testdata/mem::transmute_copy/4-4.rs  {"kind": "signature", "offset": 177, "semantic": "fn transize<T, const N: usize>(\n    f: unsafe fn(T, T) -> T,\n    bytes: Simd<u8, N>,\n    idxs: Simd<u8, N>,\n) -> Simd<u8, N>\nwhere\n    LaneCount<N>: SupportedLaneCo
+    vendors/SafeNet/testdata/mem::transmute_copy/4-4.rs  {"kind": "signature", "offset": 308, "semantic": "fn transize<T, const N: usize>(\n    f: unsafe fn(T, T) -> T,\n    bytes: Simd<u8, N>,\n    idxs: Simd<u8, N>,\n) -> Simd<u8, N>\nwhere\n    LaneCount<N>: SupportedLaneCo
+signature-brace             122              0
+    vendors/SafeNet/testdata/Box::from_raw/1-1.rs  {"kind": "signature-brace", "offset": 221, "text": "fn wasm_instance_new(\n    store: &wasm_store_t,\n    wasm_module: &wasm_module_t,\n    imports: *const Box<wasm_extern_t>,\n    result: Option<&mut *mut wasm_trap_t>,\
+    vendors/SafeNet/testdata/Box::from_raw/1-10.rs  {"kind": "signature-brace", "offset": 38, "text": "fn free(arena: *mut Self) {"}
+text-junk                    16              0
+    vendors/SafeNet/testdata/CString::from_raw/4-1.rs @268  {"call": {"arg_starts": [1466], "args": 1, "callee": "mut", "is_method": false, "span": [1462, 1476]}, "kind": "call-only-text", "region": ["block", 268], "spec_api": null}
+    vendors/SafeNet/testdata/ptr::copy_nonoverlapping/4-10.rs @39  {"call": {"arg_starts": [365], "args": 1, "callee": "mut", "is_method": false, "span": [361, 370]}, "kind": "call-only-text", "region": ["block", 39], "spec_api": null}
+text-nonspec                 75              0
+    vendors/SafeNet/testdata/Box::from_raw/1-1.rs @4  {"call": {"arg_starts": [501], "args": 1, "callee": "Some", "is_method": false, "span": [496, 505]}, "kind": "call-only-text", "region": ["fn", 4], "spec_api": null}
+    vendors/SafeNet/testdata/Box::from_raw/1-1.rs @4  {"call": {"arg_starts": [613], "args": 1, "callee": "Some", "is_method": false, "span": [608, 620]}, "kind": "call-only-text", "region": ["fn", 4], "spec_api": null}
+
+wrote detect/out/inventory_parity_2026-11-20.json

@@ -1,0 +1,67 @@
+gold rows: 97 (split=test)
+
+=== detect/out/nirm3_eval_lsp_semantic.json ===
+files=97 sinks=139 evaluated=109 unmatched_files=0 api_mismatch=30
+
+confusion (rows=gold, cols=pred):
+ gold     Y     M     N
+    Y     2    65     5
+    M     0     9     0
+    N     0    18    10
+
+accuracy: 0.1927 (21/109)
+FP-on-N (gold N -> pred Y): 0/28  recall_N=0.3571
+Y precision: 1.0000 (2 Y predictions)
+claim_rate: 0.1560  (M-rate 0.8440 — abstentions)
+
+per-class (gold, pred, tp, precision, recall, F1):
+  Y: gold=72  pred=2   tp=2   P=1.0000 R=0.0278 F1=0.0541
+  M: gold=9   pred=92  tp=9   P=0.0978 R=1.0000 F1=0.1782
+  N: gold=28  pred=15  tp=10  P=0.6667 R=0.3571 F1=0.4651
+macro-F1: 0.2325
+
+risk-coverage (claim = Y/N; M abstains; high-confidence first):
+  high claims=17  errors=5  coverage=0.1560 risk=0.2941
+  all  claims=17  errors=5  coverage=0.1560 risk=0.2941
+pattern claims: 17/109 sinks, correct=12 (0.7059)
+  wrong hint: Box::from_raw/3-1.rs Box::from_raw hint=p1 gold=p3
+  wrong hint: Box::from_raw/4-1.rs Box::from_raw hint=p1 gold=p4
+  wrong hint: CString::from_raw/4-4.rs CString::from_raw hint=p1 gold=p4
+  wrong hint: Vec::from_raw_parts/4-3.rs Vec::from_raw_parts hint=p1 gold=p4
+  wrong hint: ptr::read/5-3.rs ptr::read hint=p1 gold=p5
+
+per-family accuracy (correct/total):
+  borrow_ffi       3/6   0.500
+  ptr_arith        0/6   0.000
+  rawmem           5/55  0.091
+  rawref           0/4   0.000
+  reconstitute     9/21  0.429
+  transmute        0/10  0.000
+  vec_len          4/5   0.800
+  zeroed           0/2   0.000
+
+per-API accuracy (correct/total):
+  Box::from_raw              4/5   0.800
+  CStr::from_ptr             3/6   0.500
+  CString::from_raw          2/4   0.500
+  Rc::from_raw               1/5   0.200
+  Vec::from_raw_parts        2/7   0.286
+  as_ref                     0/4   0.000
+  assume_init                1/5   0.200
+  mem::transmute             0/6   0.000
+  mem::transmute_copy        0/4   0.000
+  mem::zeroed                0/2   0.000
+  offset_from                0/6   0.000
+  ptr::copy                  0/11  0.000
+  ptr::copy_nonoverlapping   0/10  0.000
+  ptr::deref                 0/7   0.000
+  ptr::read                  4/8   0.500
+  ptr::write                 0/8   0.000
+  ptr::write_bytes           0/6   0.000
+  set_len                    4/5   0.800
+
+95% CI, file-clustered bootstrap (2000 reps) — detect/out/nirm3_eval_lsp_semantic.json:
+  accuracy  [0.1140, 0.2762]
+  fp_on_n   [0.0000, 0.0000]
+  recall_n  [0.1538, 0.5789]
+  macro_f1  [0.1460, 0.3688]

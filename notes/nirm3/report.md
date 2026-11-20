@@ -128,6 +128,13 @@ verdicts changed because of the fix; six `from_raw`/`CStr` verdicts also differ
 between the two reports, but those are `rust-analyzer` run variance, not code
 changes (quantified in §7.6).
 
+> **Inventory note (2026-11-20).** The numbers in §5 were measured with the text
+> inventory (`inventory.py`). The detector now consumes the semantic inventory
+> (`safeify-lint --inventory`), so the same frozen protocol re-run gives
+> **139 sinks / 109 evaluated, accuracy 0.1927 (21/109), FP-on-N 0/28** — the
+> correct count is unchanged and four newly visible sites abstain. Parity and
+> attribution: [engine.md §6b](../research/engine.md#6b-the-frozen-inventory-is-semantic-now).
+
 ### 5.1 LSP mode
 
 | Metric | Value |

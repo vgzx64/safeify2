@@ -1,0 +1,291 @@
+{
+  "reports": [
+    {
+      "file": "../vendors/SafeNet/testdata/Box::from_raw/1-8.rs",
+      "unsafe_regions": 1,
+      "sinks": [
+        {
+          "file": "../vendors/SafeNet/testdata/Box::from_raw/1-8.rs",
+          "line": 6,
+          "col": 33,
+          "api": "Box::from_raw",
+          "kind": "call",
+          "callee": "Box::from_raw",
+          "call_text": "Box::from_raw(exception as *mut Exception)",
+          "args": [
+            "exception as *mut Exception"
+          ],
+          "span": [
+            168,
+            210
+          ],
+          "region": {
+            "kind": "block",
+            "name": null,
+            "span": [
+              127,
+              253
+            ]
+          },
+          "fn": {
+            "name": "exception_cleanup",
+            "signature": "fn exception_cleanup(\n    _unwind_code: uw::_Unwind_Reason_Code,\n    exception: *mut uw::_Unwind_Exception,\n)",
+            "guards": []
+          },
+          "evidence": {
+            "recv_type": null,
+            "arg_types": [
+              "*mut {unknown}"
+            ],
+            "ret_type": null,
+            "lsp": true
+          },
+          "verdict": {
+            "v": "N",
+            "confidence": "high",
+            "reason": "raw pointer arrives from outside this frame; no owner exists here to reconstruct ownership from (KB from_raw p1 -> N).",
+            "safe_alternative": null,
+            "encapsulate": true,
+            "pattern_hint": 1,
+            "kb_gold": "N",
+            "rules": [
+              "Box__from_raw_1.yaml",
+              "Box__from_raw_2.yaml",
+              "Box__from_raw_3.yaml",
+              "Box__from_raw_4.yaml",
+              "Box__from_raw_5.yaml",
+              "Box__from_raw_6.yaml"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "file": "../vendors/SafeNet/testdata/CStr::from_ptr/1-12.rs",
+      "unsafe_regions": 1,
+      "sinks": [
+        {
+          "file": "../vendors/SafeNet/testdata/CStr::from_ptr/1-12.rs",
+          "line": 2,
+          "col": 5,
+          "api": "CStr::from_ptr",
+          "kind": "call",
+          "callee": "CStr::from_ptr",
+          "call_text": "CStr::from_ptr(s)",
+          "args": [
+            "s"
+          ],
+          "span": [
+            69,
+            86
+          ],
+          "region": {
+            "kind": "fn",
+            "name": "cstr_to_str",
+            "span": [
+              0,
+              102
+            ]
+          },
+          "fn": {
+            "name": "cstr_to_str",
+            "signature": "fn cstr_to_str<'a>(s: *const c_char) -> Option<&'a str>",
+            "guards": []
+          },
+          "evidence": {
+            "recv_type": null,
+            "arg_types": [
+              "*const {unknown}"
+            ],
+            "ret_type": null,
+            "lsp": true
+          },
+          "verdict": {
+            "v": "N",
+            "confidence": "high",
+            "reason": "C string pointer comes from FFI (parameter); the owner is not in this frame (KB from_ptr p1 -> N).",
+            "safe_alternative": null,
+            "encapsulate": true,
+            "pattern_hint": 1,
+            "kb_gold": "N",
+            "rules": [
+              "CStr__from_ptr_1.yaml",
+              "CStr__from_ptr_4.yaml"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "file": "../vendors/SafeNet/testdata/CString::from_raw/3-4 .rs",
+      "unsafe_regions": 2,
+      "sinks": [
+        {
+          "file": "../vendors/SafeNet/testdata/CString::from_raw/3-4 .rs",
+          "line": 24,
+          "col": 27,
+          "api": "CString::from_raw",
+          "kind": "call",
+          "callee": "CString::from_raw",
+          "call_text": "CString::from_raw(p as *mut c_char)",
+          "args": [
+            "p as *mut c_char"
+          ],
+          "span": [
+            695,
+            730
+          ],
+          "region": {
+            "kind": "block",
+            "name": null,
+            "span": [
+              686,
+              732
+            ]
+          },
+          "fn": {
+            "name": "call_path",
+            "signature": "fn call_path<S: Serialize, T>(\n    path: &EffectPath,\n    key: &[u8; 32],\n    args: CreateArgs<S>,\n) -> Result<T, CompilationError>\nwhere\n    T: for<'a> Deserialize<'a> + JsonSchema,",
+            "guards": [
+              "len_cap"
+            ]
+          },
+          "evidence": {
+            "recv_type": null,
+            "arg_types": [
+              null
+            ],
+            "ret_type": null,
+            "lsp": true
+          },
+          "verdict": {
+            "v": "M",
+            "confidence": "low",
+            "reason": "from_raw* without type evidence: ownership source unknown; classify before claiming Y/N.",
+            "safe_alternative": null,
+            "encapsulate": true,
+            "pattern_hint": null,
+            "kb_gold": null,
+            "rules": [
+              "CString__from_raw_1.yaml",
+              "CString__from_raw_4.yaml",
+              "CString__from_raw_6.yaml"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "file": "../vendors/SafeNet/testdata/Vec::from_raw_parts/3-2.rs",
+      "unsafe_regions": 1,
+      "sinks": [
+        {
+          "file": "../vendors/SafeNet/testdata/Vec::from_raw_parts/3-2.rs",
+          "line": 19,
+          "col": 39,
+          "api": "as_mut",
+          "kind": "call",
+          "callee": "as_mut",
+          "call_text": "b_ptr.as_mut()",
+          "args": [],
+          "span": [
+            666,
+            675
+          ],
+          "region": {
+            "kind": "block",
+            "name": null,
+            "span": [
+              619,
+              748
+            ]
+          },
+          "fn": {
+            "name": "drop",
+            "signature": "fn drop(&mut self)",
+            "guards": []
+          },
+          "evidence": {
+            "recv_type": null,
+            "arg_types": [],
+            "ret_type": null,
+            "lsp": true
+          },
+          "verdict": {
+            "v": "M",
+            "confidence": "low",
+            "reason": "as_ref through a raw pointer without in-frame owner evidence; classify pattern before claiming Y.",
+            "safe_alternative": null,
+            "encapsulate": true,
+            "pattern_hint": null,
+            "kb_gold": null,
+            "rules": []
+          }
+        },
+        {
+          "file": "../vendors/SafeNet/testdata/Vec::from_raw_parts/3-2.rs",
+          "line": 20,
+          "col": 13,
+          "api": "Vec::from_raw_parts",
+          "kind": "call",
+          "callee": "Vec::from_raw_parts",
+          "call_text": "Vec::from_raw_parts(b_ptr, sz, cap)",
+          "args": [
+            "b_ptr",
+            "sz",
+            "cap"
+          ],
+          "span": [
+            703,
+            738
+          ],
+          "region": {
+            "kind": "block",
+            "name": null,
+            "span": [
+              619,
+              748
+            ]
+          },
+          "fn": {
+            "name": "drop",
+            "signature": "fn drop(&mut self)",
+            "guards": []
+          },
+          "evidence": {
+            "recv_type": null,
+            "arg_types": [
+              "*mut {unknown}",
+              "usize",
+              "usize"
+            ],
+            "ret_type": null,
+            "lsp": true
+          },
+          "verdict": {
+            "v": "N",
+            "confidence": "high",
+            "reason": "raw pointer arrives from outside this frame; no owner exists here to reconstruct ownership from (KB from_raw p1 -> N).",
+            "safe_alternative": null,
+            "encapsulate": true,
+            "pattern_hint": 1,
+            "kb_gold": "N",
+            "rules": [
+              "Vec__from_raw_parts_1.yaml",
+              "Vec__from_raw_parts_4.yaml",
+              "Vec__from_raw_parts_6.yaml"
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "summary": {
+    "files": 4,
+    "verdicts": {
+      "Y": 0,
+      "M": 2,
+      "N": 3
+    }
+  }
+}

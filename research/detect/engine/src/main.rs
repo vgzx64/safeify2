@@ -5,6 +5,7 @@
 //! Usage: `safeify-lint --crate <DIR> [--out findings.json]`
 
 mod fields;
+mod inventory;
 mod load;
 mod paths;
 mod prov;
@@ -25,11 +26,13 @@ fn main() -> Result<()> {
     let mut out_file: Option<PathBuf> = None;
     let mut debug_macro: Option<PathBuf> = None;
     let mut stats_file: Option<PathBuf> = None;
+    let mut inventory_file: Option<PathBuf> = None;
     let mut extra_cfg: Vec<String> = Vec::new();
     let mut args = std::env::args().skip(1);
     while let Some(arg) = args.next() {
         match arg.as_str() {
             "--crate" | "-c" => crate_dir = args.next().map(PathBuf::from),
+            "--inventory" => inventory_file = args.next().map(PathBuf::from),
             "--out" | "-o" => out_file = args.next().map(PathBuf::from),
             "--debug-macro" => debug_macro = args.next().map(PathBuf::from),
             "--stats" => stats_file = args.next().map(PathBuf::from),
@@ -40,13 +43,17 @@ fn main() -> Result<()> {
             }
             "--help" | "-h" => {
                 println!(
-                    "usage: safeify-lint --crate <DIR> [--out <FILE>] [--extra-cfg <SPEC>]\n\
+                    "usage: safeify-lint (--crate <DIR> | --inventory <FILE>) [--out <FILE>]\n\
 \n\
 Analyzes one Cargo package with rust-analyzer and prints findings as JSON.\n\
+With --inventory, prints the unsafe-region inventory of one standalone file\n\
+instead (the frozen NIRM-3 split is a directory of detached snippets).\n\
 \n\
 options:\n\
-  --crate <DIR>        package directory (required)\n\
-  --out <FILE>         write findings here instead of stdout\n\
+  --crate <DIR>        package directory\n\
+  --inventory <FILE>   standalone .rs file: unsafe regions, the calls inside\n\
+                       them, raw derefs and the enclosing fn's guards\n\
+  --out <FILE>         write JSON here instead of stdout\n\
   --extra-cfg <SPEC>   enable extra cfg atoms, comma separated\n\
                        (for example: windows,target_family=windows)\n\
   --debug-macro <FILE> print macro expansion status for one file\n\
@@ -59,6 +66,9 @@ a '// safeify: allow(<rule>)' comment."
             }
             other => bail!("unknown argument: {other}"),
         }
+    }
+    if let Some(file) = inventory_file {
+        return inventory_mode(&file, out_file.as_deref());
     }
     let Some(dir) = crate_dir else {
         bail!("--crate <DIR> is required (a Cargo package directory)")
@@ -199,6 +209,35 @@ a '// safeify: allow(<rule>)' comment."
         field_index.len(),
         findings.len()
     );
+    Ok(())
+}
+
+/// `--inventory <FILE>`: the semantic unsafe-region inventory of one standalone
+/// file, printed as JSON. Same loading mode as the LSP evidence path, so a
+/// snippet with no `use` statement still resolves `std::ptr::read`.
+fn inventory_mode(file: &std::path::Path, out: Option<&std::path::Path>) -> Result<()> {
+    let loaded = load::load_file(file)?;
+    let vpath = VfsPath::new_real_path(file.canonicalize()?.to_string_lossy().into_owned());
+    let file_id = loaded
+        .vfs
+        .file_id(&vpath)
+        .map(|(id, excluded)| (id, excluded))
+        .filter(|(_, excluded)| *excluded == vfs::FileExcluded::No)
+        .map(|(id, _)| id)
+        .with_context(|| format!("{} is not in the loaded project", file.display()))?;
+    let source =
+        std::fs::read_to_string(file).with_context(|| format!("cannot read {}", file.display()))?;
+    let inventory = hir::attach_db(&loaded.db, || {
+        let sema = Semantics::new(&loaded.db);
+        let ast = sema.parse_guess_edition(file_id);
+        inventory::collect(&sema, &loaded.db, file_id, file, &source, &ast)
+    });
+    let json = serde_json::to_string_pretty(&inventory)?;
+    match out {
+        Some(path) => std::fs::write(path, json)
+            .with_context(|| format!("cannot write {}", path.display()))?,
+        None => println!("{json}"),
+    }
     Ok(())
 }
 

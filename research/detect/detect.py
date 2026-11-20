@@ -1,10 +1,15 @@
 """CLI: detect replaceable-unsafe sinks and emit Y/M/N verdicts.
 
+Unsafe regions, the calls inside them and the raw derefs come from
+`safeify-lint --inventory` (rust-analyzer's syntax tree), not from masked
+source text; `semantic_inventory` adapts that JSON. LSP hover evidence for the
+type-based verdict rules is unchanged and optional.
+
 Usage (from research/):
   source ../.venv/bin/activate   # or any python3 with PyYAML
   python detect/detect.py ../vendors/SafeNet/testdata/ptr::deref \
       --json detect/out/report.json
-  python detect/detect.py <file.rs> --no-lsp      # syntactic only
+  python detect/detect.py <file.rs> --no-lsp      # no hover evidence
 """
 
 from __future__ import annotations
@@ -16,10 +21,10 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 try:
-    from . import inventory, spec_db, verdict
+    from . import semantic_inventory, spec_db, verdict
     from .ra_client import Analyzer
 except ImportError:  # running as a plain script
-    import inventory
+    import semantic_inventory
     import spec_db
     import verdict
     from ra_client import Analyzer
@@ -36,7 +41,7 @@ class Sink:
     args: list[str] = field(default_factory=list)
     arg_spans: list[tuple[int, int]] = field(default_factory=list)
     span: tuple[int, int] = (0, 0)
-    region: object = None  # inventory.UnsafeRegion (innermost)
+    region: object = None  # semantic_inventory.UnsafeRegion (innermost)
 
 
 def _receiver_text(src: str, name_start: int) -> str:
@@ -66,18 +71,17 @@ def collect_files(paths: list[str]) -> list[Path]:
     return out
 
 
-def find_sinks(src: str, mask: str,
-               regions: list[inventory.UnsafeRegion],
+def find_sinks(src: str, inv: semantic_inventory.Inventory,
                db: spec_db.SpecDB) -> list[Sink]:
     """Match spec-DB calls inside unsafe regions; assign to innermost region."""
     def region_for(off: int):
-        covers = [r for r in regions if r.covers(off)]
+        covers = [r for r in inv.regions if r.covers(off)]
         return min(covers, key=lambda r: r.end - r.start) if covers else None
 
     sinks: list[Sink] = []
-    for r in regions:
+    for r in inv.regions:
         region_sinks: list[Sink] = []
-        for c in inventory.find_calls(mask, r.body_start, r.body_end):
+        for c in inv.calls_in(r):
             api = db.match_api(c.callee, c.is_method)
             if not api:
                 continue
@@ -93,11 +97,11 @@ def find_sinks(src: str, mask: str,
                                      (s, e), region_for(s)))
         if not region_sinks:
             # no API call: fall back to raw-deref evidence -> ptr::deref family
-            for off, snippet in inventory.find_raw_derefs(
-                    mask, r.body_start, r.body_end):
-                region_sinks.append(Sink("ptr::deref", "raw_deref", snippet,
-                                         snippet, [], [], (off, off + len(snippet)),
-                                         region_for(off)))
+            for d in inv.derefs_in(r):
+                region_sinks.append(Sink("ptr::deref", "raw_deref", d.snippet,
+                                         d.snippet, [], [],
+                                         (d.offset, d.offset + len(d.snippet)),
+                                         region_for(d.offset)))
         sinks.extend(region_sinks)
     # dedupe identical (api, span) pairs across overlapping regions
     seen: set[tuple] = set()
@@ -110,8 +114,7 @@ def find_sinks(src: str, mask: str,
     return out
 
 
-def gather_evidence(an: "Analyzer | None", src: str, mask: str,
-                    sink: Sink) -> dict:
+def gather_evidence(an: "Analyzer | None", src: str, sink: Sink) -> dict:
     """LSP hover evidence: return type (on `)`), arg types (on arg starts)."""
     ev = {"recv_type": None, "arg_types": [], "ret_type": None,
           "lsp": False}
@@ -127,15 +130,14 @@ def gather_evidence(an: "Analyzer | None", src: str, mask: str,
 
 def analyze_file(path: Path, db: spec_db.SpecDB,
                  an: "Analyzer | None") -> dict:
-    src = path.read_text(errors="replace")
-    mask = inventory.mask_source(src)
-    regions = inventory.find_unsafe_regions(src, mask)
-    sinks = find_sinks(src, mask, regions, db)
+    inv = semantic_inventory.for_file(path)
+    src = inv.source
+    sinks = find_sinks(src, inv, db)
     rows = []
     for sink in sinks:
         reg = sink.region
-        ctx = inventory.fn_context(src, mask, regions, sink.span[0])
-        ev = gather_evidence(an, src, mask, sink)
+        ctx = inv.fn_context(sink.span[0])
+        ev = gather_evidence(an, src, sink)
         v = verdict.decide(
             db, sink.api,
             call_text=sink.call_text, args=sink.args,
@@ -143,7 +145,7 @@ def analyze_file(path: Path, db: spec_db.SpecDB,
             ret_type=ev["ret_type"], guards=ctx.guards,
             signature=ctx.signature,
         )
-        line, col = inventory.offset_to_line_col(src, sink.span[0])
+        line, col = semantic_inventory.offset_to_line_col(src, sink.span[0])
         rows.append({
             "file": str(path),
             "line": line + 1,
@@ -169,7 +171,7 @@ def analyze_file(path: Path, db: spec_db.SpecDB,
                 "rules": v.rules,
             },
         })
-    return {"file": str(path), "unsafe_regions": len(regions), "sinks": rows}
+    return {"file": str(path), "unsafe_regions": len(inv.regions), "sinks": rows}
 
 
 def main(argv: list[str] | None = None) -> int:
