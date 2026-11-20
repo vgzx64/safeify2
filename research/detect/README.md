@@ -167,8 +167,15 @@ engine/cargo.sh build --release
 engine/cargo.sh test --release
 
 # corpus differential against the text engine
-python3 detect/run_semantic_corpus.py --jobs 10
+python3 detect/run_semantic_corpus.py --jobs 10 --stats-out stats.jsonl
 python3 detect/compare_engines.py path/to/package
+
+# union the cfg passes and diff against the census (the only supported way to
+# state corpus-level numbers)
+python3 detect/corpus_report.py \
+    --union detect/out/<host>.json detect/out/<win>.json \
+    --baseline detect/out/lint_corpus_2026-11-19.json \
+    --out detect/out/<union>.json
 ```
 
 Suppress a rule with `#[allow(safeify::fs_special_path)]` on the function,

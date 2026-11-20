@@ -1,7 +1,8 @@
 # Semantic engine — replacing the regex front end
 
-> **Status: milestone 3 (rules ported; macro bodies, suppressions, feature and
-> cross-target coverage) · 2026-11-19**
+> **Status: milestone 4 (rules ported; macro bodies, suppressions, feature and
+> cross-target coverage; crate-local calls interpreted at the call site;
+> `format!` arguments resolved) · 2026-11-20**
 >
 > Code: [`research/detect/engine/`](../../research/detect/engine/).
 > Supersedes the text layer of
@@ -25,7 +26,7 @@ where it stops:
 
 | Evidence | What it is really saying |
 |---|---|
-| 445 of 915 filesystem sink calls classify `unknown` (49%) | The lattice cannot see through a function return, a struct field, or a helper call, because text has no resolution. These calls can never fire, at any severity. |
+| 445 of 915 filesystem sink calls classify `unknown` (49%) | The lattice cannot see through a function return, a struct field, or a helper call, because text has no resolution. These calls can never fire, at any severity. §7 measures what the resolved engine actually closes: 331/821, and the remainder is dominated by *unresolved dependencies*, not by function depth. |
 | `exec_written_path` only catches same-function droppers | The rule needs a definition-use pair; the text engine can only find one by scanning the same body. |
 | The audit's single FP (`grep-cli` 0.1.6) is a cross-function resolution failure | A helper (`resolve_binary()`) guarantees the path is absolute; text cannot know the helper's return value, so the call site looks tainted. |
 
@@ -93,37 +94,99 @@ position in the lattice is *computed*.
 
 "Reasonably deep" is defined as: no whole-program points-to, no alias
 analysis, no heap model — but every function in the crate is analyzed, and
-values are tracked *through* calls, returns and struct fields.
+values are tracked *through* calls, returns and struct fields. Cross-crate
+depth is out of scope in `no_deps` mode (§4.4).
 
-Three summaries per function, computed bottom-up over the call graph:
+### 4.1 Implemented: interpretation at the call site
 
-1. **sink summary** — for each parameter index `i`, does a sink receive `i`
-   (directly or through locals/fields/other calls)? Used to propagate at call
-   sites and to answer "is this helper dangerous at all".
-2. **return summary** — for each parameter index `i` and for the function's
-   own taint sources (env reads, file reads, stdin, network), what does the
-   function *return*? This is what fixes the `resolve_binary()` FP class:
-   a helper that returns a canonicalized/absolute path marks its result as
-   `trusted`, not `tainted`.
-3. **field summary** — for each struct field written from a parameter, the
-   provenance written. Read sites of that field inherit it. This is the
-   cross-method dropper: `self.path = download(url)` in one method,
-   `Command::new(self.path)` in another.
+Calls into the analyzed package are **interpreted, not summarised**. When a
+call resolves to a `hir::Function` whose crate is the analyzed one
+(`Crate::origin(db).is_local()`), the engine:
 
-The call graph is built in the same pass: when a call resolves to a
-`hir::Function`, the engine records the edge and the provenance of each
-argument at that site. Cycles (recursion, mutual recursion) are condensed
-with Tarjan's algorithm and iterated to a fixed point; summaries are
-context-insensitive, so all call sites of a function share one summary. That
-is a deliberate cost: context sensitivity multiplies summaries by call sites
-and buys little for path-shaped taint, where the interesting distinction is
-"came from outside" vs. "came from a literal", not which caller.
+1. evaluates the actual arguments in the caller's context (each is already a
+   `Prov` on the lattice of §5);
+2. binds them to the callee's parameters — `Function::assoc_fn_params` gives the
+   parameter list (index 0 is `self` for a method), `Param::as_local` the
+   `hir::Local`, and `Local::primary_source` the exact pattern node that the
+   substitution is keyed by, so every use of that parameter resolves through
+   the binding;
+3. evaluates the callee's tail expression *and* every `return` expression that
+   belongs to it — a `return` inside a nested closure or `fn` belongs to that
+   closure and is skipped; and
+4. returns the join, which is the value the caller sees.
 
-What this does **not** do, and the report must say so: no sanitizer-aware
-dataflow across branches (a guard only protects the dominated suffix), no
-interior mutability or aliasing, no cross-crate summaries in the default
-`no_deps` mode (external sinks beyond `std` stay `unknown`), and no macro
-expansion for proc macros.
+Method calls take the same path with the receiver bound to `self`. The body is
+evaluated because it is *crate-local*, not because its name looks like a sink:
+a local `fn join(..)` is interpreted rather than classified by name, and a
+local `fn file_name(..)` is not assumed to be `Path::file_name`.
+
+This is context-sensitive by construction. One body serves any number of call
+sites, each with its own argument values; there is no shared summary table to
+invalidate and no fixed point to iterate. With a five-point lattice and small
+path helpers, re-evaluating a body at a call site is cheaper than building,
+joining and re-joining per-function summaries, and it is more precise where it
+matters: `fn resolve_binary()` is `trusted` only where it actually canonicalises.
+
+Bounds, both in [`prov.rs`](../../research/detect/engine/src/prov.rs):
+`MAX_DEPTH = 24` expression levels and `MAX_CALL_DEPTH = 8` crate-local calls
+along one path. A function already on the traversal stack is not entered again,
+so a recursive helper yields `unknown` on that branch; because `unknown`
+absorbs in the lattice, the site goes silent instead of inventing a verdict.
+Interprocedural evaluation is switched off while the field index is built
+(§4.2), where the only question is "what is assigned to this field".
+
+Measured effect on the corpus is in §7; the regression fixture
+([`fixtures/interproc`](../../research/detect/engine/fixtures/interproc)) fixes
+five behaviours: a helper, a two-hop chain and a local method carry the
+caller's path into the sink; a literal return makes the sink see the literal; a
+callee that keeps only `file_name()` is trusted (silent); a recursive return is
+cut (silent).
+
+### 4.2 Field summaries
+
+Per `(struct, field)`, the provenance written anywhere in the crate: record
+literals (`S { f: v }`), the shorthand form (`S { f }`), and assignments
+(`self.f = v`). The index is context-insensitive on purpose — the question is
+"can this field ever carry a caller value" — and the join is **taint-dominant**:
+one caller-controlled write makes every read of that field caller-controlled.
+`self.out_dir` initialised from `OUT_DIR` therefore stays trusted, while the
+same field written from a parameter does not. Reads use the summary when the
+crate writes the field at all, and otherwise inherit the base value's
+provenance (§5b).
+
+### 4.3 What is *not* implemented, and the report must say so
+
+- **No sink summary propagated to callers.** A sink written inside a helper is
+  reported where it is written, with the helper's parameter as `param`; it is
+  not re-reported at each caller. Duplicating the finding at call sites would
+  inflate counts without new information.
+- **No branch-sensitive dataflow.** Only the dominated-`if` guard of §5b is
+  modelled; there is no SSA, no path condition, no sanitiser catalogue.
+- **No heap or aliasing model.** Fields are tracked per type, not per object;
+  interior mutability (`Cell`, `Mutex`) is invisible.
+- **No cross-crate summaries.** With `no_deps`, dependency sources are not
+  loaded, so a wrapper in another crate is `unknown` (§4.4).
+- **Proc macros** are not expanded; declarative and `#[derive]` expansions are.
+- **One `unknown` branch silences the join.** If any `return`/tail path is
+  `unknown` (unresolved dependency call, unexpanded macro, recursion cut), the
+  result is `unknown` and no rule fires. This is the same "never guess" policy
+  as the rest of the engine, and it is the main precision ceiling.
+
+### 4.4 Why not summaries over a call graph
+
+The earlier plan for this milestone was per-function sink/return summaries plus
+a call graph condensed with Tarjan's algorithm and iterated to a fixed point.
+Interpretation was implemented instead because the summary version is strictly
+weaker for this abstraction: the lattice is five kinds, so a summary is mostly
+"taint in, taint out" and the useful distinction — trusted *because* a
+canonicalisation happened on this path — is exactly what a context-insensitive
+summary loses. Interpretation also removes the fixed-point machinery and its
+failure mode (a summary that changes after its callers were already analysed).
+
+The trade-off is cost, bounded by the two depth limits, and precision on
+recursion, where a summary would converge to a taint and interpretation cuts to
+`unknown`. Recursive path helpers in the corpus are rare and return
+collections, where the element provenance is `unknown` either way.
 
 ## 5. Migration, with the audit as the gate
 
@@ -151,11 +214,12 @@ untouched code.
 
 ## 5b. What the semantic engine does that text cannot
 
-Seven mechanisms carry most of the depth, and each is a rust-analyzer query
+Eight mechanisms carry most of the depth, and each is a rust-analyzer query
 rather than a text pattern:
 
 | Mechanism | Query | Why it matters |
 |---|---|---|
+| Crate-local returns | `Crate::origin` (local) → `Function::assoc_fn_params` / `Param::as_local` bound into the substitution → tail expression and `return`s of the callee body | `fs::write(dest(root, name))` sees what `dest` does with `root` and `name`; a helper that ends in `canonicalize` returns `trusted`. Context-sensitive, no summary table (§4). |
 | Pattern bindings | `hir::Local::primary_source` → `IdentPat` → enclosing `let` / `if let` / `match` / `for` | `if let Some(p) = env::var(..).ok()` keeps the taint of the scrutinee; the text engine lost it unless the names matched its binding table. |
 | Closure adapters | `resolve_method_call` → `Option::map`, then the closure body is evaluated with its parameter bound in a substitution | `env::var_os("OUT_DIR").map(|s| PathBuf::from(s).join("b"))` stays `trusted`; naive text classification either drops it or marks the whole chain tainted. |
 | Field summaries | `type_of_expr` → `as_adt` → crate-wide `(struct, field)` index built from record literals and assignments | `self.out_dir` initialised from `OUT_DIR` is trusted, while a field written from a parameter is not. Joins are taint-dominant (a single caller-controlled write wins), unlike the expression-level join. |
@@ -164,7 +228,7 @@ rather than a text pattern:
 | Suppressions | `lint_attrs(file_id, crate, item)` over the item's ancestors | `#[allow(safeify::exec_basename)]` works at function, module and crate level, including `cfg_attr` and `#[expect]`; a `// safeify: allow(...)` comment covers the function. |
 | Feature and target coverage | `CfgDiff` from the package manifest's features, plus `--extra-cfg` | code gated by `feature = ".."` is analyzed by default; `--extra-cfg windows,target_family=windows` analyzes the Windows branch of `#[cfg]` code.|
 
-## 5c. Two rust-analyzer behaviours worth knowing
+## 5c. Three rust-analyzer behaviours worth knowing (and two engine bugs they hid)
 
 **`no_deps` leaks into the sysroot.** `CargoConfig::no_deps` is also passed to
 the sysroot workspace load, so `cargo metadata --no-deps` runs on
@@ -188,12 +252,37 @@ impl's self type so `impl Write for &File` becomes `File::write`. Without this,
 mio 0.6.22 produced two false positives from `(&self.fd).write(src)`, which is
 a socket write, not a file write.
 
-**Expression macros are not reachable from `expand_macro_call` in every
-configuration.** `format!`/`concat!` inside a body currently expand to nothing
-in this setup, so macro arguments stay `unknown` and their sinks are not
-reported. Item-level macro calls, derived impls and declarative macros that
-produce items are covered by name resolution; expression-macro arguments are a
-known gap (see §7).
+**Formatting is a node, not a macro to guess at.** `format!` expands to
+`must_use({ fmt::format(format_args!(..)) })`; evaluating that expansion by hand
+is where a text engine gives up. rust-analyzer lowers `format_args!` to a
+dedicated `FORMAT_ARGS_EXPR` node whose `template` is an expression and whose
+arguments are expressions, and `Semantics::as_format_args_parts` returns the
+resolution of every *implicit capture* in the template (`{name}`), so
+`format!("{root}/{name}")` and `format!("{}/{}", root, name)` are both "join of
+the pieces". The engine reads exactly that node
+([`prov.rs::format_args_prov`](../../research/detect/engine/src/prov.rs)).
+Two consequences worth recording: the result carries no literal *value* (the
+pieces are formatted into a new string, so a literal-path rule must not read the
+format string as the path), and a multi-line call is reported at the
+*argument's* line, not at the first line of the call — the differential harness
+sees that as an old-only/new-only pair even though it is the same site.
+
+**Two tables were being consulted with the wrong key.** `is_trusted_producer`
+(`path::Path::file_name`, `path::Path::canonicalize`) and `taint_source`
+(`net::TcpStream::connect`) are keyed by qualified path, but the method branch
+looked them up with the bare method name, so `p.file_name()` never matched and
+`stream.connect(...)` never became a taint source. Fixed by passing the
+resolved `qualified_path`; a regression fixture pins it (`fixtures/interproc`,
+`file_only`). The *guard* check (`file_name` on the sink argument) was already
+keyed correctly, which is why the bug was invisible: the guard fired on
+resolution while the provenance table silently did not.
+
+**Record-expression shorthand** (`S { f }`) has no name ref: the parser stores
+the bare path expression as the field's value, so a field index that reads only
+`name_ref` never sees the write. `fields::field_name` falls back to the value's
+last path segment. Without it, every builder that uses shorthand contributes no
+field summary, and fields written from a parameter read as trusted (a silent
+recall hole, not a false positive).
 
 ## 6. Reproducibility
 
@@ -250,53 +339,105 @@ not an assertion:
 
 | Metric | Text engine | Semantic engine |
 |---|---|---|
-| filesystem sink calls classified (not `unknown`) | 470/915 (51%) | — |
-| same-function-only limitations hit by the corpus | dropper class unmeasurable | — |
-| audit precision on the 25-site census | 24/25 = 0.96 | — |
-| corpus findings / `warn` | 251 / 31 | — |
-| wall time, 147 crates | ~2.5–4 min | — |
+| filesystem sink calls classified (not `unknown`) | 470/915 (51%) | **490/821 (60%)** |
+| — of which interprocedural analysis closes | — | 4 (335 → 331 `unknown`, same binary) |
+| command-execution programs classified | not measured | 73/81 (90%) |
+| crate-local calls interpreted / recursion cuts / depth cuts | — | 389 / 4 / 0 |
+| same-function-only limitations hit by the corpus | dropper class unmeasurable | 0 findings changed by the call-site interpretation |
+| audit precision on the 25-site census | 24/25 = 0.96 | not re-audited yet |
+| corpus findings / `warn` | 251 rows / 31 | 263 sites / 65 |
+| wall time, 329 packages | ~2.5–4 min | 13 min cold, 6–7 min warm (10 jobs) |
 
-Corpus-wide differential (329 crate versions, 8,426 files), text engine census
-(2026-11-19) vs the semantic engine (host pass ∪ Windows pass, 2026-11-20).
-Artifacts:
-[`lint_corpus_semantic_2026-11-20.json`](../../research/detect/out/lint_corpus_semantic_2026-11-20.json),
-driver [`run_semantic_corpus.py`](../../research/detect/run_semantic_corpus.py).
-Semantic engine: **259 findings in 92 files** (census: 251 in 91); severity
-distribution 65 `warn` / 194 `info` (census: 31 `warn`).
+Corpus-wide differential (329 crate versions, 8,426 files). Artifacts, all
+regenerated by [`corpus_report.py`](../../research/detect/corpus_report.py):
+
+- [`lint_corpus_semantic_2026-11-20_union.json`](../../research/detect/out/lint_corpus_semantic_2026-11-20_union.json)
+  — host ∪ Windows pass, **263 findings in 94 files** (census: 251 rows, 249
+  distinct sites); severity 65 `warn` / 198 `info` (census: 31 `warn`).
+- [`lint_corpus_semantic_2026-11-20_host.json`](../../research/detect/out/lint_corpus_semantic_2026-11-20_host.json) /
+  [`_win.json`](../../research/detect/out/lint_corpus_semantic_2026-11-20_win.json)
+  — the two cfg passes (329 packages each, 250 / 255 sites).
+- [`lint_corpus_semantic_2026-11-20_nointerproc.json`](../../research/detect/out/lint_corpus_semantic_2026-11-20_nointerproc.json)
+  — the same host pass with `SAFEIFY_INTERPROC=0`, the A/B for the call-site
+  interpretation.
+- the pre-interprocedural measurement (259 findings, commit `6c8f0d8`) stays at
+  [`lint_corpus_semantic_2026-11-20.json`](../../research/detect/out/lint_corpus_semantic_2026-11-20.json)
+  so the delta is reproducible: `corpus_report.py --union ...--baseline` on the
+  two files.
+- [`stats_2026-11-20_host.jsonl`](../../research/detect/out/stats_2026-11-20_host.jsonl) /
+  [`_win.jsonl`](../../research/detect/out/stats_2026-11-20_win.jsonl) /
+  [`_nointerproc.jsonl`](../../research/detect/out/stats_2026-11-20_nointerproc.jsonl)
+  — per-crate classification counters behind the coverage row above. (The
+  `exec_arg_calls` counter was added after these three files were produced, so
+  that one field is zero there; every number quoted above is unaffected.)
 
 | Rule | old | new | common | old-only | new-only |
 |---|---|---|---|---|---|
-| `exec_basename` | 85 | 58 | 57 | 28 | 1 |
+| `exec_basename` | 85 | 62 | 61 | 24 | 1 |
 | `exec_tainted_cmd` | 14 | 18 | 14 | 0 | 4 |
-| `fs_tainted_path` | 141 | 168 | 132 | 9 | 36 |
-| `build_outside_out_dir` | 4 | 2 | 2 | 2 | 0 |
+| `fs_tainted_path` | 141 | 174 | 134 | 7 | 40 |
+| `build_outside_out_dir` | 4 | 4 | 4 | 0 | 0 |
 | `env_read_dangerous` | 5 | 5 | 5 | 0 | 0 |
 | `fs_special_path`, `fs_traversal_literal`, `exec_shell_tainted`, `exec_written_path`, `env_set_dangerous` | 0 | 0 | 0 | 0 | 0 |
 
+The `exec_basename` gap (census 85, engine 62) is entirely the 24 non-target
+sites of the next list plus one Windows-only gain: 61 common + 24 old-only = 85,
+61 common + 1 new-only = 62.
+
 Old-only (31), every one checked against the source:
 
-- **27 × a script that is not a Cargo target**: `slice-deque/ci/deploy_and_run_on_ios_simulator.rs`
-  is never compiled, so the crate graph does not contain it and the semantic
-  engine never scans it. The text engine scanned every `.rs` file it found.
-- **4 × `format!` arguments**: `simd-json/examples/perf.rs` writes
-  `format!(".baseline/{}.json", name)`; macro *arguments* are still `unknown`
-  (§5c), so the sink is not reported. This is the one real recall gap.
+- **27 × a script that is not a Cargo target**:
+  `slice-deque/ci/deploy_and_run_on_ios_simulator.rs` is never compiled, so the
+  crate graph does not contain it and the semantic engine never scans it. The
+  text engine scanned every `.rs` file it found. (24 `exec_basename`, 3
+  `fs_tainted_path`.)
+- **4 × the same site at a different line**: `simd-json/examples/perf.rs` writes
+  `format!(".baseline/{}.json", name)` across two lines. `format!` arguments are
+  now evaluated (§5c), and the engine reports at the *argument's* offset, so the
+  finding lands on line 197/204 where the census had 196/203. The four sites are
+  present in the new artifact under those line numbers — recall at these sites
+  is 4/4, the diff is a reporting-offset convention, not a miss.
 
-New-only (41):
+New-only (45):
 
-- **mdbook `init.rs`/`fs.rs` (14)**: the text engine lost provenance through a
+- **mdbook `init.rs` (14)**: the text engine lost provenance through a
   re-bound local (`let themedir = self.root.join(themedir)`); resolving the
   actual `LetStmt` reports the writes uniformly with the 21 it already found.
-  Same class, under-reporting bug in the text engine.
-- **openssl-src `lib.rs` (13)**: `Build::out_dir()` stores a caller value into
+- **openssl-src `lib.rs` (11)**: `Build::out_dir()` stores a caller value into
   the field, so the field summary is `param`; the library's own writes to it are
   reported at `info`/`warn`. This is the deliberate may-analysis behaviour of
-  the field summary (taint dominates trust), and the audit labels judge it.
-- **`store_sqlite_tests.rs` (4), `main.rs` (2), `output.rs`/`build.rs` (4)**:
-  writes/execs from parameters or environment in test modules and examples that
-  the text engine missed through binding/field resolution.
-- **1 × `exec_basename`**: a `Command::new("cmd")` in a `#[cfg(windows)]` block,
-  recovered by the Windows pass.
+  the field summary (taint dominates trust). The eleventh is
+  `Command::new("cmd")` inside `#[cfg(windows)]`, recovered by the Windows
+  pass.
+- **`xcb` (4)**: two build-script writes to an export directory taken from an
+  environment variable, and two `Command::new(rustfmt)` calls whose program is
+  the caller's `--rustfmt` value.
+- **`cranelift-codegen` (2)**: `fs::write` to a path from `SERIALIZE_REGALLOC`,
+  behind the feature this load enables.
+- **`trust-dns-server` (4)**: `create_dir_all`/`remove_file` on a journal path
+  built from parameters in a test helper.
+- **`lettre` (2), `temporary` (2)**: `File::create`/`create_dir` on a path
+  derived from a parameter or field, resolved through the binding/field
+  summaries rather than dropped as `unknown`.
+- **`pyo3` (2)**: `Command::new(bin)` where `bin` is the closure parameter of
+  `.find(...)` over a literal `["python", "python3"]`. The engine reports it as
+  `exec_tainted_cmd` (`param`) rather than `exec_basename` (literal): the alarm
+  is right, the rule label is the conservative one because closure parameters
+  are `param` unless the adaptor binds them (`find` is not an adapter).
+- **4 × `simd-json`** are the line-shifted sites above, not additional findings.
+
+What the A/B says about the plan. The milestone expected the call-site
+interpretation to close a large share of `unknown` filesystem sinks. It does not:
+the host pass classifies 490/821 with it and 486/821 without it; four calls
+move from `unknown` to `param`, and the findings set is *identical* with and
+without the knob (250 sites either way). The reason is in the
+counter: of the 331 remaining `unknown` calls, the dominant cause is a callee in
+an unresolved dependency — `no_deps` means those bodies are not in the crate
+graph at all, so no amount of analysis depth reaches them. The `unknown` class is
+a *loading-mode* artifact, not an analysis-depth artifact, and closing it means
+resolving dependencies (a different milestone), not deeper summaries. The
+mechanism still earns its place on the sites where the callee *is* local
+(§4, and the fixtures), and it costs 13 vs 13 minutes of wall time on the corpus.
 
 First measurements (2026-11-19), from the loader milestone:
 

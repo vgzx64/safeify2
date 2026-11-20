@@ -236,6 +236,7 @@ impl<'a, 'b> Scanner<'a, 'b> {
                     return;
                 };
                 let prov = self.eval.expr(arg);
+                self.eval.stats.exec_arg_calls.add(prov.kind);
                 let Some(node) = node else {
                     return;
                 };
