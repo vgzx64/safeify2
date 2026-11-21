@@ -247,12 +247,13 @@ pub fn is_constructor(path: &str) -> bool {
     )
 }
 
-/// Functions that *validate* or canonicalise a path; their result is trusted.
+/// Functions that genuinely reduce a path to a safe component; their result is
+/// trusted. `canonicalize` and `parent` are not here: they derive a new path
+/// without confining it, so `prov.rs` keeps the receiver's class instead.
 pub fn is_trusted_producer(path: &str) -> bool {
     matches!(
         strip_lang_prefix(path),
-        "fs::canonicalize" | "path::Path::canonicalize" | "path::Path::file_name"
-            | "path::Path::parent" | "path::Path::components" | "path::Path::to_path_buf"
+        "path::Path::file_name" | "path::Path::components" | "path::Path::to_path_buf"
     )
 }
 
@@ -309,32 +310,16 @@ pub fn join_prov(base: &Prov, arg: &Prov) -> Prov {
             return Prov::literal(value.clone());
         }
     }
-    let kind = match (base.kind, arg.kind) {
-        // An unseen component could be absolute or walk out of the base, so a
-        // known-safe base joined with an unknown one is not a known path. A
-        // caller-controlled base is already what the finding reports.
-        (Kind::Unknown, _) | (_, Kind::Unknown) => {
-            if base.is_tainted() {
-                base.kind
-            } else if arg.is_tainted() {
-                arg.kind
-            } else {
-                Kind::Unknown
-            }
-        }
-        (Kind::Tainted, _) | (_, Kind::Tainted) => Kind::Tainted,
-        (Kind::Param, _) | (_, Kind::Param) => Kind::Param,
-        (Kind::Trusted, _) | (_, Kind::Trusted) => Kind::Trusted,
-        (Kind::Literal, Kind::Literal) => Kind::Literal,
-    };
+    let kind = crate::prov::composition_kind(base.kind, arg.kind);
+    // The detail must describe the side that decided the class: naming a
+    // trusted `OUT_DIR` base for a `param` result is how a message ends up
+    // saying "comes from `OUT_DIR`" about a caller-supplied path.
     let detail = if kind == base.kind && !base.detail.is_empty() {
         base.detail.clone()
     } else if kind == arg.kind && !arg.detail.is_empty() {
         arg.detail.clone()
-    } else if !base.detail.is_empty() {
-        base.detail.clone()
     } else {
-        arg.detail.clone()
+        String::new()
     };
     match (kind, &base.value, &arg.value) {
         (Kind::Literal, Some(base_value), Some(arg_value)) => {

@@ -124,3 +124,47 @@ pub fn stdin_lines() {
     let line = std::io::stdin().lines().next().unwrap().unwrap();
     std::fs::write(line, "x").unwrap();
 }
+
+// `format!` composes taint-dominantly: a trusted prefix does not launder a
+// caller-controlled suffix.
+pub fn formatted_param(user: &str) {
+    let out = std::env::var("OUT_DIR").unwrap();
+    let target = format!("{out}/{user}");
+    std::fs::write(target, "x").unwrap();
+}
+
+// `canonicalize` resolves a path but does not confine it.
+pub fn canonical_writes(p: &str) {
+    let real = std::fs::canonicalize(p).unwrap();
+    std::fs::write(real, "x").unwrap();
+}
+
+// `parent` walks up from a caller path; it does not confine either.
+pub fn parent_join(p: &std::path::Path) {
+    let up = p.parent().unwrap().join("outside");
+    std::fs::write(up, "x").unwrap();
+}
+
+// A `const`/`static` names the literal it is initialised with.
+const MEM_CONST: &str = "/proc/self/mem";
+static PAGEMAP_STATIC: &str = "/proc/self/pagemap";
+
+pub fn const_path() {
+    std::fs::write(MEM_CONST, "x").unwrap();
+}
+
+pub fn static_path() {
+    std::fs::write(PAGEMAP_STATIC, "x").unwrap();
+}
+
+// `+` concatenates two known literals into the path they spell.
+pub fn plus_literal_path() {
+    let base = String::from("/etc/ld.so");
+    std::fs::write(base + ".preload", "x").unwrap();
+}
+
+// A collection's class is the composition of its elements (may-join).
+pub fn collection_join() {
+    let names = ["trusted.txt".to_string(), std::env::var("PROBE_OUT").unwrap()];
+    std::fs::write(&names[1], "x").unwrap();
+}

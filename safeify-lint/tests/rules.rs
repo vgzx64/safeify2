@@ -98,6 +98,21 @@ fn filesystem_command_and_environment_rules() {
             ("fs_tainted_path", 118, "warn"),
             // `lines()` is a taint-producing stdin API.
             ("fs_tainted_path", 125, "warn"),
+            // `format!("{OUT_DIR}/{user}")` composes taint-dominantly, so the
+            // trusted prefix does not launder the caller's suffix.
+            ("fs_tainted_path", 133, "info"),
+            // `canonicalize` and `parent` derive a new path but do not confine
+            // it: the caller's class survives.
+            ("fs_tainted_path", 139, "info"),
+            ("fs_tainted_path", 145, "info"),
+            // `const`/`static` initialisers are values, so the danger table
+            // sees through the name.
+            ("fs_special_path", 153, "deny"),
+            ("fs_special_path", 157, "deny"),
+            // `+` on two known literals spells the danger path.
+            ("fs_special_path", 163, "deny"),
+            // A collection's class is the composition of its elements.
+            ("fs_tainted_path", 169, "warn"),
         ])
     );
 }

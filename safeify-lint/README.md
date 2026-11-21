@@ -78,10 +78,14 @@ Calls into the analysed package are **interpreted at the call site**: arguments
 are bound to the callee's parameters and its tail expression and `return`s are
 evaluated, so `fs::write(dest(root, name))` sees what `dest` does with `root`
 and `name`. `format!("{root}/{name}")` is read from rust-analyzer's
-`FORMAT_ARGS_EXPR`, including implicit captures. Iterator adapters that hand
-back elements (`nth`, `next`, `collect`, `lines`, ...) keep the iterator's
-class, so `env::args().nth(1)` is as caller-controlled as the `for` loop. Field
-reads use a crate-wide `(struct, field)` summary; guards (`canonicalize` +
+`FORMAT_ARGS_EXPR`, including implicit captures, and composition is
+taint-dominant in `format!`, `+` and collection literals: a trusted `OUT_DIR`
+prefix does not launder a caller-controlled suffix. Iterator adapters that
+hand back elements (`nth`, `next`, `collect`, `lines`, ...) keep the
+iterator's class, so `env::args().nth(1)` is as caller-controlled as the `for`
+loop; `canonicalize` and `parent` derive a path but keep the class of their
+input. Field reads use a crate-wide `(struct, field)` summary; guards
+(`canonicalize` +
 `starts_with`, `file_name`, `components` + `ParentDir`) are recognised on the
 dominated path; macros are expanded, including `try!`, `assert!` and
 `matches!`.

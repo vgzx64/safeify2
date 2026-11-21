@@ -82,17 +82,21 @@ never produces a finding; precision comes from refusing to guess. Implemented in
   a path is seen through. Field reads use a crate-wide `(struct, field)`
   summary; a recursive return is cut to `unknown`.
 
-  **Composition is not taint.** `join` (and the other path-composition
-  methods) yields a value as caller-controlled as its more caller-controlled
-  part: `param.join("payload")` stays `param` (`info`), `tainted.join("x")`
-  stays `tainted` (`warn`), and two literals concatenate, so
-  `Path::new("/etc").join("ld.so.preload")` is the literal danger path. An
+  **Composition is taint-dominant.** `join` (and the other path-composition
+  methods), `format!`/`format_args!`, `+` and collection literals all yield a
+  value as caller-controlled as their more caller-controlled part:
+  `param.join("payload")` stays `param` (`info`), `tainted.join("x")` stays
+  `tainted` (`warn`), and a trusted prefix does not launder a suffix
+  (`format!("{OUT_DIR}/{user}")` is `param`, not `trusted`). Two literals
+  concatenate, so `Path::new("/etc").join("ld.so.preload")` and
+  `String::from("/etc/ld.so") + ".preload"` are the literal danger paths. An
   absolute argument discards the base, as `Path::join` does. An unseen
   component joined onto a safe base is `unknown` (it could be absolute).
 
   **Collections are not scalars.** An array/tuple/record literal has the
-  joined class of its elements but no single literal value; `.iter()` keeps the
-  collection's class. A closure parameter bound by an adapter (`.map`,
+  composition of its elements' classes (one caller-controlled element makes the
+  collection caller-controlled) but no single literal value; `.iter()` keeps
+  the collection's class. A closure parameter bound by an adapter (`.map`,
   `.and_then`, ...) takes the receiver's value; one that no adapter bound
   (`for_each`, `find`, `sort_by`) takes the class of what it iterates, and is
   `unknown` when the closure is not passed to a method (rather than claiming
@@ -153,7 +157,7 @@ real advisories are `fixtures/advisories`.
 
 ### 7.2 Corpus prevalence (current)
 
-**Current measurement (semantic engine, 2026-11-21).** Host ∪ Windows pass over
+**Current measurement (semantic engine, 2026-11-21b).** Host ∪ Windows pass over
 the same 329 package versions (147 crates, 8,426 files), findings deduplicated
 by `(rule, path, line)`:
 
@@ -162,25 +166,26 @@ by `(rule, path, line)`:
 | `exec_basename` | 0 | 16 | 46 |
 | `exec_tainted_cmd` | 0 | 13 | 3 |
 | `build_outside_out_dir` | 0 | 4 | 0 |
-| `fs_tainted_path` | 0 | 2 | 174 |
+| `fs_tainted_path` | 0 | 2 | 195 |
 | `env_read_dangerous` | 0 | 0 | 5 |
 | `fs_special_path` | 0 | 0 | 0 |
 | `fs_traversal_literal` | 0 | 0 | 0 |
 | `env_set_dangerous` | 0 | 0 | 0 |
 | `exec_shell_tainted` | 0 | 0 | 0 |
-| **total** | **0** | **35** | **228** |
+| **total** | **0** | **35** | **249** |
 
-**263 findings in 96 of 8,426 files** (1.1%). Artifacts:
-[`lint_corpus_semantic_2026-11-21_union.json`](../../safeify-lint/out/lint_corpus_semantic_2026-11-21_union.json)
+**284 findings in 97 of 8,426 files** (1.2%). Artifacts:
+[`lint_corpus_semantic_2026-11-21b_union.json`](../../safeify-lint/out/lint_corpus_semantic_2026-11-21b_union.json)
 (host and Windows passes separately in `_host.json` / `_win.json`, and the
 `SAFEIFY_INTERPROC=0` A/B in `_nointerproc.json`); the per-rule diff against the
 frozen census is printed by
 [`run_semantic_corpus.py`](../../safeify-lint/corpus/run_semantic_corpus.py) and
 summarised in [engine.md §7](engine.md#7-measurements-the-engine-must-produce).
-The 2026-11-20 run (261 sites) is kept under that date for the delta.
+The step-1 run (263 sites, 2026-11-21) and the pre-review run (261 sites,
+2026-11-20) are kept under their dates for the deltas.
 
 Against the frozen census (249 distinct sites in 91 files) the union shares
-**218 sites**: 31 old-only and 45 new-only, all explained.
+**218 sites**: 31 old-only and 66 new-only, all explained.
 
 - **Old-only, 27:** `slice-deque`'s
   `ci/deploy_and_run_on_ios_simulator.rs` (3 versions, 8 `exec_basename` + 1
@@ -204,6 +209,12 @@ Against the frozen census (249 distinct sites in 91 files) the union shares
 - **New-only, 2:** `libsbc` 0.1.4/0.1.5 `examples/decode.rs` writes
   `env::args().nth(..)`; the iterator adapter now keeps argv's class (all
   `info`, so the actionable census and every audit label are unchanged).
+- **New-only, 21:** writes whose path is `x.parent()`/`canonicalize(x)` with `x`
+  caller-supplied — `mdbook` 14 (book, renderer and utils, two versions),
+  `trust-dns-server` 4, `xcb` 2, `lettre` 1, all `info`. `parent()` used to be
+  an unconditional `trusted` producer, which laundered the caller's class; it
+  now keeps it. Every new site is `info`, so the actionable census and all
+  labels are unchanged.
 
 **Historical measurement (text engine, 2026-11-19).** The pilot census that
 justified the port, on the same corpus:
@@ -228,23 +239,23 @@ the `info` stratum because any library that writes to a caller-supplied path
 matches — that is why the parameter case is `info` and only writes are
 considered.
 
-### 7.3 Precision audit (current, 2026-11-21)
+### 7.3 Precision audit (current, 2026-11-21b)
 
 **Frame.** Census, not a sample: after deduplicating the same code site across
-crate versions, the semantic census has **169 unique sites**, of which **28 are
-`warn`/`deny` in 10 crates** and 141 are `info`. All 28 were labelled by reading
+crate versions, the semantic census has **180 unique sites**, of which **28 are
+`warn`/`deny` in 10 crates** and 152 are `info`. All 28 were labelled by reading
 each site with four lines of context; 25 carry over from the 2026-11-19 sheet
-(same `rule|path|line`), 3 were new in the 2026-11-20 audit, and the two
-2026-11-21 additions are `info`, so every label still applies
-(`lint_audit_labels_2026-11-21.json` has the same 28 keys). The sheet, labels and
+(same `rule|path|line`), 3 were new in the 2026-11-20 audit, and every addition
+since (2 on 2026-11-21, 21 on 2026-11-21b) is `info`, so every label still
+applies (`lint_audit_labels_2026-11-21b.json` has the same 28 keys). The sheet, labels and
 statistics are reproducible:
 
 ```
 python3 safeify-lint/audit_lint.py \
-    --corpus safeify-lint/out/lint_corpus_semantic_2026-11-21_union.json \
-    --sheet safeify-lint/out/lint_audit_2026-11-21.jsonl --info-sample 0
-python3 safeify-lint/audit_lint.py --sheet safeify-lint/out/lint_audit_2026-11-21.jsonl \
-    --labels safeify-lint/out/lint_audit_labels_2026-11-21.json --stats
+    --corpus safeify-lint/out/lint_corpus_semantic_2026-11-21b_union.json \
+    --sheet safeify-lint/out/lint_audit_2026-11-21b.jsonl --info-sample 0
+python3 safeify-lint/audit_lint.py --sheet safeify-lint/out/lint_audit_2026-11-21b.jsonl \
+    --labels safeify-lint/out/lint_audit_labels_2026-11-21b.json --stats
 ```
 
 **Results.** Two numbers, because "is it correct" and "is it worth a human's
@@ -288,7 +299,7 @@ that demotes only those names, leaving unusual ones at `warn`. That remains
 unimplemented: it changes the census and the strict-TP count, so it needs its
 own measurement and audit.
 
-**Not audited.** The 141 unique `info` sites were sanity-checked only (spot
+**Not audited.** The 152 unique `info` sites were sanity-checked only (spot
 review while building the sheet); no precision number is claimed for them, and
 it should not be: by construction they are the "library takes a caller path"
 class.
@@ -463,6 +474,23 @@ third (`xcb`'s parameter-chosen `rustfmt`) was a genuine finding.
     `--debug-macro`; findings and engine errors both exited `1` (now `1` and
     `2`); and a failed `cargo metadata` silently disabled every feature cfg
     (now warns and continues).
+12. **`format!`, `+` and collection literals used the expression join.**
+    `Prov::join` is the Ord maximum, which puts `trusted` above `tainted`, so a
+    trusted prefix laundered a caller-controlled suffix:
+    `format!("{OUT_DIR}/{user}")` was `trusted` and silent while
+    `Path::new(&out).join(user)` was `param` and fired. Composition now uses
+    the taint-dominant table (`composition_kind`, shared with `join`), two
+    literal pieces concatenate into the value they spell, and the join's detail
+    no longer names the trusted side of a `param` result.
+13. **`canonicalize` and `parent` were unconditional `trusted` producers.**
+    They derive a new path but do not confine it, so `fs::write(canonicalize(p))`
+    was silent for a caller-supplied `p`, and `p.parent()` laundered the same
+    way. Both now keep the receiver's class and drop the value: 21 new `info`
+    sites in the corpus (`mdbook`, `trust-dns-server`, `xcb`, `lettre`) and no
+    change to the actionable census.
+14. **A `const`/`static` carried no value.** `const MEM: &str = "/proc/self/mem";
+    fs::write(MEM, ..)` was `literal` without a value, so a deny-level path was
+    invisible behind a name. The initialiser is now evaluated like a `let`.
 
 ## 9. Known limitations
 

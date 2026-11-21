@@ -212,10 +212,10 @@ rather than a text pattern:
 
 | Mechanism | Query | Why it matters |
 |---|---|---|
-| Crate-local returns | `Crate::origin` (local) → `Function::assoc_fn_params` / `Param::as_local` bound into the substitution → tail expression and `return`s of the callee body | `fs::write(dest(root, name))` sees what `dest` does with `root` and `name`; a helper that ends in `canonicalize` returns `trusted`. Context-sensitive, no summary table (§4). |
+| Crate-local returns | `Crate::origin` (local) → `Function::assoc_fn_params` / `Param::as_local` bound into the substitution → tail expression and `return`s of the callee body | `fs::write(dest(root, name))` sees what `dest` does with `root` and `name`; a helper that returns `canonicalize(p)` returns the class of `p`. Context-sensitive, no summary table (§4). |
 | Pattern bindings | `hir::Local::primary_source` → `IdentPat` → enclosing `let` / `if let` / `match` / `for` | `if let Some(p) = env::var(..).ok()` keeps the taint of the scrutinee; the text engine lost it unless the names matched its binding table. |
 | Closure adapters | `resolve_method_call` → `Option::map`, then the closure body is evaluated with its parameter bound in a substitution | `env::var_os("OUT_DIR").map(|s| PathBuf::from(s).join("b"))` stays `trusted`; naive text classification either drops it or marks the whole chain tainted. |
-| Field summaries | `type_of_expr` → `as_adt` → crate-wide `(struct, field)` index built from record literals and assignments | `self.out_dir` initialised from `OUT_DIR` is trusted, while a field written from a parameter is not. Joins are taint-dominant (a single caller-controlled write wins), unlike the expression-level join. |
+| Field summaries | `type_of_expr` → `as_adt` → crate-wide `(struct, field)` index built from record literals and assignments | `self.out_dir` initialised from `OUT_DIR` is trusted, while a field written from a parameter is not. Field joins are taint-dominant (a single caller-controlled write wins); the expression-level maximum is reserved for branch alternatives. |
 | Guards | dominated `if` conditions: `starts_with` whose receiver resolves back to a `canonicalize` call, or `components` + `ParentDir` | a `File::create` inside `if canonical.starts_with(prefix)` is not a counterexample; the same value written after the `if` is. |
 | Macro bodies | `expand_macro_call` → walk the expansion | `try!(File::create(path))` and `assert!(matches!(..))` hide their calls in a token tree; the expansion is a real syntax tree whose nodes resolve. |
 | Suppressions | `lint_attrs(file_id, crate, item)` over the item's ancestors | `#[allow(safeify::exec_basename)]` works at function, module and crate level, including `cfg_attr` and `#[expect]`; a `// safeify: allow(...)` comment covers the function. |
@@ -261,7 +261,7 @@ format string as the path), and a multi-line call is reported at the
 sees that as an old-only/new-only pair even though it is the same site.
 
 **Two tables were being consulted with the wrong key.** `is_trusted_producer`
-(`path::Path::file_name`, `path::Path::canonicalize`) and `taint_source`
+(`path::Path::file_name`) and `taint_source`
 (`net::TcpStream::connect`) are keyed by qualified path, but the method branch
 looked them up with the bare method name, so `p.file_name()` never matched and
 `stream.connect(...)` never became a taint source. Fixed by passing the
@@ -401,44 +401,49 @@ moved back (`Vec::from_raw_parts/3-2.rs` claims `N` again) —
 ## 7. Measurements the engine must produce
 
 Recorded here as they land, so the claim "semantic > text" is a number and not
-an assertion. The semantic column is the 2026-11-21 run after the review fixes
-([counterexamples.md §8](counterexamples.md#defects-found-in-the-2026-11-21-review)); the 2026-11-20 run and its `_prejoin_` artifacts are retained for the
-delta.
+an assertion. The semantic column is the 2026-11-21b run after the second review
+pass ([counterexamples.md §8](counterexamples.md#defects-found-in-the-2026-11-21-review));
+the step-1 run (2026-11-21), the pre-review run (2026-11-20) and the `_prejoin_`
+artifacts are retained for the deltas.
 
 | Metric | Text engine | Semantic engine |
 |---|---|---|
-| filesystem sink calls classified (not `unknown`) | 470/915 (51%) | **537/821 (65%)** |
-| — of which the call-site interpretation closes | — | 14 (298 → 284 `unknown`, same binary) |
+| filesystem sink calls classified (not `unknown`) | 470/915 (51%) | **545/821 (66%)** |
+| — of which the call-site interpretation closes | — | 22 (298 → 276 `unknown`, same binary) |
 | command-execution programs classified | not measured | 73/81 (90%) |
 | crate-local calls interpreted / recursion cuts / depth cuts | — | 390 / 4 / 0 |
-| same-function-only limitations hit by the corpus | dropper class unmeasurable | 0 findings changed by the call-site interpretation |
+| same-function-only limitations hit by the corpus | dropper class unmeasurable | 5 `info` sites need the interpretation (tuple-return destructuring); the actionable set is unchanged |
 | audit precision on the actionable census | 24/25 = 0.96 | **27/28 = 0.96** (§7.1) |
-| corpus findings / `warn` | 251 rows / 31 | **263 sites / 35** |
+| corpus findings / `warn` | 251 rows / 31 | **284 sites / 35** |
 | wall time, 329 packages (12 cores) | ~2.5–4 min | 8 min warm, 13 min cold (10 jobs) |
 
 Corpus-wide differential (329 crate versions, 8,426 files). Artifacts, all
 regenerated by [`corpus_report.py`](../../safeify-lint/corpus/corpus_report.py):
 
-- [`lint_corpus_semantic_2026-11-21_union.json`](../../safeify-lint/out/lint_corpus_semantic_2026-11-21_union.json)
-  — host ∪ Windows pass, **263 findings in 96 files** (census: 249 distinct
-  sites in 91 files); severity 35 `warn` / 228 `info` (census: 31 `warn`).
-  218 sites are shared with the census; the 31 old-only and 45 new-only sites
+- [`lint_corpus_semantic_2026-11-21b_union.json`](../../safeify-lint/out/lint_corpus_semantic_2026-11-21b_union.json)
+  — host ∪ Windows pass, **284 findings in 97 files** (census: 249 distinct
+  sites in 91 files); severity 35 `warn` / 249 `info` (census: 31 `warn`).
+  218 sites are shared with the census; the 31 old-only and 66 new-only sites
   are each accounted for in
   [counterexamples.md §7.2](counterexamples.md#72-corpus-prevalence-current)
   (27 non-target `ci/` files, 4 argument-line shifts, 34 composed `param` writes
   the text engine could not see, 4 new warnings, 1 Windows-only `cmd`, 2 argv
-  writes through an iterator adapter).
-- [`lint_corpus_semantic_2026-11-21_host.json`](../../safeify-lint/out/lint_corpus_semantic_2026-11-21_host.json) /
-  [`_win.json`](../../safeify-lint/out/lint_corpus_semantic_2026-11-21_win.json)
-  — the two cfg passes (329 packages each, **250 / 255** sites; 8 host-only,
+  writes through an iterator adapter, 21 `parent`/`canonicalize` writes).
+- [`lint_corpus_semantic_2026-11-21b_host.json`](../../safeify-lint/out/lint_corpus_semantic_2026-11-21b_host.json) /
+  [`_win.json`](../../safeify-lint/out/lint_corpus_semantic_2026-11-21b_win.json)
+  — the two cfg passes (329 packages each, **271 / 276** sites; 8 host-only,
   13 Windows-only).
-- [`lint_corpus_semantic_2026-11-21_nointerproc.json`](../../safeify-lint/out/lint_corpus_semantic_2026-11-21_nointerproc.json)
+- [`lint_corpus_semantic_2026-11-21b_nointerproc.json`](../../safeify-lint/out/lint_corpus_semantic_2026-11-21b_nointerproc.json)
   — the same host pass with `SAFEIFY_INTERPROC=0`, the A/B for the call-site
-  interpretation: the finding set is identical (0 sites changed), so the
-  interpretation changes only *coverage* (14 calls, below), not the report.
+  interpretation: it closes 22 calls (298 → 276 `unknown`) and the report
+  changes by 5 `info` sites (`mdbook`/`lettre`: a local helper's tuple return is
+  destructured, and the tuple carries one caller-controlled element). The
+  actionable set is identical.
+- [`lint_corpus_semantic_2026-11-21_union.json`](../../safeify-lint/out/lint_corpus_semantic_2026-11-21_union.json)
+  — the step-1 run (263 sites in 96 files), kept for the delta: 2 `info` argv
+  writes through `nth`.
 - [`lint_corpus_semantic_2026-11-20_union.json`](../../safeify-lint/out/lint_corpus_semantic_2026-11-20_union.json)
-  — the previous run (261 sites in 94 files), kept for the step-1 delta: the
-  only change is 2 `info` argv writes through `nth`.
+  — the pre-review run (261 sites in 94 files).
 - [`lint_corpus_semantic_2026-11-20_prejoin_union.json`](../../safeify-lint/out/lint_corpus_semantic_2026-11-20_prejoin_union.json)
   — the pre-fix measurement (263 sites, 65 `warn`) kept for the delta:
   `join` no longer promotes a `param` to `tainted`, so its false warnings are
@@ -447,36 +452,36 @@ regenerated by [`corpus_report.py`](../../safeify-lint/corpus/corpus_report.py):
   [`lint_corpus_semantic_2026-11-20.json`](../../safeify-lint/out/lint_corpus_semantic_2026-11-20.json)
   so the delta is reproducible: `corpus_report.py --union ...--baseline` on the
   two files.
-- [`stats_2026-11-21_host.jsonl`](../../safeify-lint/out/stats_2026-11-21_host.jsonl) /
-  [`_win.jsonl`](../../safeify-lint/out/stats_2026-11-21_win.jsonl) /
-  [`_nointerproc.jsonl`](../../safeify-lint/out/stats_2026-11-21_nointerproc.jsonl)
+- [`stats_2026-11-21b_host.jsonl`](../../safeify-lint/out/stats_2026-11-21b_host.jsonl) /
+  [`_win.jsonl`](../../safeify-lint/out/stats_2026-11-21b_win.jsonl) /
+  [`_nointerproc.jsonl`](../../safeify-lint/out/stats_2026-11-21b_nointerproc.jsonl)
   — per-crate classification counters behind the first four rows (the corpus
   driver aggregates them; the logs are
-  [`corpus_run_2026-11-21_host.log`](../../safeify-lint/out/corpus_run_2026-11-21_host.log)
+  [`corpus_run_2026-11-21b_host.log`](../../safeify-lint/out/corpus_run_2026-11-21b_host.log)
   and `_win.log`).
 
 Reproduce the corpus numbers from the repository root:
 
 ```sh
 R=safeify-lint/corpus/run_semantic_corpus.py; O=safeify-lint/out
-python3 $R --out $O/lint_corpus_semantic_2026-11-21_host.json --jobs 10
-python3 $R --out $O/lint_corpus_semantic_2026-11-21_win.json --jobs 10 \
+python3 $R --out $O/lint_corpus_semantic_2026-11-21b_host.json --jobs 10
+python3 $R --out $O/lint_corpus_semantic_2026-11-21b_win.json --jobs 10 \
     --engine-args windows,target_family=windows
-SAFEIFY_INTERPROC=0 python3 $R --out $O/lint_corpus_semantic_2026-11-21_nointerproc.json --jobs 10
+SAFEIFY_INTERPROC=0 python3 $R --out $O/lint_corpus_semantic_2026-11-21b_nointerproc.json --jobs 10
 python3 safeify-lint/corpus/corpus_report.py \
-    --union $O/lint_corpus_semantic_2026-11-21_host.json $O/lint_corpus_semantic_2026-11-21_win.json \
+    --union $O/lint_corpus_semantic_2026-11-21b_host.json $O/lint_corpus_semantic_2026-11-21b_win.json \
     --baseline $O/lint_corpus_2026-11-19.json \
-    --out $O/lint_corpus_semantic_2026-11-21_union.json
+    --out $O/lint_corpus_semantic_2026-11-21b_union.json
 ```
 
 ### 7.1 Precision audit of the semantic census
 
 The gate for every engine change is the labelled census, not the finding count.
-Of the 169 unique sites, 28 are actionable (`warn`/`deny`) in 10 crates; all 28
+Of the 180 unique sites, 28 are actionable (`warn`/`deny`) in 10 crates; all 28
 were read with four lines of context (25 labels carry over from the text-era
-sheet, 3 were new in the 2026-11-20 audit; the 2026-11-21 additions are `info`,
-so all 28 keys keep their label), and the labels live in
-[`lint_audit_labels_2026-11-21.json`](../../safeify-lint/out/lint_audit_labels_2026-11-21.json):
+sheet, 3 were new in the 2026-11-20 audit; every addition since is `info`, so
+all 28 keys keep their label), and the labels live in
+[`lint_audit_labels_2026-11-21b.json`](../../safeify-lint/out/lint_audit_labels_2026-11-21b.json):
 
 | Rule | sites | correct (TP+TL) | strict TP |
 |---|---|---|---|
@@ -492,17 +497,17 @@ from the text-engine audit: the program path is produced by a helper in another
 crate (`which`), which `no_deps` cannot see, and the field summary is a
 may-join. The complete argument — including why 13 correct `exec_basename`
 warnings only yield 3 strict hits — is in
-[counterexamples.md §7.3](counterexamples.md#73-precision-audit-current-2026-11-21).
+[counterexamples.md §7.3](counterexamples.md#73-precision-audit-current-2026-11-21b).
 
 ```sh
 python3 safeify-lint/audit_lint.py \
-    --corpus safeify-lint/out/lint_corpus_semantic_2026-11-21_union.json \
-    --sheet safeify-lint/out/lint_audit_2026-11-21.jsonl --info-sample 0
+    --corpus safeify-lint/out/lint_corpus_semantic_2026-11-21b_union.json \
+    --sheet safeify-lint/out/lint_audit_2026-11-21b.jsonl --info-sample 0
 python3 safeify-lint/audit_lint.py \
-    --sheet safeify-lint/out/lint_audit_2026-11-21.jsonl \
-    --labels safeify-lint/out/lint_audit_labels_2026-11-21.json --stats
+    --sheet safeify-lint/out/lint_audit_2026-11-21b.jsonl \
+    --labels safeify-lint/out/lint_audit_labels_2026-11-21b.json --stats
 ```
 
 Statistics and the sheet are committed next to the labels
-(`lint_audit_stats_2026-11-21.txt`), so the precision and its intervals are
+(`lint_audit_stats_2026-11-21b.txt`), so the precision and its intervals are
 reproducible without re-reading the sites.

@@ -71,12 +71,63 @@ impl Prov {
 
     /// Join two provenances: the more conservative-information one wins, with
     /// `unknown` absorbing everything (a value we cannot see never fires).
+    /// This is the *expression* join, for alternatives (`if`/`else`, several
+    /// `return`s); concatenated pieces use [`composition_join`].
     pub fn join(a: Self, b: Self) -> Self {
         if a.kind >= b.kind {
             a
         } else {
             b
         }
+    }
+}
+
+/// The class of a value built out of two pieces (`format!`, `+`, a
+/// collection literal): taint-dominant, so a trusted prefix cannot launder a
+/// caller-controlled suffix. `unknown` absorbs unless the other piece is
+/// caller-controlled, matching [`crate::sink::join_prov`].
+pub fn composition_kind(a: Kind, b: Kind) -> Kind {
+    let tainted = |kind: Kind| matches!(kind, Kind::Param | Kind::Tainted);
+    match (a, b) {
+        (Kind::Unknown, _) | (_, Kind::Unknown) => {
+            if tainted(a) {
+                a
+            } else if tainted(b) {
+                b
+            } else {
+                Kind::Unknown
+            }
+        }
+        (Kind::Tainted, _) | (_, Kind::Tainted) => Kind::Tainted,
+        (Kind::Param, _) | (_, Kind::Param) => Kind::Param,
+        (Kind::Trusted, _) | (_, Kind::Trusted) => Kind::Trusted,
+        (Kind::Literal, Kind::Literal) => Kind::Literal,
+    }
+}
+
+/// Compose two pieces, keeping the detail of the side whose class the result
+/// has. The value is not carried: concatenating a string is not the same as
+/// naming one literal, and callers that can build the value do so themselves.
+pub fn composition_join(a: &Prov, b: &Prov) -> Prov {
+    let kind = composition_kind(a.kind, b.kind);
+    let detail = if kind == a.kind && !a.detail.is_empty() {
+        a.detail.clone()
+    } else if kind == b.kind && !b.detail.is_empty() {
+        b.detail.clone()
+    } else {
+        String::new()
+    };
+    Prov::with_detail(kind, detail)
+}
+
+/// A path derived from a base by `canonicalize`/`parent`: the result is a new
+/// path, so the literal value is gone, but the base's class survives — neither
+/// operation confines the path to a directory.
+fn derived_without_value(base: &Prov) -> Prov {
+    match base.kind {
+        Kind::Tainted => Prov::with_detail(Kind::Tainted, base.detail.clone()),
+        Kind::Param | Kind::Trusted | Kind::Literal => Prov::new(base.kind),
+        Kind::Unknown => Prov::unknown(),
     }
 }
 
@@ -340,9 +391,10 @@ impl<'a> Eval<'a> {
     }
 
     /// A collection (`[a, b]`, `(a, b)`, `S { f: v, .. }`) is not a scalar: the
-    /// kind is the join of its elements, but no single literal value represents
-    /// it, so value-carrying rules (the danger table, `exec_basename`) must not
-    /// fire on one arbitrary element.
+    /// kind is the composition of its elements (one caller-controlled element
+    /// makes the collection caller-controlled), but no single literal value
+    /// represents it, so value-carrying rules (the danger table,
+    /// `exec_basename`) must not fire on one arbitrary element.
     fn collection_prov(
         &self,
         exprs: impl Iterator<Item = Option<ast::Expr>>,
@@ -350,7 +402,15 @@ impl<'a> Eval<'a> {
         seen: &mut HashSet<Local<'a>>,
         subst: &mut Subst,
     ) -> Prov {
-        let mut prov = self.join_all(exprs, depth, seen, subst);
+        let mut prov: Option<Prov> = None;
+        for expr in exprs.flatten() {
+            let item = self.expr_inner(&expr, depth + 1, seen, subst);
+            prov = Some(match prov {
+                Some(prev) => composition_join(&prev, &item),
+                None => item,
+            });
+        }
+        let mut prov = prov.unwrap_or_else(Prov::unknown);
         prov.value = None;
         prov
     }
@@ -379,7 +439,12 @@ impl<'a> Eval<'a> {
         };
         let a = self.expr_inner(&lhs, depth + 1, seen, subst);
         let b = self.expr_inner(&rhs, depth + 1, seen, subst);
-        Prov::join(a, b)
+        let mut prov = composition_join(&a, &b);
+        // Two string literals concatenate into the literal they spell.
+        if let (Some(left), Some(right)) = (&a.value, &b.value) {
+            prov.value = Some(format!("{left}{right}"));
+        }
+        prov
     }
 
     fn path_expr(
@@ -399,9 +464,36 @@ impl<'a> Eval<'a> {
                 }
                 self.local_prov(local, depth, seen, subst)
             }
-            Some(PathResolution::Def(hir::ModuleDef::Const(_))) => Prov::new(Kind::Literal),
+            // A `const`/`static` names a value: evaluate its initializer like a
+            // `let`, so `const MEM: &str = "/proc/self/mem"` reaches the danger
+            // table instead of being a literal without a value.
+            Some(PathResolution::Def(hir::ModuleDef::Const(item))) => self
+                .initializer(item, depth, seen, subst),
+            Some(PathResolution::Def(hir::ModuleDef::Static(item))) => self
+                .initializer(item, depth, seen, subst),
             _ => Prov::unknown(),
         }
+    }
+
+    /// The initializer expression of a `const`/`static`, evaluated in the
+    /// caller's substitution context. The expression is the item's only `Expr`
+    /// child (the type is a `Type` node).
+    fn initializer<Def: hir::HasSource>(
+        &self,
+        item: Def,
+        depth: usize,
+        seen: &mut HashSet<Local<'a>>,
+        subst: &mut Subst,
+    ) -> Prov {
+        let Some(source) = self.sema.source(item) else {
+            return Prov::unknown();
+        };
+        source
+            .value
+            .syntax()
+            .children()
+            .find_map(ast::Expr::cast)
+            .map_or_else(Prov::unknown, |expr| self.expr_inner(&expr, depth + 1, seen, subst))
     }
 
     /// A binding's provenance, in priority order: a substituted value (closure
@@ -633,6 +725,10 @@ impl<'a> Eval<'a> {
             }
             return Prov::unknown();
         }
+        // `fs::canonicalize(p)` derives a path that is still caller-chosen.
+        if sink::normalized(path) == "fs::canonicalize" {
+            return derived_without_value(&first_arg_prov(self, call, depth, seen, subst));
+        }
         if sink::is_constructor(path) || sink::is_formatting_producer(path) {
             return self.join_all(
                 call.arg_list().map(|a| a.args().map(Some)).into_iter().flatten(),
@@ -807,6 +903,15 @@ impl<'a> Eval<'a> {
         let path = paths::qualified_path(self.db, function);
         let name = path.rsplit("::").next().unwrap_or(&path);
 
+        // `canonicalize` resolves symlinks and `parent` walks one component up,
+        // but neither confines the path: a caller-supplied receiver stays
+        // caller-supplied. Keep its class and drop the (new) value.
+        if matches!(
+            sink::normalized(&path),
+            "fs::canonicalize" | "path::Path::canonicalize" | "path::Path::parent"
+        ) {
+            return derived_without_value(&receiver);
+        }
         // The trusted/taint tables are keyed by qualified path (`path::Path::
         // file_name`, `net::TcpStream::connect`), so a method must be looked up
         // by the path it resolved to, not by its bare name.
@@ -916,10 +1021,11 @@ impl<'a> Eval<'a> {
         prov
     }
 
-    /// A formatted string: the join of its explicit arguments and of the
+    /// A formatted string: the composition of its explicit arguments and of the
     /// implicit captures in its template (`{name}`), both resolved by
-    /// rust-analyzer. The result is a new string, so it carries no literal
-    /// value even when every piece is literal.
+    /// rust-analyzer. Composition is taint-dominant, so a trusted `OUT_DIR`
+    /// prefix does not launder a caller-controlled suffix. The result is a new
+    /// string, so it carries no literal value even when every piece is literal.
     fn format_args_prov(
         &self,
         e: &ast::FormatArgsExpr,
@@ -930,7 +1036,7 @@ impl<'a> Eval<'a> {
         let mut prov: Option<Prov> = None;
         let mut add = |next: Prov| {
             prov = Some(match prov.take() {
-                Some(prev) => Prov::join(prev, next),
+                Some(prev) => composition_join(&prev, &next),
                 None => next,
             });
         };
