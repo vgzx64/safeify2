@@ -178,9 +178,11 @@ Per `notes/research/synthetic-data-theory.md`:
 5. Report per-pattern recall and the FP rate on `verdict=irreplaceable`
    snippets — the FP-reduction target of `notes/research/research-vectors.md`.
 
-Never report a number measured on synthetic data as a result. The valid pair
-set is 10 pairs (5 pos / 5 neg), so it is a weak selection signal; record that
-limitation explicitly and prefer grouped CV on train for tuning.
+Never report a number measured on synthetic data as a result. The shipped
+valid pair file is 10 pairs (5 pos / 5 neg); the enlarged
+`splits/valid_pairs_full.csv` (839 pairs, 34 both-N negatives) is the selection
+set with the `--full` scorer, while grouped CV on train remains the held-out
+signal. Record sample sizes explicitly.
 
 ## 5. Provenance
 

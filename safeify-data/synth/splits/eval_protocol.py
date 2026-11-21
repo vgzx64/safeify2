@@ -19,7 +19,9 @@ Modes
                          query-cluster bootstrap intervals, FP slices on
                          N-query x Y/M-gallery and both-N negatives, and
                          metrics excluding same-text pairs (corpus label
-                         conflicts).
+                         conflicts). Verifies <split>_pairs_full.csv against
+                         the sha256 recorded in the manifest and refuses a
+                         mismatched file.
 --retrieval-preds FILE   score retrieval against the fixed KB gallery.
                          FILE: JSON list of {"id": "<testdata rel_path>",
                          "pattern_id": N}. Reports top-1 pattern accuracy,
@@ -42,6 +44,9 @@ from collections import defaultdict
 
 SYNTH_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SPLITS_DIR = os.path.join(SYNTH_ROOT, "splits")
+
+sys.path.insert(0, SPLITS_DIR)
+from make_eval import sha_file  # noqa: E402  (one hash implementation)
 
 
 def load_json(name):
@@ -187,6 +192,16 @@ def wilson(k, n, z=1.96):
 def score_pairs_full(pred_path, split: str = "test"):
     """Score the enlarged stratified pair set (make_eval_full.py)."""
     eval_m = load_json(manifest_full_name(split))
+    pairs_path = os.path.join(SPLITS_DIR, f"{split}_pairs_full.csv")
+    want = eval_m.get("pairs_sha256")
+    if want is not None:  # manifests written before 2026-11-21 predate the hash
+        if not os.path.isfile(pairs_path):
+            sys.exit(f"missing {pairs_path} — regenerate with make_eval_full.py")
+        got = sha_file(pairs_path)
+        if got != want:
+            sys.exit(f"{pairs_path}: sha256 {got} does not match {want} in "
+                     f"{manifest_full_name(split)} — regenerate with "
+                     f"make_eval_full.py")
     with open(pred_path, newline="", encoding="utf-8") as f:
         reader = csv.DictReader(f)
         if not reader.fieldnames or "label" not in reader.fieldnames:
@@ -294,8 +309,9 @@ def score_pairs_full(pred_path, split: str = "test"):
           f"({len(queries)} queries, B=2000, seed 1234):")
     print(f"  accuracy [{accs[49]:.4f}, {accs[1949]:.4f}]  "
           f"macro_f1 [{f1s[49]:.4f}, {f1s[1949]:.4f}]")
-    print("  (pair-level Wilson intervals above ignore this clustering; "
-          "the bootstrap is the honest one)")
+    print("  (pair-level Wilson intervals ignore clustering; these intervals "
+          "cluster by query only and condition on the fixed gallery — QQ pairs "
+          "share both endpoints, so QQ intervals are still slightly optimistic)")
 
 
 def score_retrieval(pred_path, split: str = "test"):

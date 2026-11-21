@@ -22,15 +22,19 @@ The data prerequisite is now met; the model prerequisite is not.
   `train_hard` 1,000 pairs.
 - `python splits/check_train_leakage.py` prints `OK` for all four files
   (0/69 valid, 0/97 test). The exact test pair overlap is 0.
-- A valid selection path exists: `valid_pairs.csv` (10 pairs: 5 pos / 5 neg)
-  and `eval_protocol.py --split valid`. Test stays sealed at 76 pairs.
+- Selection/report path: `valid_pairs_full.csv` / `test_pairs_full.csv` via
+  `eval_protocol.py --full` (below). The shipped `valid_pairs.csv` (10 pairs)
+  and `test_pairs.csv` (76) are kept only for backward compatibility; the test
+  split is never scored during tuning.
 - **Enlarged eval sets** (`splits/make_eval_full.py`, 2026-11-21): stratified
   query×gallery + query×query pairs over the same frozen snippets —
   `valid_pairs_full.csv` 839 pairs (123 pos / 716 neg, 34 both-N negatives),
   `test_pairs_full.csv` 1,283 pairs (212 pos / 1,071 neg, 44 both-N, 140
   N-query×Y/M-gallery hard negatives). Construction rule and seed 1234 were
   fixed before any model scored on them; the 76/10 files remain for backward
-  compatibility. Generate with `python splits/make_eval_full.py --split all`
+  compatibility. Verify the committed files with `python
+  splits/make_eval_full.py --check`. Generate with `python
+  splits/make_eval_full.py --split all`
   (needs the AST cache), score with `eval_protocol.py --split valid
   --pairs-preds ... --full`.
 - The shipped `vendors/SafeNet/.../train.csv` is **not** clean (25 test, 23
@@ -48,7 +52,10 @@ The data prerequisite is now met; the model prerequisite is not.
 - The shipped 10-pair valid file cannot select a threshold or estimate the
   safety FP rate; the enlarged `valid_pairs_full.csv` (839 pairs, 34 both-N
   negatives) is the selection set from 2026-11-21 — generate it with
-  `splits/make_eval_full.py` before the first training run.
+  `splits/make_eval_full.py` before the first training run. Only 5 of its 123
+  positives are held-out QQ; the rest are QG against the training-seen
+  gallery, so threshold selection is a retrieval measurement, not held-out
+  generalisation.
 - No model has been trained; there is no accuracy to report.
 
 ## Chosen first approach: frozen-BERT embedding cache + pair head
@@ -87,8 +94,8 @@ What it does **not** solve:
 - Changing the checkpoint, tokenizer, max length, or unfreezing BERT invalidates
   the cache.
 - The 10-pair valid file remains weak; the enlarged `valid_pairs_full.csv`
-  (839 pairs) replaces it for selection, with grouped CV on train as the
-  secondary signal.
+  (839 pairs) replaces it for threshold/FP selection, while grouped CV on
+  train stays the held-out tuning signal.
 
 ## Open decisions
 
@@ -99,9 +106,10 @@ What it does **not** solve:
    switch to raw Rust, or the comparison with SafeNet is lost.
 3. **Head and loss.** Start with cosine similarity plus a learned scale and a
    binary/contrastive loss; only add an MLP if the baseline underfits.
-4. **Selection.** `valid_pairs_full.csv` (839 pairs, `--full` scorer) plus
-   grouped CV on `train` (groups = source file/API). Score the `test` full set
-   (1,283 pairs) once.
+4. **Selection.** `valid_pairs_full.csv` (839 pairs, `--full` scorer) for the
+   threshold/FP trade-off plus grouped CV on `train` (groups = source
+   file/API) for held-out generalisation. Score the `test` full set (1,283
+   pairs) once.
 5. **Acceptance criteria.** Pair macro-F1, per-pattern recall, and FP rate on
    both-N pairs, against a TF-IDF or constant baseline; report intervals and
    sample sizes.

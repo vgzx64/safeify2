@@ -142,20 +142,26 @@ Pattern ids and Y/M/N assignments follow
   score `test` **once** with `--split test` (pair metrics + per-pattern recall)
   or `--retrieval-preds <json>` (gallery retrieval).
 - The shipped valid pair set is only **10 pairs (5 pos / 5 neg)** and has no
-  both-N pairs, so it is a weak selection signal and cannot estimate the
+  both-N negatives, so it is a weak selection signal and cannot estimate the
   safety FP rate. The **enlarged full sets** (`splits/make_eval_full.py`:
-  valid 839 / test 1,283 pairs, 34 / 44 both-N negatives) replace it for
-  selection and reporting — add `--full` to the `eval_protocol.py` commands
-  above. Prefer grouped CV on train as the secondary signal and report the
-  valid/test sample sizes with every number.
+  valid 839 / test 1,283 pairs; both-N negatives 0 → 34 / 44) replace it —
+  add `--full` to the `eval_protocol.py` commands above, and regenerate +
+  verify with `python splits/make_eval_full.py --check`. Caveat: the valid
+  full set is mostly QG (gallery-side training-seen; only 5 of its 123
+  positives are held-out QQ), so it selects the retrieval threshold while
+  grouped CV on train remains the held-out signal. Full-set numbers are not
+  comparable with the 76/10-pair numbers. Report valid/test sample sizes
+  with every number.
 - Report FP rate on `verdict=irreplaceable` (N) snippets separately —
   gold verdicts live in `splits/kb_verdicts.json`.
 - Never report a synthetic-measured number as a result.
 - Pair-model plan and current blockers:
   [notes/research/bert-pair-model.md](../../notes/research/bert-pair-model.md).
 - Before any run: `python splits/make_splits.py --check` must print `OK`
-  three times (the freeze did not drift), and
-  `python splits/check_train_leakage.py` must print `OK` for every training CSV.
+  three times (the freeze did not drift),
+  `python splits/make_eval_full.py --check` must print `OK` (the committed
+  full pair sets reproduce), and `python splits/check_train_leakage.py` must
+  print `OK` for every training CSV.
 
 ## Limitations / phase 2
 

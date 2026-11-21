@@ -528,9 +528,10 @@ actually needs.
    external validation on `(old, fix)` pairs. This is the next milestone; see
    the [pair-model plan](bert-pair-model.md).
 2. Evaluate the pair model on the frozen valid split (22 Y / 36 N / 29 M) and
-   report binary metrics only; keep the test split sealed. Note that the synth
-   pair valid set is only 10 pairs (5 pos / 5 neg), so it is a weak selection
-   signal; use grouped CV on train for tuning.
+   report binary metrics only; keep the test split sealed. Select with the
+   enlarged `splits/valid_pairs_full.csv` (839 pairs, 34 both-N negatives);
+   only 5 of its 123 positives are held-out QQ, so grouped CV on train stays
+   the held-out tuning signal. Score `test` once on `test_pairs_full.csv`.
 3. Build API/contract retrieval features (docs `# Safety` clauses, mechanism
    class) for the retrieval half; the raw context window failed the transfer
    check.

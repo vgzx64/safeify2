@@ -390,6 +390,12 @@ out of the box (vendor `train.sh` references a missing `main.py`, removed
 checkpoint); no GPU (CPU-only, ~62.7 s per BERT-base forward at batch 16 x 100
 tokens in a synthetic benchmark).
 
+> *2026-11-21 supersession: the enlarged full pair sets (839 valid / 1,283 test
+> pairs, 34 / 44 both-N negatives) replace the 10/76-pair selection and
+> reporting numbers above; see
+> [`safeify-data/synth/splits/README.md`](../../safeify-data/synth/splits/README.md).
+> The pipeline blockers in this paragraph still stand.*
+
 The chosen first path is a **frozen-BERT embedding cache + pair head**: BERT
 encodes each unique snippet once, the vectors are cached, and only a small
 comparator is trained. It is CPU-feasible and gives a clean baseline, but it

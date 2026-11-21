@@ -50,10 +50,12 @@ verify an untouched checkout: `python splits/make_splits.py --check`.
 ## Full pair sets (enlarged eval)
 
 `make_eval.py` pairs held-out snippets with each other only, so positives are
-scarce: 76 test pairs (38/38), 10 valid pairs, 3 both-N test pairs. At those
-sizes a ~10-point macro-F1 difference is inside noise and the safety FP rate is
-unmeasurable. `make_eval_full.py` materialises a larger, still fully frozen
-evaluation from the **same** held-out snippets plus the fixed KB gallery
+scarce: 76 test pairs (38/38), 10 valid pairs, and no both-N negatives in
+either split — the old test set's 3 both-N pairs are gold positives, so the
+old FP slice printed `n/a`. At those sizes a ~10-point macro-F1 difference is
+inside noise and the safety FP rate is unmeasurable. `make_eval_full.py`
+materialises a larger, still fully frozen evaluation from the **same**
+held-out snippets plus the fixed KB gallery
 (training-side data by design — the deployment task retrieves against it):
 
 | stratum | pairs (test) | pairs (valid) | label |
@@ -66,16 +68,27 @@ evaluation from the **same** held-out snippets plus the fixed KB gallery
 | **total** | **1,283** | **839** | ~17% pos |
 
 Every query has at least one gallery positive (coverage 97/97, 69/69). The
-both-N negatives grow from 3 to **44** (test) / 34 (valid), and the
-recommend-on-irreplaceable slice (N query × Y/M gallery, same api) has **140**
-test pairs — the first usable estimate of the safety FP rate.
+both-N negative slice goes from **0** in the old set (old scorer: `n/a`) to
+**44** (test) / 34 (valid), and the recommend-on-irreplaceable slice (N query
+× Y/M gallery, same api) has **140** test pairs — the first usable estimate of
+the safety FP rate.
 
 * QG strata are retrieval-style: one side (the gallery) is training-seen —
   that is the deployment task. QQ strata are clean held-out × held-out.
+* In the enlarged **valid** set only 5 of the 123 positives are QQ; the other
+  118 are QG against the training-seen gallery. The valid full set therefore
+  selects the retrieval threshold and estimates FP, not held-out
+  generalisation — grouped CV on train stays the held-out tuning signal.
+  (Test has 38 QQ positives for the one-shot report.)
+* Full-set numbers are **not comparable** with the shipped 76/10-pair numbers:
+  the construction and the class prevalence differ.
 * The set is **imbalanced** (~17% positive). Report macro-F1 and per-stratum
   metrics; raw accuracy is prevalence-driven (all-negative scores 0.8348).
 * Deterministic: sorted enumeration, `random.Random(1234)` for the xapi sample
-  and final shuffle only; byte-identical re-runs on an unchanged cache.
+  and final shuffle only; byte-identical re-runs on an unchanged cache. The
+  manifest records `pairs_sha256`, and `--full` refuses a mismatched CSV;
+  `python splits/make_eval_full.py --check` rebuilds in a temp dir and
+  byte-compares the four committed artifacts.
 * Requires the AST cache (`out/ast_json_real/`) exactly like `make_eval.py`;
   texts come from the cache, counts depend only on frozen metadata.
 * Pairs whose two texts are identical are tagged `same_text` in the manifest
@@ -87,6 +100,7 @@ test pairs — the first usable estimate of the safety FP rate.
 
 ```sh
 python splits/make_eval_full.py --split all          # after make_eval.py
+python splits/make_eval_full.py --check              # must print OK
 python splits/make_eval.py --split all               # if gallery.json absent
 python splits/make_splits.py --check                 # must still print OK
 python splits/check_train_leakage.py                 # must still print OK
@@ -98,7 +112,10 @@ python splits/eval_protocol.py --split test  --pairs-preds preds.csv --full
 The `--full` scorer reports per-stratum recall/FP with Wilson 95% intervals,
 per-pattern recall, the safety slices, metrics excluding same-text pairs, and
 query-cluster bootstrap intervals (97 queries are the honest sample size for
-query-level claims — pairs sharing a query are correlated).
+query-level claims — pairs sharing a query are correlated). The bootstrap
+clusters by query only and conditions on the fixed gallery: QG pairs reuse the
+same 141 gallery entries and QQ pairs share both endpoints, so treat the QQ
+interval as slightly optimistic.
 
 ## Training-data integrity
 
@@ -226,8 +243,9 @@ claim.
    `python splits/make_eval_full.py --split test`, then
    `python splits/eval_protocol.py --split test --pairs-preds <preds.csv> --full`
    (1,283 pairs: per-stratum recall/FP with Wilson intervals, safety slices,
-   query-cluster bootstrap). The shipped 76-pair `test_pairs.csv` (3 both-N)
-   is kept for backward compatibility; its FP estimate is coarse.
+   query-cluster bootstrap). The shipped 76-pair `test_pairs.csv` (0 both-N
+   negatives, so its old FP slice was `n/a`) is kept for backward
+   compatibility.
 4. Never report a synthetic-measured number as a result
    (`notes/research/synthetic-data-theory.md`).
 

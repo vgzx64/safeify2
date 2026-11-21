@@ -5,11 +5,11 @@ make_eval.py, the per-machine AST cache out/ast_json_real/gh).
 
 Why: the shipped <split>_pairs.csv files are within-API, query-query pairs
 balanced by scarce positives — 76 pairs (38/38) for test, 10 (5/5) for valid,
-3 both-N test pairs. At those sizes a macro-F1 difference of ~10 points is
-inside noise and the safety FP rate is unmeasurable. This script materialises
-a larger, stratified, still fully frozen evaluation from the SAME held-out
-snippets plus the fixed KB gallery (which is training-side data by design —
-the deployment task retrieves against it):
+and no both-N negatives in either. At those sizes a macro-F1 difference of
+~10 points is inside noise and the safety FP rate is unmeasurable. This
+script materialises a larger, stratified, still fully frozen evaluation from
+the SAME held-out snippets plus the fixed KB gallery (which is training-side
+data by design — the deployment task retrieves against it):
 
   POS-QG       query x gallery, same (api, pattern)     label +1
   POS-QQ       query x query (same split), same cell    label +1
@@ -27,12 +27,15 @@ macro-F1 / per-stratum metrics, not raw accuracy alone. The original
 
 Determinism: candidates are enumerated in sorted order, the only randomness
 is random.Random(1234) for the xapi sample and the final shuffle — byte-
-identical re-runs on an unchanged cache.
+identical re-runs on an unchanged cache. The manifest records the sha256 of
+the pairs CSV it describes, and the scorer refuses a mismatched file;
+`--check` rebuilds in a temp dir and byte-compares the committed artifacts.
 
 Usage: cd safeify-data/synth
         python splits/make_eval_full.py --split valid   # selection set
         python splits/make_eval_full.py --split test    # report-once set
         python splits/make_eval_full.py --split all
+        python splits/make_eval_full.py --check         # reproduce + verify
 Then score with:
         python splits/eval_protocol.py --split test --pairs-preds P.csv --full
 """
@@ -42,6 +45,7 @@ import json
 import os
 import random
 import sys
+import tempfile
 from itertools import combinations
 
 SPLITS_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -111,14 +115,14 @@ def build_pairs(rows, gallery, rng, xapi_per_query):
     return pairs
 
 
-def build(split_name, verdicts, gallery, xapi_per_query):
+def build(split_name, verdicts, gallery, xapi_per_query, out_dir=SPLITS_DIR):
     rows = load_split_rows(split_name, verdicts)
     if not rows:
         raise SystemExit(f"no rows in {split_name} split — run make_splits.py first")
     rng = random.Random(SEED)
     pairs = build_pairs(rows, gallery, rng, xapi_per_query)
 
-    csv_path = os.path.join(SPLITS_DIR, f"{split_name}_pairs_full.csv")
+    csv_path = os.path.join(out_dir, f"{split_name}_pairs_full.csv")
     write_pairs_csv([(p["a"], p["b"], p["label"]) for p in pairs], csv_path)
 
     def pair_meta(i, p):
@@ -167,9 +171,10 @@ def build(split_name, verdicts, gallery, xapi_per_query):
         "split_file_sha256": {s: sha_file(os.path.join(SPLITS_DIR, f"{s}.txt"))
                               for s in ("train", "valid", "test")},
         "gallery_sha256": sha_file(os.path.join(SPLITS_DIR, "gallery.json")),
+        "pairs_sha256": sha_file(csv_path),
         "pairs": [pair_meta(i, p) for i, p in enumerate(pairs)],
     }
-    mf_path = os.path.join(SPLITS_DIR, f"{split_name}_eval_manifest_full.json")
+    mf_path = os.path.join(out_dir, f"{split_name}_eval_manifest_full.json")
     with open(mf_path, "w", encoding="utf-8") as f:
         json.dump(manifest, f, ensure_ascii=False)
 
@@ -184,10 +189,35 @@ def build(split_name, verdicts, gallery, xapi_per_query):
     return manifest
 
 
+ARTIFACTS = ("_pairs_full.csv", "_eval_manifest_full.json")
+
+
+def check(verdicts, gallery, xapi_per_query):
+    """Rebuild in a temp dir; fail unless the committed files match byte-for-byte."""
+    with tempfile.TemporaryDirectory() as tmp:
+        for split_name in ("valid", "test"):
+            build(split_name, verdicts, gallery, xapi_per_query, out_dir=tmp)
+        bad = []
+        for split_name in ("valid", "test"):
+            for suffix in ARTIFACTS:
+                name = split_name + suffix
+                fresh = os.path.join(tmp, name)
+                committed = os.path.join(SPLITS_DIR, name)
+                if (not os.path.isfile(committed)
+                        or open(fresh, "rb").read() != open(committed, "rb").read()):
+                    bad.append(name)
+    if bad:
+        raise SystemExit("eval-full check FAILED: " + ", ".join(bad))
+    print("eval-full check OK (4 committed artifacts reproduce byte-identically)")
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--split", choices=("valid", "test", "all"), default="test",
                     help="which frozen split to materialise (default: test)")
+    ap.add_argument("--check", action="store_true",
+                    help="rebuild in a temp dir and byte-compare the committed "
+                         "full pairs/manifests instead of writing")
     ap.add_argument("--xapi-per-query", type=int,
                     default=XAPI_PER_QUERY_DEFAULT,
                     help="cap on different-api gallery negatives per query "
@@ -196,6 +226,9 @@ def main():
 
     verdicts = load_verdicts()
     gallery = load_gallery()
+    if args.check:
+        check(verdicts, gallery, args.xapi_per_query)
+        return
     splits = ("valid", "test") if args.split == "all" else (args.split,)
     for split_name in splits:
         build(split_name, verdicts, gallery, args.xapi_per_query)
