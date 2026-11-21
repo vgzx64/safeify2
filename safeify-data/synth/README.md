@@ -141,10 +141,13 @@ Pattern ids and Y/M/N assignments follow
   `python splits/eval_protocol.py --split valid --pairs-preds <your.csv>`;
   score `test` **once** with `--split test` (pair metrics + per-pattern recall)
   or `--retrieval-preds <json>` (gallery retrieval).
-- The valid pair set is only **10 pairs (5 pos / 5 neg)** and has no both-N
-  pairs, so it is a weak selection signal and cannot estimate the safety FP
-  rate. Prefer grouped CV on train for tuning and report the valid/test sample
-  sizes with every number.
+- The shipped valid pair set is only **10 pairs (5 pos / 5 neg)** and has no
+  both-N pairs, so it is a weak selection signal and cannot estimate the
+  safety FP rate. The **enlarged full sets** (`splits/make_eval_full.py`:
+  valid 839 / test 1,283 pairs, 34 / 44 both-N negatives) replace it for
+  selection and reporting — add `--full` to the `eval_protocol.py` commands
+  above. Prefer grouped CV on train as the secondary signal and report the
+  valid/test sample sizes with every number.
 - Report FP rate on `verdict=irreplaceable` (N) snippets separately —
   gold verdicts live in `splits/kb_verdicts.json`.
 - Never report a synthetic-measured number as a result.

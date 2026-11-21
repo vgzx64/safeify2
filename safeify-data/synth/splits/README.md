@@ -47,6 +47,59 @@ verify an untouched checkout: `python splits/make_splits.py --check`.
 | valid | 69 | 10 (5 pos / 5 neg) | 10% |
 | test  | 97 | 76 (38 pos / 38 neg) | 20% |
 
+## Full pair sets (enlarged eval)
+
+`make_eval.py` pairs held-out snippets with each other only, so positives are
+scarce: 76 test pairs (38/38), 10 valid pairs, 3 both-N test pairs. At those
+sizes a ~10-point macro-F1 difference is inside noise and the safety FP rate is
+unmeasurable. `make_eval_full.py` materialises a larger, still fully frozen
+evaluation from the **same** held-out snippets plus the fixed KB gallery
+(training-side data by design — the deployment task retrieves against it):
+
+| stratum | pairs (test) | pairs (valid) | label |
+|---|---:|---:|---|
+| POS-QG — query × gallery, same (api, pattern) | 174 | 118 | 1 |
+| POS-QQ — query × query, same (api, pattern) | 38 | 5 | 1 |
+| NEG-HARD-QG — query × gallery, same api, diff pattern | 581 | 405 | −1 |
+| NEG-HARD-QQ — query × query, same api, diff pattern | 199 | 104 | −1 |
+| NEG-XAPI-QG — query × gallery, diff api (3 per query) | 291 | 207 | −1 |
+| **total** | **1,283** | **839** | ~17% pos |
+
+Every query has at least one gallery positive (coverage 97/97, 69/69). The
+both-N negatives grow from 3 to **44** (test) / 34 (valid), and the
+recommend-on-irreplaceable slice (N query × Y/M gallery, same api) has **140**
+test pairs — the first usable estimate of the safety FP rate.
+
+* QG strata are retrieval-style: one side (the gallery) is training-seen —
+  that is the deployment task. QQ strata are clean held-out × held-out.
+* The set is **imbalanced** (~17% positive). Report macro-F1 and per-stratum
+  metrics; raw accuracy is prevalence-driven (all-negative scores 0.8348).
+* Deterministic: sorted enumeration, `random.Random(1234)` for the xapi sample
+  and final shuffle only; byte-identical re-runs on an unchanged cache.
+* Requires the AST cache (`out/ast_json_real/`) exactly like `make_eval.py`;
+  texts come from the cache, counts depend only on frozen metadata.
+* Pairs whose two texts are identical are tagged `same_text` in the manifest
+  (label −1 + same text = the known corpus label conflicts); the scorer
+  reports metrics excluding them.
+* Construction rule and seed were fixed **before** any model was scored on
+  these files. The original 76/10 pair files remain byte-identical for
+  backward compatibility.
+
+```sh
+python splits/make_eval_full.py --split all          # after make_eval.py
+python splits/make_eval.py --split all               # if gallery.json absent
+python splits/make_splits.py --check                 # must still print OK
+python splits/check_train_leakage.py                 # must still print OK
+# score (report test once per model):
+python splits/eval_protocol.py --split valid --pairs-preds preds.csv --full
+python splits/eval_protocol.py --split test  --pairs-preds preds.csv --full
+```
+
+The `--full` scorer reports per-stratum recall/FP with Wilson 95% intervals,
+per-pattern recall, the safety slices, metrics excluding same-text pairs, and
+query-cluster bootstrap intervals (97 queries are the honest sample size for
+query-level claims — pairs sharing a query are correlated).
+
 ## Training-data integrity
 
 The pair CSVs are built from `train.txt` + the KB only. File membership is not
@@ -164,17 +217,17 @@ claim.
    `out/train_mixed.csv` (+`out/train_hard.csv`). All four must pass
    `splits/check_train_leakage.py`; do not use the shipped SafeNet `train.csv`.
 2. **Select** epochs/threshold on `valid` only:
-   `python splits/make_eval.py --split valid`, then
-   `python splits/eval_protocol.py --split valid --pairs-preds <preds.csv>`.
-   The valid set is only 10 pairs (5 pos / 5 neg) and has no both-N pairs, so
-   it is a weak selection signal; prefer grouped CV on train and report the
-   limitation.
+   `python splits/make_eval_full.py --split valid`, then
+   `python splits/eval_protocol.py --split valid --pairs-preds <preds.csv> --full`
+   (839 stratified pairs, 34 both-N negatives; see *Full pair sets* above).
+   The shipped 10-pair `valid_pairs.csv` is kept for backward compatibility
+   but is too small to select on; grouped CV on train is the secondary signal.
 3. **Report once** on `test`:
-   `python splits/make_eval.py --split test`, then
-   `python splits/eval_protocol.py --split test --pairs-preds <preds.csv>`.
-   Pair metrics + per-pattern recall + FP rate on `verdict=N`; the test pair
-   set has 38 pos / 38 neg and only 3 both-N pairs, so the safety FP estimate
-   is coarse.
+   `python splits/make_eval_full.py --split test`, then
+   `python splits/eval_protocol.py --split test --pairs-preds <preds.csv> --full`
+   (1,283 pairs: per-stratum recall/FP with Wilson intervals, safety slices,
+   query-cluster bootstrap). The shipped 76-pair `test_pairs.csv` (3 both-N)
+   is kept for backward compatibility; its FP estimate is coarse.
 4. Never report a synthetic-measured number as a result
    (`notes/research/synthetic-data-theory.md`).
 
