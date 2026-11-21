@@ -2,11 +2,10 @@
 
 > **Status: active · 2026-11-21 · no model trained**
 >
-> Scope: the dataset used to train and evaluate the NIRM 4 **pair classifier**
-> — the binary model that decides whether two Rust snippets instantiate the
-> same unsafe-API pattern, and (through its pattern labels) whether the unsafe
-> side has a known safe replacement. It is *not* the real-crate corpus used to
-> evaluate `safeify-lint` (see
+> Scope: the dataset used to train and evaluate the **pair classifier** — the
+> binary model that decides whether two Rust snippets instantiate the same
+> unsafe-API pattern. It is a separate research line, not NIRM 4. It is *not*
+> the real-crate corpus used to evaluate `safeify-lint` (see
 > [counterexamples.md](counterexamples.md)) and *not* the CVE-derived
 > transition corpus (see [transition-dataset.md](transition-dataset.md)).
 >

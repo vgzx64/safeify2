@@ -364,9 +364,12 @@ stable; re-run if the pinned rust-analyzer or the split changes.
   retrieval model.
 - Test reuse and 3 both-N pairs limit any safety-FP conclusion.
 
-## 11. NIRM 4 handoff: BERT pair-model data readiness
+## 11. Pair-model data readiness (handoff note)
 
-The BERT/SafeNet-style pair model is **NIRM 4**, not NIRM 3. The 2026-11-18
+*(Dated 2026-11-18. The BERT/SafeNet-style pair model is a separate line, not
+NIRM 4 — the dissertation plan assigns NIRM 4 to ML warning classification.)*
+
+The BERT/SafeNet-style pair model is **not NIRM 3**. The 2026-11-18
 data audit found that the then-current `train_mixed.csv` contained every
 valid/test snippet (97/97 test, 69/69 valid), including 55/76 test pairs
 verbatim. The training CSVs were rebuilt from `splits/train.txt` + KB only,
@@ -383,7 +386,7 @@ with sequence-level decontamination of six cross-API duplicates:
 `train.csv` is also contaminated (25 test, 23 valid) and must not be used for a
 held-out result.
 
-Remaining NIRM 4 blockers: valid pair set is only 10 pairs (5 pos / 5 neg); the
+Remaining pair-model blockers: valid pair set is only 10 pairs (5 pos / 5 neg); the
 test pair set is 76 pairs with 3 both-N pairs; no BERT training pipeline runs
 out of the box (vendor `train.sh` references a missing `main.py`, removed
 `transformers.AdamW`/`pad_to_max_length`, and an absent `bert_wwm_mlm`
@@ -432,6 +435,6 @@ Still required for sign-off:
 The three decisions are drafted for sending in
 [signoff-request.md](signoff-request.md).
 
-The BERT pair model remains NIRM 4 work; the data gate and valid-split path
-are in place, and the frozen-BERT cache plan is in
+The BERT pair model is a separate line, not NIRM 4; its data gate and
+valid-split path are in place, and the frozen-BERT cache plan is in
 [bert-pair-model.md](../research/bert-pair-model.md). No model has been trained.

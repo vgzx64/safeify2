@@ -416,7 +416,7 @@ accuracy is below a constant-`Y` baseline, so accuracy alone is misleading.
 | 2026-11-08 | Second + focused M/N spot-checks; 3 corrections; M/N shown non-reproducible; **v0.2 frozen** (433 rows, binary target) |
 | 2026-10-29–11-08 | NIRM 3 report is the priority; do not start the full build |
 | 2026-11-08 | Freeze `transitions-core` v0.2 |
-| NIRM 4 | Train the SafeNet-style pair classifier on `safeify-data/synth/out/train_mixed.csv` (8,580 clean pairs after the 2026-11-18 rebuild; `splits/check_train_leakage.py` must pass); evaluate on the frozen core as external validation. First path: frozen-BERT cache + pair head, see [bert-pair-model.md](bert-pair-model.md) |
+| Pair model (not NIRM 4) | Train the SafeNet-style pair classifier on `safeify-data/synth/out/train_mixed.csv` (8,580 clean pairs after the 2026-11-18 rebuild; `splits/check_train_leakage.py` must pass); evaluate on the frozen core as external validation. First path: frozen-BERT cache + pair head, see [bert-pair-model.md](bert-pair-model.md) |
 
 The dataset build must not delay the NIRM 3 report. The pilot is enough to
 validate the plan; the full build belongs to NIRM 4.

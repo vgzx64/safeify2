@@ -18,7 +18,8 @@ Safeify is a Rust security research workspace organized around two implementatio
 - **safeify-ai:** experimental; its fixed NIRM 3 report is superseded by no final sign-off result.
 - **safeify-lint:** rust-analyzer semantic engine implemented and tested.
 - **safeify-data:** transition and synthetic datasets exist; the frozen real-data split is available.
-- **Pair-model/NIRM 4 work:** not trained; see [`notes/research/bert-pair-model.md`](notes/research/bert-pair-model.md).
+- **Pair model:** not trained (separate line; not NIRM 4); see [`notes/research/bert-pair-model.md`](notes/research/bert-pair-model.md).
+- **NIRM 4** (ML warning classification for the hybrid system): not started.
 
 ## Key documentation
 

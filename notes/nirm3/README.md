@@ -130,8 +130,8 @@ Two additional readiness conditions are not in the original DoD:
    substitution; the request is drafted in
    [signoff-request.md](signoff-request.md).
 7. Produce the 4-page paper outline for the 25.11 venue slot.
-8. NIRM 4: choose a BERT checkpoint/tokenizer recipe and execute the
-   frozen-BERT cache + pair-head baseline; see
+8. Pair model (separate from NIRM 4): choose a BERT checkpoint/tokenizer
+   recipe and execute the frozen-BERT cache + pair-head baseline; see
    [bert-pair-model.md](../research/bert-pair-model.md). The pair-training CSVs
    are leakage-gated.
 
