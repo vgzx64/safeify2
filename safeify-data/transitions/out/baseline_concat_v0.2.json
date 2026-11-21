@@ -1,0 +1,119 @@
+{
+  "core": "out/transitions_core_v0.2.jsonl",
+  "input": "char TF-IDF + frozen ModernBERT-base (weight 0.5)",
+  "protocol": "repo-grouped 5-fold CV on train; fit train; score valid; test sealed",
+  "models": {
+    "char_plus_emb_C0.1": {
+      "cv": {
+        "n": 216,
+        "positives": 54,
+        "accuracy": 0.6712962962962963,
+        "precision_Y": 0.38961038961038963,
+        "recall_Y": 0.5555555555555556,
+        "f1_Y": 0.4580152671755725,
+        "roc_auc": 0.6987882944673068,
+        "average_precision": 0.43043537459879155,
+        "confusion": [
+          [
+            115,
+            47
+          ],
+          [
+            24,
+            30
+          ]
+        ]
+      },
+      "valid": {
+        "n": 87,
+        "positives": 22,
+        "accuracy": 0.6781609195402298,
+        "precision_Y": 0.375,
+        "recall_Y": 0.4090909090909091,
+        "f1_Y": 0.391304347826087,
+        "roc_auc": 0.6328671328671328,
+        "average_precision": 0.41470758309932054,
+        "confusion": [
+          [
+            50,
+            15
+          ],
+          [
+            13,
+            9
+          ]
+        ]
+      },
+      "valid_ci95": {
+        "f1_Y": [
+          0.1951219512195122,
+          0.551760821716801
+        ],
+        "roc_auc": [
+          0.49354996980676324,
+          0.7622474747474747
+        ],
+        "average_precision": [
+          0.23819512952898977,
+          0.6062525050644534
+        ]
+      }
+    },
+    "char_plus_emb_C1.0": {
+      "cv": {
+        "n": 216,
+        "positives": 54,
+        "accuracy": 0.6712962962962963,
+        "precision_Y": 0.3835616438356164,
+        "recall_Y": 0.5185185185185185,
+        "f1_Y": 0.4409448818897638,
+        "roc_auc": 0.6628943758573388,
+        "average_precision": 0.39139880679191097,
+        "confusion": [
+          [
+            117,
+            45
+          ],
+          [
+            26,
+            28
+          ]
+        ]
+      },
+      "valid": {
+        "n": 87,
+        "positives": 22,
+        "accuracy": 0.6896551724137931,
+        "precision_Y": 0.391304347826087,
+        "recall_Y": 0.4090909090909091,
+        "f1_Y": 0.4,
+        "roc_auc": 0.6328671328671329,
+        "average_precision": 0.40968959760522006,
+        "confusion": [
+          [
+            51,
+            14
+          ],
+          [
+            13,
+            9
+          ]
+        ]
+      },
+      "valid_ci95": {
+        "f1_Y": [
+          0.2,
+          0.5652173913043478
+        ],
+        "roc_auc": [
+          0.49551355541134906,
+          0.7580315055315056
+        ],
+        "average_precision": [
+          0.23553169615523337,
+          0.5955924691851145
+        ]
+      }
+    }
+  }
+}

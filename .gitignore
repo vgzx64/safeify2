@@ -2,3 +2,5 @@ papers
 *.tar.xz
 __pycache__
 .tools/
+.cache/
+safeify-data/transitions/out/*.npz

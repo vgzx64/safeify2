@@ -43,6 +43,11 @@ python train_model.py
 python score_spotcheck.py
 python label_reliability.py
 python freeze_v02.py
+# baseline suite (2026-11-21): no GPU, no external drive needed
+python baseline_suite.py            # TF-IDF / GB / RF, repo-grouped CV + valid
+python embed_modernbert.py          # frozen ModernBERT-base cache (CPU ~24 min)
+python baseline_embeddings.py       # linear / kNN probes on the cache
+python baseline_concat.py           # char TF-IDF + embedding concat probe
 ```
 
 The DB is opened read-only. Parent commits come from `ext_commits`, because
@@ -86,6 +91,9 @@ The DB is opened read-only. Parent commits come from `ext_commits`, because
 | `out/baseline_valid.json` | valid-split smoke-test baseline (TF-IDF + logistic regression) |
 | `out/context_v0.2.jsonl` | 60-line pre-fix context window per row (`train_model.py`) |
 | `out/train_v0.2.json` | first training run: snippet vs context, grouped CV + valid |
+| `out/baseline_suite_v0.2.json` + `.md` | 2026-11-21 baseline suite: majority, TF-IDF (word/char/union) + LR, TF-IDF+SVD + GB/RF; repo-grouped CV + valid |
+| `out/baseline_modernbert_v0.2.json` + `.md` | frozen ModernBERT-base embeddings + linear/kNN probes, same protocol |
+| `out/baseline_concat_v0.2.json` + `.md` | char TF-IDF + embedding concatenation probe |
 | `adjudication/gate_batches.json` | gate-closing run: 161 queue rows + 170 expansion families |
 | `adjudication/labels_gate_*.jsonl` | 11 adjudication batch outputs (331 rows) |
 | `out/spotcheck_gate.json` | documented spot-check correction (1 Y -> M) |
@@ -93,6 +101,30 @@ The DB is opened read-only. Parent commits come from `ext_commits`, because
 | `out/splits_draft.json` | repo-level 70/10/20 draft split |
 | `out/stats.json`, `out/diff_stats.json`, `out/pattern_stats.json` | extractor counters and rejects |
 | `out/manifest_stats.json` | merged distributions |
+
+## Baseline suite (2026-11-21)
+
+All three suites use the same protocol: repository-grouped 5-fold CV on
+`train` (216 rows / 54 positives), fit on `train`, score `valid` (87 rows /
+22 positives), `test` (130 rows) sealed. Input is `old_snippet` only.
+
+| probe | CV AUC | valid AUC | valid F1(Y) | valid AP |
+|---|---:|---:|---:|---:|
+| majority | 0.500 | 0.500 | 0.000 | 0.253 |
+| char TF-IDF + LR | 0.868 | 0.641 | 0.378 | 0.397 |
+| word TF-IDF + LR | 0.716 | 0.544 | 0.256 | 0.317 |
+| TF-IDF + SVD + GB | 0.582 | 0.601 | 0.138 | 0.335 |
+| TF-IDF + SVD + RF | 0.563 | 0.559 | 0.000 | 0.302 |
+| frozen ModernBERT + LR | 0.716 | 0.634 | 0.400 | 0.412 |
+| char TF-IDF + ModernBERT | 0.699 | 0.633 | 0.391 | 0.415 |
+
+The CV-to-valid drop is the point: grouped CV over `train` repositories is
+optimistic, and no representation transfers cleanly to the 31 unseen
+`valid` repositories. All valid 95% bootstrap CIs overlap (AUC ~0.49-0.78),
+so the differences between the best probes are inside noise. This is a
+baseline report, not a model claim; the frozen encoder is not yet worth
+fine-tuning on this label budget (109 positives total), and the next lever is
+label expansion plus audit, not architecture.
 
 ## Important caveats
 
