@@ -76,10 +76,17 @@ fn strip_lang_prefix(path: &str) -> &str {
     path
 }
 
+/// A shell program name, with or without a path or an `.exe` suffix. The
+/// argument of `Command::new("/bin/sh")` is as dangerous as `"sh"`, so the
+/// basename decides.
 pub fn is_shell(name: &str) -> bool {
+    let base = name.rsplit(['/', '\\']).next().unwrap_or(name);
     matches!(
-        name,
-        "sh" | "bash" | "zsh" | "dash" | "ksh" | "cmd" | "cmd.exe" | "powershell" | "pwsh"
+        base.to_ascii_lowercase().as_str(),
+        "sh" | "bash" | "zsh" | "dash" | "ksh" | "ash" | "fish" | "csh" | "tcsh"
+            | "cmd" | "cmd.exe"
+            | "powershell" | "powershell.exe"
+            | "pwsh" | "pwsh.exe"
     )
 }
 
@@ -148,7 +155,9 @@ pub fn taint_source(path: &str) -> Option<&'static str> {
         "env::var" | "env::var_os" => "env",
         "env::args" | "env::args_os" => "argv",
         "env::current_dir" | "env::current_exe" => "cwd",
-        "io::stdin" => "stdin",
+        // `std::io::stdin` is defined in `io::stdio` and re-exported as
+        // `io::stdin`; the resolved path carries the definition module.
+        "io::stdin" | "io::stdio::stdin" => "stdin",
         "fs::read_to_string" | "fs::read_dir" | "fs::read_link" => "filesystem",
         "net::TcpStream::connect"
         | "net::TcpListener::bind"
@@ -296,7 +305,7 @@ pub fn is_truthy_adapter(name: &str) -> bool {
 /// `Path::new("/etc").join("ld.so.preload")`.
 pub fn join_prov(base: &Prov, arg: &Prov) -> Prov {
     if let Some(value) = &arg.value {
-        if value.starts_with('/') || value.starts_with('\\') {
+        if is_absolute(value) {
             return Prov::literal(value.clone());
         }
     }
@@ -348,7 +357,7 @@ pub fn danger_path(value: &str, write: bool) -> Option<(&'static str, &'static s
         // Configuration paths are only dangerous when written.
         return write.then_some(("kernel_config", "warn"));
     }
-    if is("/proc/self/mem") || is("/proc/self/pagemap") {
+    if proc_pid_file(value) {
         return Some(("proc_mem", "deny"));
     }
     if value.starts_with("/proc/kcore") {
@@ -369,10 +378,54 @@ pub fn danger_path(value: &str, write: bool) -> Option<(&'static str, &'static s
     None
 }
 
+/// `/proc/<pid>/mem`, `/proc/<pid>/pagemap`, and the per-thread
+/// `/proc/<pid>/task/<tid>/mem`. `<pid>` is `self`, `thread-self` or a number.
+fn proc_pid_file(value: &str) -> bool {
+    let Some(rest) = value.strip_prefix("/proc/") else {
+        return false;
+    };
+    let mut parts = rest.split('/');
+    let Some(pid) = parts.next() else {
+        return false;
+    };
+    let is_pid = pid == "self"
+        || pid == "thread-self"
+        || (!pid.is_empty() && pid.bytes().all(|b| b.is_ascii_digit()));
+    if !is_pid {
+        return false;
+    }
+    match parts.next() {
+        Some("mem") | Some("pagemap") => parts.next().is_none(),
+        Some("task") => {
+            let Some(tid) = parts.next() else {
+                return false;
+            };
+            !tid.is_empty()
+                && tid.bytes().all(|b| b.is_ascii_digit())
+                && matches!(parts.next(), Some("mem"))
+                && parts.next().is_none()
+        }
+        _ => false,
+    }
+}
+
+/// An absolute literal path on either analysed platform: a POSIX/UNC root or a
+/// Windows drive prefix (`C:\`, `C:/`).
+pub fn is_absolute(value: &str) -> bool {
+    if value.starts_with('/') || value.starts_with('\\') {
+        return true;
+    }
+    let bytes = value.as_bytes();
+    bytes.len() >= 3
+        && bytes[0].is_ascii_alphabetic()
+        && bytes[1] == b':'
+        && (bytes[2] == b'\\' || bytes[2] == b'/')
+}
+
 /// An absolute literal path whose normalisation escapes its own directory
 /// prefix (`/a/../b`).
 pub fn has_escaping_dotdot(value: &str) -> bool {
-    if !(value.starts_with('/') || value.starts_with('\\')) {
+    if !is_absolute(value) {
         return false;
     }
     // An absolute literal that walks up out of the directory it names: the

@@ -87,11 +87,35 @@ fn cfg_overrides(root: &Path, extra: &[String]) -> project_model::CfgOverrides {
         .arg(root.join("Cargo.toml"))
         .env("CARGO_NET_OFFLINE", "true")
         .output();
-    let Ok(output) = output else {
-        return project_model::CfgOverrides::default();
+    // Falling back silently would disable every declared feature and quietly
+    // shrink the analysed code, so each failure is reported.
+    let output = match output {
+        Ok(output) if output.status.success() => output,
+        Ok(output) => {
+            eprintln!(
+                "safeify-lint: cargo metadata failed for {} ({}); feature cfgs are disabled for this package",
+                root.display(),
+                output.status
+            );
+            return project_model::CfgOverrides::default();
+        }
+        Err(error) => {
+            eprintln!(
+                "safeify-lint: cannot run cargo metadata for {} ({error}); feature cfgs are disabled for this package",
+                root.display()
+            );
+            return project_model::CfgOverrides::default();
+        }
     };
-    let Ok(meta) = serde_json::from_slice::<serde_json::Value>(&output.stdout) else {
-        return project_model::CfgOverrides::default();
+    let meta = match serde_json::from_slice::<serde_json::Value>(&output.stdout) {
+        Ok(meta) => meta,
+        Err(error) => {
+            eprintln!(
+                "safeify-lint: cannot parse cargo metadata for {} ({error}); feature cfgs are disabled for this package",
+                root.display()
+            );
+            return project_model::CfgOverrides::default();
+        }
     };
     let mut atoms = Vec::new();
     for package in meta["packages"].as_array().into_iter().flatten() {

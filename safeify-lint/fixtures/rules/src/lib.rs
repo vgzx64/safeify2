@@ -1,4 +1,5 @@
 //! Rule fixtures. One scenario per comment; line numbers are part of the test.
+use std::io::BufRead;
 use std::process::Command;
 
 // Pattern 1: filesystem paths.
@@ -89,3 +90,37 @@ pub fn closure_param_program(names: &[String]) {
     });
 }
 
+// `/proc/<pid>` names another process, not just this one.
+pub fn special_pid_path() {
+    std::fs::write("/proc/1234/mem", b"x").unwrap();
+}
+
+// A Windows drive path is absolute: the dropper pair and traversal see it.
+pub fn windows_dropper() {
+    std::fs::write("C:\\tmp\\winpayload.exe", b"mz").unwrap();
+    Command::new("C:\\tmp\\winpayload.exe").status().unwrap();
+}
+
+pub fn windows_traversal() {
+    std::fs::write("C:\\tmp\\..\\outside", b"x").unwrap();
+}
+
+// A shell with an `.exe` suffix receives the same caller string as `bash`.
+pub fn exec_windows_shell() {
+    let arg = std::env::var("PROBE_ARG").unwrap();
+    Command::new("powershell.exe").arg(arg).status().unwrap();
+}
+
+// Value-preserving iterator adapters keep the source's class: argv through
+// `nth` is as caller-controlled as the `for` loop over `args()`.
+pub fn argv_nth() {
+    let arg = std::env::args().nth(1).unwrap();
+    std::fs::write(&arg, "x").unwrap();
+}
+
+// `lines()` is the value-producing stdin API; `read_line` writes into its
+// buffer argument and is not modelled.
+pub fn stdin_lines() {
+    let line = std::io::stdin().lines().next().unwrap().unwrap();
+    std::fs::write(line, "x").unwrap();
+}

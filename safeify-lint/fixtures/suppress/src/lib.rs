@@ -14,3 +14,19 @@ pub fn allowed_by_comment() {
 pub fn reported() {
     Command::new("ls").status().unwrap();
 }
+
+pub fn nested_allow() {
+    #[allow(safeify::exec_basename)]
+    fn inner() {
+        Command::new("ls").status().unwrap();
+    }
+    inner();
+}
+
+pub fn outer_comment_covers_nested() {
+    // safeify: allow(exec_basename)
+    fn inner() {
+        Command::new("ls").status().unwrap();
+    }
+    inner();
+}

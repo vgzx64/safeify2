@@ -822,6 +822,20 @@ impl<'a> Eval<'a> {
         if matches!(name, "iter" | "iter_mut" | "into_iter") {
             return receiver;
         }
+        // Iterator adapters that hand back the receiver's elements or a
+        // collection of them. The element is as caller-controlled as the
+        // iterator, so taint survives `nth`, `next`, `collect`, `lines`, ...
+        // The value is dropped: a collection or an element is not the whole
+        // literal the danger table and the dropper rule read.
+        if matches!(
+            name,
+            "next" | "nth" | "last" | "collect" | "skip" | "take" | "by_ref" | "rev"
+                | "peekable" | "cloned" | "copied" | "lines"
+        ) {
+            let mut prov = receiver;
+            prov.value = None;
+            return prov;
+        }
         if sink::is_closure_adapter(name) {
             return self.closure_adapter(name, &receiver, &args, depth, seen, subst);
         }

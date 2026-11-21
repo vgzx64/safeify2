@@ -1,6 +1,6 @@
 # Counterexamples in Safe Rust — detection design
 
-> **Status: semantic prototype · Updated 2026-11-20**
+> **Status: semantic prototype · Updated 2026-11-21**
 >
 > Source paper: M. Hassnain, C. Stanford, *Counterexamples in Safe Rust*,
 > ASEW '24, [doi:10.1145/3691621.3694943](https://doi.org/10.1145/3691621.3694943).
@@ -69,11 +69,14 @@ never produces a finding; precision comes from refusing to guess. Implemented in
   `Some(..)`/`Ok(..)`, `concat!` of literals;
 - **param** — a function parameter (including `self.field`); reachable from the
   crate API;
-- **tainted** — `env::var`, `env::args`, `stdin`, `read_line`, `read_to_string`,
-  `read_dir`, `TcpStream`/`UdpSocket`, `current_dir`;
+- **tainted** — `env::var`, `env::args`, `stdin`, `read_to_string`, `read_dir`,
+  `TcpStream`/`UdpSocket`, `current_dir`. `stdin().lines()` yields tainted
+  elements; `read_line` returns a byte count and writes into its buffer
+  argument, so it is not a value source and is not modelled;
 - **propagation** — one `let` chain (depth 3), `format!`/`format_args!`
   (including implicit captures), `+` concatenation, `.to_string`/`.unwrap`/
-  `.expect` adapters, and **crate-local calls and methods interpreted at the
+  `.expect` adapters, iterator adapters that hand back elements (`nth`, `next`,
+  `collect`, `lines`, ...) keeping the iterator's class, and **crate-local calls and methods interpreted at the
   call site**: arguments are bound to parameters and the callee's tail
   expression and `return`s are evaluated, so a helper that forwards or resolves
   a path is seen through. Field reads use a crate-wide `(struct, field)`
@@ -96,9 +99,11 @@ never produces a finding; precision comes from refusing to guess. Implemented in
   the caller controls it).
 
 Guards are recognised only **before** the call in the same function:
-`canonicalize()` + `starts_with()`, `x.starts_with(root)` on the same
-identifier, `components()` + `ParentDir`/`RootDir`, `matches!`/`match`
-allowlists, and `.file_name()` extraction.
+`starts_with()` whose receiver resolves back to a `canonicalize()` call
+(directly or through a `let`), `components()` + `ParentDir`/`RootDir`, and
+`.file_name()` extraction. A raw
+`starts_with` on an uncanonicalised path is *not* accepted: prefix-confusion and
+`..` components make it unsound.
 
 ## 5. Suppression
 
@@ -106,7 +111,7 @@ Clippy conventions, because the audience already knows them:
 
 ```rust
 #[allow(safeify::exec_basename)]     // enclosing fn, item, module or crate
-// safeify: allow(fs_special_path)   // on the line above the call
+// safeify: allow(fs_special_path)   // anywhere in the function body
 ```
 
 Attributes are read through rust-analyzer, so module/crate inheritance and
@@ -148,7 +153,7 @@ real advisories are `fixtures/advisories`.
 
 ### 7.2 Corpus prevalence (current)
 
-**Current measurement (semantic engine, 2026-11-20).** Host ∪ Windows pass over
+**Current measurement (semantic engine, 2026-11-21).** Host ∪ Windows pass over
 the same 329 package versions (147 crates, 8,426 files), findings deduplicated
 by `(rule, path, line)`:
 
@@ -157,24 +162,25 @@ by `(rule, path, line)`:
 | `exec_basename` | 0 | 16 | 46 |
 | `exec_tainted_cmd` | 0 | 13 | 3 |
 | `build_outside_out_dir` | 0 | 4 | 0 |
-| `fs_tainted_path` | 0 | 2 | 172 |
+| `fs_tainted_path` | 0 | 2 | 174 |
 | `env_read_dangerous` | 0 | 0 | 5 |
 | `fs_special_path` | 0 | 0 | 0 |
 | `fs_traversal_literal` | 0 | 0 | 0 |
 | `env_set_dangerous` | 0 | 0 | 0 |
 | `exec_shell_tainted` | 0 | 0 | 0 |
-| **total** | **0** | **35** | **226** |
+| **total** | **0** | **35** | **228** |
 
-**261 findings in 94 of 8,426 files** (1.1%). Artifacts:
-[`lint_corpus_semantic_2026-11-20_union.json`](../../safeify-lint/out/lint_corpus_semantic_2026-11-20_union.json)
+**263 findings in 96 of 8,426 files** (1.1%). Artifacts:
+[`lint_corpus_semantic_2026-11-21_union.json`](../../safeify-lint/out/lint_corpus_semantic_2026-11-21_union.json)
 (host and Windows passes separately in `_host.json` / `_win.json`, and the
 `SAFEIFY_INTERPROC=0` A/B in `_nointerproc.json`); the per-rule diff against the
 frozen census is printed by
 [`run_semantic_corpus.py`](../../safeify-lint/corpus/run_semantic_corpus.py) and
 summarised in [engine.md §7](engine.md#7-measurements-the-engine-must-produce).
+The 2026-11-20 run (261 sites) is kept under that date for the delta.
 
 Against the frozen census (249 distinct sites in 91 files) the union shares
-**218 sites**: 31 old-only and 43 new-only, all explained.
+**218 sites**: 31 old-only and 45 new-only, all explained.
 
 - **Old-only, 27:** `slice-deque`'s
   `ci/deploy_and_run_on_ios_simulator.rs` (3 versions, 8 `exec_basename` + 1
@@ -195,6 +201,9 @@ Against the frozen census (249 distinct sites in 91 files) the union shares
   `Option<PathBuf>` parameter — a correct `warn`.
 - **New-only, 1:** `openssl-src`'s Windows-only `Command::new("cmd")`, which the
   host-only census could not see.
+- **New-only, 2:** `libsbc` 0.1.4/0.1.5 `examples/decode.rs` writes
+  `env::args().nth(..)`; the iterator adapter now keeps argv's class (all
+  `info`, so the actionable census and every audit label are unchanged).
 
 **Historical measurement (text engine, 2026-11-19).** The pilot census that
 justified the port, on the same corpus:
@@ -219,21 +228,23 @@ the `info` stratum because any library that writes to a caller-supplied path
 matches — that is why the parameter case is `info` and only writes are
 considered.
 
-### 7.3 Precision audit (current, 2026-11-20)
+### 7.3 Precision audit (current, 2026-11-21)
 
 **Frame.** Census, not a sample: after deduplicating the same code site across
-crate versions, the semantic census has **168 unique sites**, of which **28 are
-`warn`/`deny` in 10 crates** and 140 are `info`. All 28 were labelled by reading
+crate versions, the semantic census has **169 unique sites**, of which **28 are
+`warn`/`deny` in 10 crates** and 141 are `info`. All 28 were labelled by reading
 each site with four lines of context; 25 carry over from the 2026-11-19 sheet
-(same `rule|path|line`) and 3 are new. The sheet, labels and statistics are
-reproducible:
+(same `rule|path|line`), 3 were new in the 2026-11-20 audit, and the two
+2026-11-21 additions are `info`, so every label still applies
+(`lint_audit_labels_2026-11-21.json` has the same 28 keys). The sheet, labels and
+statistics are reproducible:
 
 ```
 python3 safeify-lint/audit_lint.py \
-    --corpus safeify-lint/out/lint_corpus_semantic_2026-11-20_union.json \
-    --sheet safeify-lint/out/lint_audit_2026-11-20.jsonl --info-sample 0
-python3 safeify-lint/audit_lint.py --sheet safeify-lint/out/lint_audit_2026-11-20.jsonl \
-    --labels safeify-lint/out/lint_audit_labels_2026-11-20.json --stats
+    --corpus safeify-lint/out/lint_corpus_semantic_2026-11-21_union.json \
+    --sheet safeify-lint/out/lint_audit_2026-11-21.jsonl --info-sample 0
+python3 safeify-lint/audit_lint.py --sheet safeify-lint/out/lint_audit_2026-11-21.jsonl \
+    --labels safeify-lint/out/lint_audit_labels_2026-11-21.json --stats
 ```
 
 **Results.** Two numbers, because "is it correct" and "is it worth a human's
@@ -277,7 +288,7 @@ that demotes only those names, leaving unusual ones at `warn`. That remains
 unimplemented: it changes the census and the strict-TP count, so it needs its
 own measurement and audit.
 
-**Not audited.** The 140 unique `info` sites were sanity-checked only (spot
+**Not audited.** The 141 unique `info` sites were sanity-checked only (spot
 review while building the sheet); no precision number is claimed for them, and
 it should not be: by construction they are the "library takes a caller path"
 class.
@@ -424,6 +435,34 @@ Both were found by sizing the precision audit (reading every unlabelled
 actionable site), which is the argument for keeping the audit as the gate on
 engine changes: 22 of the 23 unlabelled sites were two defects, and only the
 third (`xcb`'s parameter-chosen `rustfmt`) was a genuine finding.
+
+### Defects found in the 2026-11-21 review
+
+8. **`stdin` was never a taint source, and the documented `read_line` source
+   cannot exist at the call's type.** `qualified_path` renders `std::io::stdin`
+   by its definition module (`io::stdio::stdin`), but `taint_source` listed only
+   `io::stdin`, so every stdin read was `unknown` (counterexamples.md §4 said
+   otherwise). `read_line` returns `Result<usize>` and writes the line into its
+   `&mut String` argument; marking the method as a source would taint the byte
+   count, not the buffer. Fixed by adding the definition path and treating
+   `lines()` as a value-preserving adapter; `read_line` is documented as not
+   modelled.
+9. **The danger table and the platform checks saw only half their inputs.**
+   `/proc/<pid>/{mem,pagemap}` matched only for `self` while both notes and
+   README promised any PID; a Windows drive path (`C:\...`) was not absolute
+   to the dropper pairing, the traversal rule or `join`; and `is_shell`
+   compared the whole program string, so `powershell.exe` and `/bin/sh` never
+   reached the shell rule. Fixed with a parsed `/proc` matcher, one
+   `is_absolute` helper (`/`, `\`, `X:\`, `X:/`), and basename +
+   case-insensitive shell matching; each is pinned by a fixture.
+10. **A `#[allow]` on a nested `fn` was ignored.** Suppression was computed once
+    from the item function's ancestors while the scanner walked nested
+    functions too, so the attribute form and the `// safeify: allow(..)` form
+    disagreed. Findings are now checked against the innermost enclosing `fn`.
+11. **The CLI contract was unusable.** The help still advertised the removed
+    `--debug-macro`; findings and engine errors both exited `1` (now `1` and
+    `2`); and a failed `cargo metadata` silently disabled every feature cfg
+    (now warns and continues).
 
 ## 9. Known limitations
 

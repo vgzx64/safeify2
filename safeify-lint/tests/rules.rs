@@ -54,37 +54,50 @@ fn filesystem_command_and_environment_rules() {
         analyze("rules"),
         expected(&[
             // `/proc/self/mem` is dangerous regardless of who calls it.
-            ("fs_special_path", 6, "deny"),
+            ("fs_special_path", 7, "deny"),
             // `/tmp/../etc/shadow` normalises outside the prefix it names.
-            ("fs_traversal_literal", 11, "warn"),
+            ("fs_traversal_literal", 12, "warn"),
             // A `pub fn` writing to its caller's path: `info`, not `warn`.
-            ("fs_tainted_path", 15, "info"),
-            // Guarded by `canonicalize` + `starts_with`: silent (line 21).
+            ("fs_tainted_path", 16, "info"),
+            // Guarded by `canonicalize` + `starts_with`: silent (line 22).
             // The same value written again after the `if`: reported.
-            ("fs_tainted_path", 23, "info"),
+            ("fs_tainted_path", 24, "info"),
             // A bare program name is resolved through PATH.
-            ("exec_basename", 28, "warn"),
-            // `/bin/ls` is explicit: silent (line 32).
+            ("exec_basename", 29, "warn"),
+            // `/bin/ls` is explicit: silent (line 33).
             // A program name from a parameter.
-            ("exec_tainted_cmd", 36, "warn"),
+            ("exec_tainted_cmd", 37, "warn"),
             // `bash` is resolved through PATH *and* receives a caller string.
-            ("exec_basename", 40, "warn"),
-            ("exec_shell_tainted", 40, "warn"),
+            ("exec_basename", 41, "warn"),
+            ("exec_shell_tainted", 41, "warn"),
             // Written by this function first, then executed.
-            ("exec_written_path", 45, "warn"),
-            ("env_set_dangerous", 50, "warn"),
-            ("env_read_dangerous", 54, "info"),
-            // `MY_UNRELATED_VAR` is not dangerous: silent (line 58).
+            ("exec_written_path", 46, "warn"),
+            ("env_set_dangerous", 51, "warn"),
+            ("env_read_dangerous", 55, "info"),
+            // `MY_UNRELATED_VAR` is not dangerous: silent (line 59).
             // `PathBuf::from(p).join("payload")` composes, so the caller's path
             // stays `param`: informational, not a tainted-path warning.
-            ("fs_tainted_path", 69, "info"),
+            ("fs_tainted_path", 70, "info"),
             // Joining two literals yields the full literal path, so the danger
             // table sees `/proc/self/mem` built by `Path::new(..).join(..)`.
-            ("fs_special_path", 74, "deny"),
+            ("fs_special_path", 75, "deny"),
             // A closure over a literal array: `bin` is a literal element, not a
-            // caller value, so nothing fires (lines 79-83).
+            // caller value, so nothing fires (lines 80-84).
             // A closure over a caller-supplied collection keeps its class.
-            ("exec_tainted_cmd", 88, "warn"),
+            ("exec_tainted_cmd", 89, "warn"),
+            // Another process's memory, not only `/proc/self/mem`.
+            ("fs_special_path", 95, "deny"),
+            // A Windows drive path is absolute: the write/exec pair is a
+            // dropper, and the `..` normalises outside its directory.
+            ("exec_written_path", 101, "warn"),
+            ("fs_traversal_literal", 105, "warn"),
+            // A shell with an `.exe` suffix is still a shell on Windows.
+            ("exec_basename", 111, "warn"),
+            ("exec_shell_tainted", 111, "warn"),
+            // Value-preserving iterator adapters keep argv's taint.
+            ("fs_tainted_path", 118, "warn"),
+            // `lines()` is a taint-producing stdin API.
+            ("fs_tainted_path", 125, "warn"),
         ])
     );
 }

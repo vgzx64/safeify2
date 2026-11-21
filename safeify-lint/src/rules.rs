@@ -29,10 +29,17 @@ pub struct Ctx<'a> {
     pub source: &'a str,
     pub is_pub: bool,
     pub is_build: bool,
-    /// Rules suppressed for this function by `#[allow(safeify::x)]` /
-    /// `#[expect(safeify::x)]` (resolved by rust-analyzer, so crate-level,
-    /// module-level and `cfg_attr` forms all work) or by a
-    /// `// safeify: allow(x)` comment.
+    /// Suppression scopes: one per `fn` whose body the scanner walks (the item
+    /// function and every `fn` nested inside it), each with the rules allowed
+    /// by its `#[allow]`/`#[expect]` attributes and `// safeify: allow(..)`
+    /// comments. A finding is checked against every scope that contains it, so
+    /// an attribute on a nested function works even though the outer function
+    /// is what the scanner started from.
+    pub scopes: Vec<FnScope>,
+}
+
+pub struct FnScope {
+    pub range: syntax::TextRange,
     pub allowed: Vec<String>,
 }
 
@@ -53,8 +60,13 @@ impl<'a> Ctx<'a> {
         mut level: &'static str,
         message: String,
     ) {
-        if self.allowed.iter().any(|name| allows(name, rule)) {
-            return;
+        // A directive covers the region it is in: a comment in the outer
+        // function body covers a nested `fn`, an attribute on the nested `fn`
+        // covers only that function (it is collected from the inner scope).
+        for scope in self.scopes.iter().filter(|scope| scope.range.contains(offset)) {
+            if scope.allowed.iter().any(|name| allows(name, rule)) {
+                return;
+            }
         }
         if level == "warn" && DEMOTABLE.contains(&rule) && !(self.is_pub || self.is_build) {
             level = "info";
@@ -107,7 +119,7 @@ impl<'a, 'b> Scanner<'a, 'b> {
             let Some(lit) = first_arg_literal(call) else {
                 continue;
             };
-            if lit.starts_with('/') || lit.starts_with('\\') {
+            if sink::is_absolute(&lit) {
                 writes.push((u32::from(start_of(call.syntax())), lit));
             }
         }
@@ -462,7 +474,7 @@ impl<'a, 'b> Scanner<'a, 'b> {
                 format!("`{value}` is resolved through PATH (and the CWD on Windows)"),
             );
         }
-        if value.starts_with('/') || value.starts_with('\\') {
+        if sink::is_absolute(value) {
             let at_u32: u32 = at.into();
             if writes.iter().any(|(w, p)| *w < at_u32 && p == value) {
                 self.ctx.emit(

@@ -21,7 +21,17 @@ use syntax::ast::{self, HasVisibility};
 use syntax::AstNode;
 use vfs::VfsPath;
 
-fn main() -> Result<()> {
+fn main() {
+    // Findings exit `1` (the `--min-level` gate); anything else is an engine
+    // error and exits `2`, so CI can tell "the code is dirty" from "the tool
+    // broke".
+    if let Err(error) = run() {
+        eprintln!("safeify-lint: {error:#}");
+        std::process::exit(2);
+    }
+}
+
+fn run() -> Result<()> {
     let mut crate_dir: Option<PathBuf> = None;
     let mut out_file: Option<PathBuf> = None;
     let mut stats_file: Option<PathBuf> = None;
@@ -56,8 +66,8 @@ options:\n\
   --out <FILE>         write JSON here instead of stdout\n\
   --extra-cfg <SPEC>   enable extra cfg atoms, comma separated\n\
                        (for example: windows,target_family=windows)\n\
-  --debug-macro <FILE> print macro expansion status for one file\n\
   --stats <FILE>       write classification counters here (JSON)\n\
+  --min-level <LEVEL>  exit 1 if a finding at info|warn|deny exists\n\
 \n\
 Suppress a rule with #[allow(safeify::<rule>)] on the item or crate, or with\n\
 a '// safeify: allow(<rule>)' comment."
@@ -126,14 +136,26 @@ a '// safeify: allow(<rule>)' comment."
                 .file_name()
                 .is_some_and(|name| name == "build.rs");
             for fn_ast in item_functions(&file.ast) {
-                let mut allowed = allowed_lints(&sema, &loaded.db, file.file_id, &fn_ast);
-                allowed.extend(rules::comment_allows(&fn_ast));
+                // One suppression scope per function in the body: an
+                // `#[allow]` on a nested `fn` must apply to that function,
+                // while severity still follows the item function's visibility.
+                let scopes = fn_ast
+                    .syntax()
+                    .descendants()
+                    .filter_map(ast::Fn::cast)
+                    .map(|function| {
+                        let mut allowed =
+                            allowed_lints(&sema, &loaded.db, file.file_id, &function);
+                        allowed.extend(rules::comment_allows(&function));
+                        rules::FnScope { range: function.syntax().text_range(), allowed }
+                    })
+                    .collect();
                 let ctx = Ctx {
                     file: display.clone(),
                     source: &file.source,
                     is_pub: fn_ast.visibility().is_some(),
                     is_build,
-                    allowed,
+                    scopes,
                 };
                 let scanner = Scanner { eval: &eval, ctx: &ctx };
                 scanner.scan_fn(&fn_ast, &mut findings);
