@@ -8,6 +8,8 @@
 >
 > Data: [`safeify-data/synth`](../../safeify-data/synth/README.md), frozen split
 > [`safeify-data/synth/splits`](../../safeify-data/synth/splits/README.md).
+>
+> File-level dataset description: [pair-dataset.md](pair-dataset.md).
 
 ## Current state
 

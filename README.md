@@ -28,6 +28,7 @@ Safeify is a Rust security research workspace organized around two implementatio
 - [`notes/research/counterexamples.md`](notes/research/counterexamples.md) — Safe-Rust counterexample design
 - [`notes/research/engine.md`](notes/research/engine.md) — semantic engine documentation
 - [`notes/research/bert-pair-model.md`](notes/research/bert-pair-model.md) — planned pair-model work
+- [`notes/research/pair-dataset.md`](notes/research/pair-dataset.md) — pair-classification dataset: sources, construction gates, final sizes
 - [`papers/my_dissertation_plan.md`](papers/my_dissertation_plan.md) — formal milestones
 
 ## Shared inputs
