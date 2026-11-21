@@ -1,0 +1,131 @@
+{
+  "rows": 469,
+  "batches": [
+    {
+      "file": "batch_01.jsonl",
+      "rows": 48,
+      "by_kind": {
+        "safe_candidate": 18,
+        "unsafe_added": 25,
+        "unsafe_retained": 5
+      },
+      "by_source": {
+        "cratesio": 25,
+        "cvefixes": 18,
+        "rustsec": 5
+      }
+    },
+    {
+      "file": "batch_02.jsonl",
+      "rows": 48,
+      "by_kind": {
+        "safe_candidate": 32,
+        "unsafe_added": 16
+      },
+      "by_source": {
+        "cratesio": 48
+      }
+    },
+    {
+      "file": "batch_03.jsonl",
+      "rows": 48,
+      "by_kind": {
+        "unsafe_added": 30,
+        "unsafe_retained": 18
+      },
+      "by_source": {
+        "cratesio": 48
+      }
+    },
+    {
+      "file": "batch_04.jsonl",
+      "rows": 48,
+      "by_kind": {
+        "unsafe_retained": 48
+      },
+      "by_source": {
+        "cratesio": 48
+      }
+    },
+    {
+      "file": "batch_05.jsonl",
+      "rows": 48,
+      "by_kind": {
+        "unsafe_retained": 48
+      },
+      "by_source": {
+        "cratesio": 48
+      }
+    },
+    {
+      "file": "batch_06.jsonl",
+      "rows": 48,
+      "by_kind": {
+        "unsafe_retained": 48
+      },
+      "by_source": {
+        "cratesio": 48
+      }
+    },
+    {
+      "file": "batch_07.jsonl",
+      "rows": 48,
+      "by_kind": {
+        "unsafe_retained": 44,
+        "unsafe_added": 4
+      },
+      "by_source": {
+        "cratesio": 44,
+        "cvefixes": 4
+      }
+    },
+    {
+      "file": "batch_08.jsonl",
+      "rows": 48,
+      "by_kind": {
+        "unsafe_added": 48
+      },
+      "by_source": {
+        "cvefixes": 48
+      }
+    },
+    {
+      "file": "batch_09.jsonl",
+      "rows": 48,
+      "by_kind": {
+        "unsafe_added": 22,
+        "unsafe_retained": 24,
+        "safe_candidate": 2
+      },
+      "by_source": {
+        "cvefixes": 39,
+        "rustsec": 9
+      }
+    },
+    {
+      "file": "batch_10.jsonl",
+      "rows": 37,
+      "by_kind": {
+        "unsafe_added": 7,
+        "unsafe_retained": 30
+      },
+      "by_source": {
+        "rustsec": 37
+      }
+    }
+  ],
+  "dropped": {
+    "other_split": 328,
+    "empty_new": 38
+  },
+  "by_split": {
+    "unassigned": 36,
+    "train": 433
+  },
+  "by_kind": {
+    "safe_candidate": 52,
+    "unsafe_added": 152,
+    "unsafe_retained": 265
+  },
+  "y_candidates_with_unsafe_in_new": 1
+}

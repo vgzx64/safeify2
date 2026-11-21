@@ -1,0 +1,40 @@
+{
+  "ok": true,
+  "rows": 469,
+  "labels": {
+    "N": 335,
+    "U": 78,
+    "Y": 30,
+    "M": 26
+  },
+  "by_kind_label": {
+    "unsafe_retained/N": 239,
+    "unsafe_added/N": 88,
+    "unsafe_added/U": 57,
+    "safe_candidate/Y": 30,
+    "unsafe_retained/M": 18,
+    "safe_candidate/U": 13,
+    "safe_candidate/N": 8,
+    "unsafe_retained/U": 8,
+    "unsafe_added/M": 7,
+    "safe_candidate/M": 1
+  },
+  "by_source_label": {
+    "cratesio/N": 206,
+    "cvefixes/N": 89,
+    "cratesio/U": 60,
+    "rustsec/N": 40,
+    "cratesio/Y": 28,
+    "cratesio/M": 15,
+    "cvefixes/U": 14,
+    "cvefixes/M": 6,
+    "rustsec/M": 5,
+    "rustsec/U": 4,
+    "rustsec/Y": 2
+  },
+  "by_confidence": {
+    "high": 348,
+    "medium": 112,
+    "low": 9
+  }
+}

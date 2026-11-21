@@ -1,0 +1,61 @@
+{
+  "dataset_version": "v0.3-draft",
+  "frozen": false,
+  "rows": 676,
+  "added": 243,
+  "dropped": {
+    "unusable": 78,
+    "repo_cap": 148
+  },
+  "by_split": {
+    "train": 459,
+    "test": 130,
+    "valid": 87
+  },
+  "by_label": {
+    "Y": 139,
+    "N": 380,
+    "M": 157
+  },
+  "by_split_label": {
+    "train:N": 305,
+    "train:Y": 84,
+    "train:M": 70,
+    "test:M": 58,
+    "test:N": 39,
+    "valid:N": 36,
+    "test:Y": 33,
+    "valid:M": 29,
+    "valid:Y": 22
+  },
+  "positives": 139,
+  "expansion_positives": 30,
+  "repos": 173,
+  "train_repos": 61,
+  "split_leakage": {
+    "cross_split_snippet_groups": 0,
+    "cross_split_rows": 0,
+    "unresolved_repo_keys": [
+      "name:torvalds_linux",
+      "pkg:abox",
+      "pkg:atom"
+    ],
+    "pairwise_overlap": {
+      "test/train": {
+        "repos": 0,
+        "commits": 0,
+        "cves": 0
+      },
+      "test/valid": {
+        "repos": 0,
+        "commits": 0,
+        "cves": 0
+      },
+      "train/valid": {
+        "repos": 0,
+        "commits": 0,
+        "cves": 0
+      }
+    }
+  }
+}

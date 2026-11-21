@@ -416,6 +416,7 @@ accuracy is below a constant-`Y` baseline, so accuracy alone is misleading.
 | 2026-11-08 | Second + focused M/N spot-checks; 3 corrections; M/N shown non-reproducible; **v0.2 frozen** (433 rows, binary target) |
 | 2026-10-29–11-08 | NIRM 3 report is the priority; do not start the full build |
 | 2026-11-08 | Freeze `transitions-core` v0.2 |
+| 2026-11-22 | v0.3 draft: 469 untouched rows audited (+243 usable, 30 Y); held-out AUC flat (0.624); no operating point reaches precision 0.7 → no fine-tune. See [transition-expansion-v0.3.md](transition-expansion-v0.3.md) |
 | Pair model (not NIRM 4) | Train the SafeNet-style pair classifier on `safeify-data/synth/out/train_mixed.csv` (8,580 clean pairs after the 2026-11-18 rebuild; `splits/check_train_leakage.py` must pass); evaluate on the frozen core as external validation. First path: frozen-BERT cache + pair head, see [bert-pair-model.md](bert-pair-model.md) |
 
 The dataset build must not delay the NIRM 3 report. The pilot is enough to

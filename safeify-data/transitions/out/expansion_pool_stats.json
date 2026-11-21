@@ -1,0 +1,59 @@
+{
+  "rows": 835,
+  "by_source": {
+    "cratesio": 514,
+    "cvefixes": 239,
+    "rustsec": 82
+  },
+  "by_kind": {
+    "unsafe_retained": 388,
+    "unsafe_added": 285,
+    "safe_candidate": 162
+  },
+  "by_source_kind": {
+    "cratesio/unsafe_retained": 306,
+    "cvefixes/unsafe_added": 162,
+    "cratesio/safe_candidate": 116,
+    "cratesio/unsafe_added": 92,
+    "cvefixes/unsafe_retained": 48,
+    "rustsec/unsafe_retained": 34,
+    "rustsec/unsafe_added": 31,
+    "cvefixes/safe_candidate": 29,
+    "rustsec/safe_candidate": 17
+  },
+  "by_split": {
+    "train": 458,
+    "test": 199,
+    "valid": 129,
+    "unassigned": 49
+  },
+  "unassigned_repos": [
+    "codeberg.org/zesterer/spin",
+    "github.com/a1ien/rusb",
+    "github.com/adrienchampion/hashconsing",
+    "github.com/alexhuszagh/rust-stackvector",
+    "github.com/apoelstra/strason",
+    "github.com/artichoke/intaglio",
+    "github.com/capnproto/capnproto-rust",
+    "github.com/cloudflare/boring",
+    "github.com/eclipse-iceoryx/iceoryx2",
+    "github.com/faern/oneshot",
+    "github.com/gettext-rs/gettext-rs",
+    "github.com/ishape-rust/itriangle",
+    "github.com/lukaskalbertodt/stable-vec",
+    "github.com/michaellass/aligned_box",
+    "github.com/microsoft/windows-rs",
+    "github.com/okready/scratchpad",
+    "github.com/paritytech/libsecp256k1",
+    "github.com/rust-bitcoin/rust-secp256k1",
+    "github.com/rust-embedded/heapless",
+    "github.com/rust-vmm/vm-memory",
+    "github.com/rust-vmm/vmm-sys-util",
+    "github.com/tikv/pprof-rs",
+    "github.com/time-rs/time",
+    "github.com/tremor-rs/tremor-runtime",
+    "github.com/uazu/qcell",
+    "github.com/uutils/coreutils",
+    "pkg:av-data"
+  ]
+}

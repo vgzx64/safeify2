@@ -1,4 +1,4 @@
-"""Baseline suite for the frozen transition core (v0.2).
+"""Baseline suite for the frozen transition core (v0.2) and drafts (v0.3+).
 
 Question: does the binary replaceability target (`safe_replaceable`: Y=1,
 M/N=0) carry a learnable signal from the vulnerable snippet alone, and does the
@@ -6,7 +6,8 @@ formal NIRM 4 toolset (Gradient Boosting / Random Forest) beat the cheap text
 baselines?
 
 Protocol (same as the rest of the track):
-  * rows: out/transitions_core_v0.2.jsonl (frozen; assert `frozen` is true)
+  * rows: out/transitions_core_v0.2.jsonl (frozen) or a v0.3 draft; the
+    frozen valid/test sizes are asserted either way
   * input: `old_snippet` ONLY -- the fix (`safe_snippet`) and the diff
     (`deleted_lines`/`added_lines`, present on one row each) are excluded
   * selection: repository-grouped 5-fold CV on `train` (groups = `repo_key`)
@@ -14,12 +15,13 @@ Protocol (same as the rest of the track):
   * `test` stays sealed: it is loaded only for the size assertion and is never
     vectorised or scored.
 
-Writes out/baseline_suite_v0.2.json and out/baseline_suite_v0.2.md.
+Writes out/baseline_suite_<version>.json and .md.
 Usage: cd safeify-data/transitions && python baseline_suite.py
 """
 
 from __future__ import annotations
 
+import argparse
 import json
 from pathlib import Path
 
@@ -36,7 +38,6 @@ from sklearn.pipeline import FeatureUnion, Pipeline
 from sklearn.decomposition import TruncatedSVD
 
 OUT = Path(__file__).resolve().parent / "out"
-CORE = OUT / "transitions_core_v0.2.jsonl"
 SEED = 0
 N_FOLDS = 5
 N_BOOT = 2000
@@ -84,15 +85,20 @@ MODELS = {
 }
 
 
-def load_rows():
-    rows = [json.loads(line) for line in open(CORE, encoding="utf-8") if line.strip()]
-    assert all(r.get("frozen") is True for r in rows), "core is not frozen"
+def load_rows(core: Path, frozen: bool):
+    rows = [json.loads(line) for line in open(core, encoding="utf-8") if line.strip()]
+    if frozen:
+        assert all(r.get("frozen") is True for r in rows), "core is not frozen"
     assert all(r["target"] in BIN_LABELS for r in rows), "bad target"
     assert all(r.get("old_snippet") for r in rows), "missing input text"
     train = [r for r in rows if r["split"] == "train"]
     valid = [r for r in rows if r["split"] == "valid"]
     test = [r for r in rows if r["split"] == "test"]
-    assert (len(train), len(valid), len(test)) == (216, 87, 130)
+    if frozen:
+        assert (len(train), len(valid), len(test)) == (216, 87, 130)
+    else:
+        assert len(train) > 216 and len(valid) == 87 and len(test) == 130, \
+            "a draft must keep the frozen valid/test sizes"
     repos = [{r["repo_key"] for r in part} for part in (train, valid, test)]
     assert not (repos[0] & repos[1]) and not (repos[0] & repos[2]) \
         and not (repos[1] & repos[2]), "repository leakage across splits"
@@ -164,14 +170,20 @@ def cv_scores(name, rows):
 
 
 def main():
-    train, valid, test = load_rows()
+    ap = argparse.ArgumentParser(description=__doc__)
+    ap.add_argument("--version", default="v0.2",
+                    help="v0.2 (frozen) or a draft version such as v0.3")
+    args = ap.parse_args()
+    frozen = args.version == "v0.2"
+    core = OUT / f"transitions_core_{args.version}{'' if frozen else '_draft'}.jsonl"
+    train, valid, test = load_rows(core, frozen)
     ytr = np.array([r["target"] for r in train])
     yva = np.array([r["target"] for r in valid])
     xva = [r["old_snippet"] for r in valid]
     xtr = [r["old_snippet"] for r in train]
 
     results = {
-        "core": str(CORE.relative_to(CORE.parent.parent.parent)),
+        "core": str(core.relative_to(core.parent.parent.parent)),
         "protocol": "repo-grouped 5-fold CV on train; fit train; score valid; test sealed",
         "seed": SEED,
         "sizes": {"train": len(train), "valid": len(valid), "test_sealed": len(test),
@@ -189,10 +201,10 @@ def main():
         print(f"{name:18s} cv_f1={pooled['f1_Y']:.3f} cv_auc={pooled['roc_auc']:.3f} "
               f"valid_f1={res['valid']['f1_Y']:.3f} valid_auc={res['valid']['roc_auc']:.3f}")
 
-    json.dump(results, open(OUT / "baseline_suite_v0.2.json", "w"),
+    json.dump(results, open(OUT / f"baseline_suite_{args.version}.json", "w"),
               indent=2, ensure_ascii=False)
 
-    md = ["# Transition-core baseline suite (v0.2)", "",
+    md = [f"# Transition-core baseline suite ({args.version})", "",
           "Repository-grouped 5-fold CV on train; fit on train and score valid; test sealed.",
           "Input: `old_snippet` only. Positive class: Y (safe replacement exists).", "",
           "| model | CV acc | CV F1(Y) | CV AUC | valid acc | valid F1(Y) | valid AUC | valid AP |",
@@ -209,8 +221,8 @@ def main():
         md.append(f"- {name}: F1 {b['f1_Y'][0]:.3f}-{b['f1_Y'][1]:.3f}; "
                   f"AUC {auc[0]:.3f}-{auc[1]:.3f}; "
                   f"AP {b['average_precision'][0]:.3f}-{b['average_precision'][1]:.3f}")
-    (OUT / "baseline_suite_v0.2.md").write_text("\n".join(md) + "\n", encoding="utf-8")
-    print(f"\nwrote {OUT/'baseline_suite_v0.2.json'} and .md")
+    (OUT / f"baseline_suite_{args.version}.md").write_text("\n".join(md) + "\n", encoding="utf-8")
+    print(f"\nwrote {OUT}/baseline_suite_{args.version}.json and .md")
 
 
 if __name__ == "__main__":

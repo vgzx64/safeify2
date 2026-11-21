@@ -94,6 +94,10 @@ The DB is opened read-only. Parent commits come from `ext_commits`, because
 | `out/baseline_suite_v0.2.json` + `.md` | 2026-11-21 baseline suite: majority, TF-IDF (word/char/union) + LR, TF-IDF+SVD + GB/RF; repo-grouped CV + valid |
 | `out/baseline_modernbert_v0.2.json` + `.md` | frozen ModernBERT-base embeddings + linear/kNN probes, same protocol |
 | `out/baseline_concat_v0.2.json` + `.md` | char TF-IDF + embedding concatenation probe |
+| `out/expansion_pool_draft.jsonl` + `out/expansion_pool_stats.json` | 835 deduplicated, still-unlabelled candidates from the three extractors and the crates.io miner |
+| `adjudication/expansion/` | v0.3 audit: queue, ten batches, labels, merged `labeled.jsonl`, label stats |
+| `out/transitions_core_v0.3_draft.jsonl` + `out/transitions_core_v0.3_stats.json` | v0.3 draft: 676 rows = frozen v0.2 + 243 audited expansion rows, 0 split leakage |
+| `out/baseline_suite_v0.3.json` + `.md` | v0.2 protocol re-run on the v0.3 draft (same frozen valid 87, test sealed) |
 | `adjudication/gate_batches.json` | gate-closing run: 161 queue rows + 170 expansion families |
 | `adjudication/labels_gate_*.jsonl` | 11 adjudication batch outputs (331 rows) |
 | `out/spotcheck_gate.json` | documented spot-check correction (1 Y -> M) |
@@ -125,6 +129,29 @@ so the differences between the best probes are inside noise. This is a
 baseline report, not a model claim; the frozen encoder is not yet worth
 fine-tuning on this label budget (109 positives total), and the next lever is
 label expansion plus audit, not architecture.
+
+## v0.3 expansion (2026-11-22)
+
+The 469 auditable untouched rows (frozen train repositories plus 36 rows from
+new repositories) were adjudicated in ten LLM batches under the same rubric: 30 Y, 26 M, 335 N, 78 U.
+Only 58 % of `safe_candidate` hunks were real Y, and `unsafe_added` hunks were
+mostly unrelated (57 U). The draft adds 243 rows (30 Y) after dropping 78 U and
+capping negatives at 20 per repository; valid/test stay frozen.
+
+| model | CV AUC | valid AUC | valid F1(Y) | valid AP |
+|---|---:|---:|---:|---:|
+| majority | 0.500 | 0.500 | 0.000 | 0.253 |
+| char TF-IDF + LR | 0.762 | 0.624 | 0.444 | 0.392 |
+| word TF-IDF + LR | 0.715 | 0.569 | 0.412 | 0.347 |
+| TF-IDF + SVD + GB | 0.608 | 0.497 | 0.286 | 0.357 |
+
+Expansion did not move ranking quality (AUC 0.641 -> 0.624, AP flat); the
+threshold operating point improved slightly (precision 0.467 -> 0.571,
+recall 0.318 -> 0.364 at 0.5). The hard ceiling is that **no operating point
+on valid reaches precision 0.7** (max 0.625), so there is nothing to calibrate
+a high-precision abstaining tool on. No GPU fine-tune; the next lever is more
+audited positives (crates.io advisory pairs) and a pair-classification setup.
+Full write-up: [transition-expansion-v0.3.md](../../notes/research/transition-expansion-v0.3.md).
 
 ## Important caveats
 
