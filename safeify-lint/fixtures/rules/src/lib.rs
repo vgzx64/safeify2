@@ -211,3 +211,9 @@ pub fn copy_into_caller_path(p: &std::path::Path) {
 pub fn copy_from_proc_mem() {
     std::fs::copy("/proc/self/mem", "/tmp/copy").unwrap();
 }
+
+// The build-tool allowlist is scoped to build scripts: a library resolving
+// `git` through PATH is still part of its risk surface.
+pub fn library_git() {
+    Command::new("git").status().unwrap();
+}

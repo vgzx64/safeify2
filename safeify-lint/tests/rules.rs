@@ -10,12 +10,17 @@ use std::path::PathBuf;
 use std::process::Command;
 
 fn analyze(fixture: &str) -> Vec<(String, u64, String)> {
+    analyze_with(fixture, &[])
+}
+
+fn analyze_with(fixture: &str, args: &[&str]) -> Vec<(String, u64, String)> {
     let root = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .join("fixtures")
         .join(fixture);
     let output = Command::new(env!("CARGO_BIN_EXE_safeify-lint"))
         .arg("--crate")
         .arg(&root)
+        .args(args)
         .output()
         .expect("engine runs");
     assert!(
@@ -122,6 +127,8 @@ fn filesystem_command_and_environment_rules() {
             ("fs_tainted_path", 207, "info"),
             // A dangerous literal source is still in the danger table.
             ("fs_special_path", 212, "deny"),
+            // The build-tool allowlist is scoped to build scripts.
+            ("exec_basename", 218, "warn"),
         ])
     );
 }
@@ -153,7 +160,21 @@ fn build_script_writes_are_scoped_to_out_dir() {
             ("build_outside_out_dir", 4, "warn"),
             ("build_outside_out_dir", 6, "warn"),
             ("build_outside_out_dir", 7, "warn"),
+            // `cmake` is an allowlisted build tool (line 11: silent);
+            // `my-tool` is not.
+            ("exec_basename", 12, "warn"),
         ])
+    );
+}
+
+#[test]
+fn test_and_example_code_is_opt_in() {
+    // The tool analyses the library surface by default; the corpus harness
+    // passes `--scope all` to keep its census surface.
+    assert_eq!(analyze("scope"), expected(&[]));
+    assert_eq!(
+        analyze_with("scope", &["--scope", "all"]),
+        expected(&[("fs_tainted_path", 2, "info")])
     );
 }
 

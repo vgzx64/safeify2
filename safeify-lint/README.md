@@ -11,7 +11,7 @@ types, macro expansion), not on source text. Design and measurements:
 ## Usage
 
 ```sh
-safeify-lint --crate <DIR> [--out findings.json] [--min-level warn]
+safeify-lint --crate <DIR> [--out findings.json] [--min-level warn] [--scope lib|all]
 safeify-lint --inventory <FILE.rs> [--out inventory.json]
 ```
 
@@ -29,6 +29,9 @@ engine itself failed (unreadable package, cargo metadata error, bad argument).
 Without `--min-level` the exit code is `0` unless the engine fails.
 `--stats <FILE|->` writes classification counters, and `--extra-cfg` analyses code behind other `cfg`
 atoms (for example `--extra-cfg windows,target_family=windows`).
+`--scope lib` (the default) analyses the shipped library surface and skips
+`tests/`, `examples/`, `benches/` and `tests.rs`; `--scope all` includes them.
+The corpus harness uses `--scope all` so its census surface stays comparable.
 
 `--inventory <FILE>` is the unsafe-region inventory consumed by
 [`safeify-ai`](../safeify-ai/README.md) for replaceability judging: unsafe
@@ -44,7 +47,7 @@ same way the LSP evidence path does, so `std::ptr::read` resolves without a
 | `fs_special_path` | filesystem | literal path in the danger table: `/proc/*/mem`, `/proc/*/pagemap` (`<pid>` is `self`, `thread-self` or a number, including the per-thread `/proc/<pid>/task/<tid>/mem`), `/proc/kcore`, `/dev/{mem,kmem,port}`, `/etc/ld.so.preload`, `\\.\` and `\\?\` device namespaces | `deny` |
 | `fs_traversal_literal` | filesystem | absolute literal whose `..` normalises elsewhere | `warn` |
 | `fs_tainted_path` | filesystem | **write** sink whose path comes from env/argv/stdio/network with no guard (`warn`) or from a plain parameter (`info`) | `warn`/`info` |
-| `exec_basename` | command | `Command::new("ls")` — no path separator, so PATH (and CWD on Windows) decides what runs | `warn` |
+| `exec_basename` | command | `Command::new("ls")` — no path separator, so PATH (and CWD on Windows) decides what runs; standard build tools invoked from `build.rs` (`cmake`, `make`, `git`, `MSBuild.exe`, ...) are allowlisted, `rustc`/`cargo` are not | `warn` |
 | `exec_tainted_cmd` | command | program name from a parameter or taint source, no allowlist | `warn` |
 | `exec_shell_tainted` | command | a shell (`sh`, `bash`, `cmd`, …) receives a caller-controlled argument | `warn` |
 | `exec_written_path` | command | executes an absolute path this same function wrote earlier (dropper) | `warn` |
@@ -94,14 +97,14 @@ Limits, measured in [`engine.md` §4.3](../notes/research/engine.md#43-what-is-n
 dependency sources are not loaded (`no_deps`), so a wrapper in another crate is
 `unknown` and never fires; there is no branch-sensitive or heap/aliasing model;
 a recursive return is cut to `unknown`; `read_line` writes into its buffer
-argument and is not modelled (`lines()` is); test/example code is analysed like
-library code.
+argument and is not modelled (`lines()` is); tests, examples and benches are
+skipped by default (`--scope lib`).
 
 ## Build and test
 
 ```sh
 ./safeify-lint/cargo.sh build --release     # .tools/cargo-target/engine/release/safeify-lint
-./safeify-lint/cargo.sh test --release      # 8 semantic regression tests
+./safeify-lint/cargo.sh test --release      # 9 semantic regression tests
 ```
 
 The build uses a vendored rust-analyzer (`vendors/rust-analyzer`) through path

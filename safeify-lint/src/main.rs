@@ -36,6 +36,7 @@ fn run() -> Result<()> {
     let mut out_file: Option<PathBuf> = None;
     let mut stats_file: Option<PathBuf> = None;
     let mut min_level: Option<String> = None;
+    let mut scope = String::from("lib");
     let mut inventory_file: Option<PathBuf> = None;
     let mut extra_cfg: Vec<String> = Vec::new();
     let mut args = std::env::args().skip(1);
@@ -45,6 +46,7 @@ fn run() -> Result<()> {
             "--inventory" => inventory_file = args.next().map(PathBuf::from),
             "--out" | "-o" => out_file = args.next().map(PathBuf::from),
             "--min-level" => min_level = args.next(),
+            "--scope" => scope = args.next().unwrap_or_default(),
             "--stats" => stats_file = args.next().map(PathBuf::from),
             "--extra-cfg" => {
                 if let Some(spec) = args.next() {
@@ -54,6 +56,7 @@ fn run() -> Result<()> {
             "--help" | "-h" => {
                 println!(
                     "usage: safeify-lint (--crate <DIR> | --inventory <FILE>) [--out <FILE>]\n\
+        [--scope lib|all] [--min-level <LEVEL>]\n\
 \n\
 Analyzes one Cargo package with rust-analyzer and prints findings as JSON.\n\
 With --inventory, prints the unsafe-region inventory of one standalone file\n\
@@ -68,6 +71,7 @@ options:\n\
                        (for example: windows,target_family=windows)\n\
   --stats <FILE>       write classification counters here (JSON)\n\
   --min-level <LEVEL>  exit 1 if a finding at info|warn|deny exists\n\
+  --scope <lib|all>    analyse tests/examples/benches too (default: lib)\n\
 \n\
 Suppress a rule with #[allow(safeify::<rule>)] on the item or crate, or with\n\
 a '// safeify: allow(<rule>)' comment."
@@ -83,6 +87,11 @@ a '// safeify: allow(<rule>)' comment."
     let Some(dir) = crate_dir else {
         bail!("--crate <DIR> is required (a Cargo package directory)")
     };
+    let include_tests = match scope.as_str() {
+        "lib" => false,
+        "all" => true,
+        other => bail!("unknown --scope `{other}` (lib, all)"),
+    };
 
     let cwd = std::env::current_dir()?;
     let loaded = load::load_crate_with_cfg(&dir, &extra_cfg)?;
@@ -96,7 +105,7 @@ a '// safeify: allow(<rule>)' comment."
     }
     let mut files: Vec<ParsedFile> = Vec::new();
     hir::attach_db(&loaded.db, || {
-        for path in load::collect_rs_files(&loaded.root) {
+        for path in load::collect_rs_files(&loaded.root, include_tests) {
             let vpath = VfsPath::new_real_path(path.to_string_lossy().into_owned());
             let Some((file_id, excluded)) = loaded.vfs.file_id(&vpath) else {
                 continue;

@@ -460,7 +460,9 @@ impl<'a> Eval<'a> {
         match self.sema.resolve_path(&path) {
             Some(PathResolution::Local(local)) => {
                 if !seen.insert(local) {
-                    return Prov::new(Kind::Param);
+                    // A binding cycle is a value we cannot see; claiming the
+                    // caller controls it would invent a finding.
+                    return Prov::unknown();
                 }
                 self.local_prov(local, depth, seen, subst)
             }

@@ -583,6 +583,12 @@ impl<'a, 'b> Scanner<'a, 'b> {
             }
             return;
         };
+        // A standard tool invoked by literal basename from a build script is
+        // the pattern the corpus labels show is ubiquitous and not actionable;
+        // the tainted-argument rules still fire.
+        if self.ctx.is_build && sink::is_build_tool(value) {
+            return;
+        }
         if !value.contains('/') && !value.contains('\\') && !value.is_empty() {
             self.ctx.emit(
                 out,

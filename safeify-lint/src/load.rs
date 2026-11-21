@@ -213,8 +213,11 @@ pub fn load_file(path: &Path) -> Result<Loaded> {
 }
 
 /// Every `.rs` file under the package, skipping build output and VCS metadata.
-pub fn collect_rs_files(root: &Path) -> Vec<PathBuf> {
-    fn walk(dir: &Path, out: &mut Vec<PathBuf>) {
+/// With `include_tests = false`, `tests/`, `examples/`, `benches/` directories
+/// and `tests.rs` files are skipped: their findings are usually test scaffolding
+/// rather than the shipped API surface.
+pub fn collect_rs_files(root: &Path, include_tests: bool) -> Vec<PathBuf> {
+    fn walk(dir: &Path, include_tests: bool, out: &mut Vec<PathBuf>) {
         let Ok(entries) = std::fs::read_dir(dir) else {
             return;
         };
@@ -228,13 +231,19 @@ pub fn collect_rs_files(root: &Path) -> Vec<PathBuf> {
                 if matches!(name.as_ref(), "target" | ".git" | "node_modules") {
                     continue;
                 }
-                walk(&path, out);
+                if !include_tests && matches!(name.as_ref(), "tests" | "examples" | "benches") {
+                    continue;
+                }
+                walk(&path, include_tests, out);
             } else if path.extension().is_some_and(|ext| ext == "rs") {
+                if !include_tests && name == "tests.rs" {
+                    continue;
+                }
                 out.push(path);
             }
         }
     }
     let mut out = Vec::new();
-    walk(root, &mut out);
+    walk(root, include_tests, &mut out);
     out
 }

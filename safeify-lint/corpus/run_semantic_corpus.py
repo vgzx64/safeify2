@@ -76,6 +76,9 @@ def main(argv: list[str]) -> int:
         try:
             proc = subprocess.run(
                 [str(ENGINE), "--crate", str(crate), *stats,
+                 # The census surface is every analysed file, tests/examples
+                 # included; the tool's own default is `--scope lib`.
+                 "--scope", "all",
                  *(["--extra-cfg"] if args.engine_args else []),
                  *([args.engine_args] if args.engine_args else [])],
                 # Paths in the findings are displayed relative to cwd; using the

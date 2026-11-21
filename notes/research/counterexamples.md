@@ -144,11 +144,12 @@ and the paper's.
 
 ### 7.1 Unit cases (current)
 
-`./safeify-lint/cargo.sh test --release` → **8 tests**: the rule fixtures
+`./safeify-lint/cargo.sh test --release` → **9 tests**: the rule fixtures
 (`rules`), interprocedural interpretation (`interproc`), macro and `format!`
-evaluation (`macros`), field summaries (`fields`), `build.rs` scoping
-(`buildscript`), semantic suppression (`suppress`, `suppress_crate`), the
-published-advisory shapes (`advisories`) and the inventory (`inventory`). Each
+evaluation (`macros`), field summaries (`fields`), `build.rs` scoping and the
+build-tool allowlist (`buildscript`), semantic suppression (`suppress`,
+`suppress_crate`), the `--scope` default (`scope`), the published-advisory
+shapes (`advisories`) and the inventory (`inventory`). Each
 fixture asserts the exact `(rule, line, level)` set, so a new finding on a
 fixture is a failure just like a missing one.
 
@@ -160,36 +161,36 @@ real advisories are `fixtures/advisories`.
 
 ### 7.2 Corpus prevalence (current)
 
-**Current measurement (semantic engine, 2026-11-21c).** Host ∪ Windows pass over
+**Current measurement (semantic engine, 2026-11-21d).** Host ∪ Windows pass over
 the same 329 package versions (147 crates, 8,426 files), findings deduplicated
 by `(rule, path, line)`:
 
 | Rule | deny | warn | info |
 |---|---|---|---|
-| `exec_basename` | 0 | 16 | 46 |
+| `exec_basename` | 0 | 4 | 46 |
 | `exec_tainted_cmd` | 0 | 13 | 3 |
 | `build_outside_out_dir` | 0 | 4 | 0 |
-| `fs_tainted_path` | 0 | 2 | 197 |
+| `fs_tainted_path` | 0 | 2 | 193 |
 | `env_read_dangerous` | 0 | 0 | 5 |
 | `fs_special_path` | 0 | 0 | 0 |
 | `fs_traversal_literal` | 0 | 0 | 0 |
 | `env_set_dangerous` | 0 | 0 | 0 |
 | `exec_shell_tainted` | 0 | 0 | 0 |
-| **total** | **0** | **35** | **251** |
+| **total** | **0** | **23** | **247** |
 
-**286 findings in 97 of 8,426 files** (1.2%). Artifacts:
-[`lint_corpus_semantic_2026-11-21c_union.json`](../../safeify-lint/out/lint_corpus_semantic_2026-11-21c_union.json)
+**270 findings in 93 of 8,426 files** (1.1%). Artifacts:
+[`lint_corpus_semantic_2026-11-21d_union.json`](../../safeify-lint/out/lint_corpus_semantic_2026-11-21d_union.json)
 (host and Windows passes separately in `_host.json` / `_win.json`, and the
 `SAFEIFY_INTERPROC=0` A/B in `_nointerproc.json`); the per-rule diff against the
 frozen census is printed by
 [`run_semantic_corpus.py`](../../safeify-lint/corpus/run_semantic_corpus.py) and
 summarised in [engine.md §7](engine.md#7-measurements-the-engine-must-produce).
-The step-2 run (284 sites, 2026-11-21b), the step-1 run (263 sites,
-2026-11-21) and the pre-review run (261 sites, 2026-11-20) are kept under
-their dates for the deltas.
+The step-3 run (286 sites, 2026-11-21c), the step-2 run (284, 2026-11-21b),
+the step-1 run (263, 2026-11-21) and the pre-review run (261, 2026-11-20) are
+kept under their dates for the deltas.
 
 Against the frozen census (249 distinct sites in 91 files) the union shares
-**216 sites**: 33 old-only and 70 new-only, all explained.
+**204 sites**: 45 old-only and 66 new-only, all explained.
 
 - **Old-only, 27:** `slice-deque`'s
   `ci/deploy_and_run_on_ios_simulator.rs` (3 versions, 8 `exec_basename` + 1
@@ -200,6 +201,10 @@ Against the frozen census (249 distinct sites in 91 files) the union shares
   engine and steps 1–2 reported the *source* path. A caller-controlled read is
   out of scope for `fs_tainted_path`, so only the destination is a write now
   (the source still goes through the literal danger table).
+- **Old-only, 12:** standard build tools invoked by literal basename from
+  `build.rs` — 8 `arrayfire` `cmake`/`make`/`MSBuild.exe`, 2 `cranelift-codegen`
+  and 2 `lucet-runtime-internals` `git`. The build-tool allowlist (available
+  only to build scripts, not to library code) stops reporting them.
 - **Old-only, 4 / new-only, 4:** the same `simd-json` `examples/perf.rs` sites,
   now reported at the *argument's* line rather than the multi-line call's first
   line (the `format!` argument; see engine.md §5c).
@@ -217,11 +222,13 @@ Against the frozen census (249 distinct sites in 91 files) the union shares
 - **New-only, 2:** `libsbc` 0.1.4/0.1.5 `examples/decode.rs` writes
   `env::args().nth(..)`; the iterator adapter now keeps argv's class (all
   `info`, so the actionable census and every audit label are unchanged).
-- **New-only, 21:** writes whose path is `x.parent()`/`canonicalize(x)` with `x`
-  caller-supplied — `mdbook` 14 (book, renderer and utils, two versions),
+- **New-only, 17:** writes whose path is `x.parent()`/`canonicalize(x)` with `x`
+  caller-supplied — `mdbook` 10 (book, renderer and utils, two versions),
   `trust-dns-server` 4, `xcb` 2, `lettre` 1, all `info`. `parent()` used to be
   an unconditional `trusted` producer, which laundered the caller's class; it
-  now keeps it.
+  now keeps it. Four more `mdbook` sites were counted in the 2026-11-21b run
+  and disappeared when a cyclic binding stopped claiming caller control (they
+  were may-join artifacts of a tuple destructuring).
 - **New-only, 4:** `mdbook` writes to `to.join(entry.file_name())` (and a copy
   destination built the same way): a `file_name()` below the argument no longer
   counts as a guard, because the caller-controlled base survives the join. All
@@ -250,24 +257,22 @@ the `info` stratum because any library that writes to a caller-supplied path
 matches — that is why the parameter case is `info` and only writes are
 considered.
 
-### 7.3 Precision audit (current, 2026-11-21c)
+### 7.3 Precision audit (current, 2026-11-21d)
 
 **Frame.** Census, not a sample: after deduplicating the same code site across
-crate versions, the semantic census has **181 unique sites**, of which **28 are
-`warn`/`deny` in 10 crates** and 153 are `info`. All 28 were labelled by reading
-each site with four lines of context; 25 carry over from the 2026-11-19 sheet
-(same `rule|path|line`), 3 were new in the 2026-11-20 audit, and every churn
-since (2 on 2026-11-21, 21 on 2026-11-21b, 4 added / 2 removed on 2026-11-21c) is
-`info`, so every label still applies (`lint_audit_labels_2026-11-21c.json` has
-the same 28 keys). The sheet, labels and
-statistics are reproducible:
+crate versions, the semantic census has **169 unique sites**, of which **18 are
+`warn`/`deny` in 9 crates** and 151 are `info`. All 18 were labelled by reading
+each site with four lines of context; 15 carry over from the 2026-11-19 sheet
+(same `rule|path|line`), 3 were new in the 2026-11-20 audit, and the build-tool
+allowlist retired 10 carry-over sites. The sheet, labels and statistics are
+reproducible:
 
 ```
 python3 safeify-lint/audit_lint.py \
-    --corpus safeify-lint/out/lint_corpus_semantic_2026-11-21c_union.json \
-    --sheet safeify-lint/out/lint_audit_2026-11-21c.jsonl --info-sample 0
-python3 safeify-lint/audit_lint.py --sheet safeify-lint/out/lint_audit_2026-11-21c.jsonl \
-    --labels safeify-lint/out/lint_audit_labels_2026-11-21c.json --stats
+    --corpus safeify-lint/out/lint_corpus_semantic_2026-11-21d_union.json \
+    --sheet safeify-lint/out/lint_audit_2026-11-21d.jsonl --info-sample 0
+python3 safeify-lint/audit_lint.py --sheet safeify-lint/out/lint_audit_2026-11-21d.jsonl \
+    --labels safeify-lint/out/lint_audit_labels_2026-11-21d.json --stats
 ```
 
 **Results.** Two numbers, because "is it correct" and "is it worth a human's
@@ -277,12 +282,12 @@ attention" are different questions:
 |---|---|---|---|
 | `build_outside_out_dir` | 4 | 4 (1.00) | 4 (1.00) |
 | `exec_tainted_cmd` | 9 | 8 (0.89) | 5 (0.56) |
-| `exec_basename` | 13 | 13 (1.00) | 3 (0.23) |
+| `exec_basename` | 3 | 3 (1.00) | 3 (1.00) |
 | `fs_tainted_path` | 2 | 2 (1.00) | 0 (0.00) |
-| **all** | **28** | **27 (0.96 [0.82, 0.99])** | **12 (0.43 [0.27, 0.61])** |
+| **all** | **18** | **17 (0.94 [0.74, 0.99])** | **12 (0.67 [0.44, 0.84])** |
 
 Interval on the correctness column: Wilson 95%; the crate-clustered bootstrap is
-[0.84, 1.00]. The single false positive is unchanged: `grep-cli` **0.1.6**, the
+[0.82, 1.00]. The single false positive is unchanged: `grep-cli` **0.1.6**, the
 patched version. `resolve_binary()` returns an absolute `PathBuf`, but the call
 site reads `Command::new(&decomp_cmd.bin)` and the field is written from a value
 that comes from `which` in another crate — `no_deps` means the helper is
@@ -291,33 +296,35 @@ The warning is right about the pattern and wrong about the version; cross-crate
 evidence is what would separate 0.1.5 from 0.1.6, and that is out of reach by
 design.
 
-**What the census says.** The lints produce **one false positive in 28**, and
-only 43% of the actionable findings would change a reviewer's decision. The
-strict hits are `mdbook`'s `pub fn MDBook::test` spawning `rustdoc`, `sys-info`'s
-`pub fn hostname()` on Windows, the vulnerable `grep-cli` 0.1.5 line, and six
-environment-selected program names (`openssl-src`, `protobuf`, `pyo3`). The
-non-actionable ones are `cmake`/`make`/`MSBuild.exe`/`git` invocations in
-`build.rs` (8 from `arrayfire`, two versions), and the two `cranelift-codegen`
-snapshot writes behind a developer feature.
+**What the census says.** The lints produce **one false positive in 18**, and
+**two thirds** of the actionable findings would change a reviewer's decision.
+The strict hits are `arrayfire`'s four build-directory writes, `mdbook`'s
+`pub fn MDBook::test` spawning `rustdoc`, `sys-info`'s `pub fn hostname()` on
+Windows, the vulnerable `grep-cli` 0.1.5 line, three environment-selected
+program names in `openssl-src`, and one in `protobuf`. The non-actionable ones
+are the two `pyo3` interpreter paths, `xcb`'s formatter path, and the two
+`cranelift-codegen` snapshot writes behind a developer feature.
 
-That is the real result: **a `warn` on `Command::new("cmake")` inside
-`build.rs` is correct and useless at the same time.** The pattern is genuine
-(Figure 6 of the paper is precisely `Command::new("rustc")` in a build script)
-and it is so common that warning on it produces more noise than signal. The
-fix is not to demote it — that would hide the paper's own build-time attack —
-but to add an explicit allowlist of standard build tools (`cmake`, `make`,
-`ninja`, `git`, `rustc`, `cc`, `gcc`, `clang`, `pkg-config`, `install`, `cp`)
-that demotes only those names, leaving unusual ones at `warn`. That remains
-unimplemented: it changes the census and the strict-TP count, so it needs its
-own measurement and audit.
+**The build-tool allowlist, measured.** The 2026-11-21d run applies the fixed
+allowlist the earlier audits called for: a literal basename in a `build.rs`
+matching `cmake`, `make`, `gmake`, `ninja`, `meson`, `msbuild(.exe)`, `git`,
+`cc`/`gcc`/`g++`/`clang`/`clang++`, `pkg-config`, `ar`, `ld`, `strip`,
+`install`, `cp`, `mv`, `rm`, `ln` or `mkdir` is not reported as
+`exec_basename`. The list is scoped to build scripts (a library resolving those
+through PATH is still warned) and deliberately excludes `rustc`/`cargo`, because
+a build script finding the compiler through PATH is exactly Figure 6. The
+evidence is in the numbers: sites fall from 28 to 18, correctness from 27/28 to
+17/18 (the retired sites were "correct and useless"), and strict TP from
+12/28 (0.43) to 12/18 (0.67). Every remaining `exec_basename` warning is a
+strict hit.
 
-**Not audited.** The 153 unique `info` sites were sanity-checked only (spot
+**Not audited.** The 151 unique `info` sites were sanity-checked only (spot
 review while building the sheet); no precision number is claimed for them, and
 it should not be: by construction they are the "library takes a caller path"
 class.
 
 **Limitations of the audit itself.** Single reviewer (self-audit, not blind);
-28 sites in 10 crates, all from one vendored corpus; labels are a judgement
+18 sites in 9 crates, all from one vendored corpus; labels are a judgement
 about the pattern, not about exploitability in the crate's deployment.
 
 ### 7.4 Regression against known advisories (current)
@@ -386,9 +393,10 @@ and only at `info`.
 Two honest readings:
 
 - **Command execution does not filter.** 88 of 115 are literal basenames, and
-  nothing removes them without a tool allowlist. This is the same conclusion as
-  §7.3, measured differently: the family is barely filtered because the pattern
-  *is* the common case.
+  the text engine filtered none of them (the 2026-11-21d allowlist now retires
+  the build-script subset at the reporting layer). This is the same conclusion
+  as §7.3, measured differently: the family is barely filtered because the
+  pattern *is* the common case.
 - **The blind spot is large.** 445 of 915 filesystem calls (49%) classified
   `unknown` — function returns and complex expressions — and were dropped
   silently. Any recall claim is bounded by that number, which was the strongest
@@ -522,6 +530,20 @@ third (`xcb`'s parameter-chosen `rustfmt`) was a genuine finding.
     Dominance is now modelled with the polarity that makes it sound: a *negated*
     `starts_with` whose `if` body leaves (and only that shape — De Morgan around
     `&&`/`||` is not assumed), while the positive form is not a guard.
+19. **A cyclic binding claimed caller control.** The `seen` guard returned
+    `param` when a local was revisited, so a tuple destructuring that evaluated
+    the same binding twice made the whole tuple caller-controlled; four
+    `mdbook` `info` sites were that artifact. It is `unknown` now, which is the
+    engine's "never guess" policy.
+20. **`exec_basename` on standard build tools.** The audit's 10 "correct and
+    useless" sites were literal `cmake`/`make`/`MSBuild.exe`/`git` invocations
+    in `build.rs`. A fixed allowlist now silences those names in build scripts
+    only (library code still warns, and `rustc`/`cargo` are excluded because a
+    build script resolving them through PATH is Figure 6). Measured in §7.3:
+    sites 28 → 18, strict TP 12/28 → 12/18.
+21. **The default scope analysed test and example code.** `--scope lib` is now
+    the default (`tests/`, `examples/`, `benches/`, `tests.rs` skipped); the
+    corpus harness passes `--scope all`, so its census surface is unchanged.
 
 ## 9. Known limitations
 
@@ -555,11 +577,14 @@ Semantic-analysis limits (the engine side is documented in
 
 Corpus and evaluation limits:
 
-- **Test and example code inflates counts**; filtering `tests/`/`examples/` may
-  be needed before any "real defect rate" claim.
+- **Test and example code** is skipped by the tool's default (`--scope lib`);
+  the corpus census uses `--scope all`, so its counts still include it. Before
+  a "real defect rate" claim is made, the census must be re-run at `--scope
+  lib`.
 - **`exec_basename` on a standard build tool** (`cmake`, `make`, `git`) is
-  correct and useless; the proposed tool allowlist (§7.3) is not implemented —
-  it would change the audit numbers, so it needs its own measurement.
+  correct and useless. A fixed allowlist now silences those names in `build.rs`
+  (not in library code, and not `rustc`/`cargo`); §7.3 records the measured
+  effect.
 - **`exec_written_path` only sees a write and an exec in the same function**;
   a cross-function dropper is interpreted for provenance but not for this
   def-use rule.

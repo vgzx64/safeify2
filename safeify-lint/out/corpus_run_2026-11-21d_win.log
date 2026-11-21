@@ -1,0 +1,48 @@
+  20/329 crates, 4 findings
+  40/329 crates, 29 findings
+  60/329 crates, 36 findings
+  80/329 crates, 37 findings
+  100/329 crates, 38 findings
+  120/329 crates, 41 findings
+  140/329 crates, 53 findings
+  160/329 crates, 55 findings
+  180/329 crates, 129 findings
+  200/329 crates, 178 findings
+  220/329 crates, 193 findings
+  240/329 crates, 197 findings
+  260/329 crates, 201 findings
+  280/329 crates, 203 findings
+  300/329 crates, 224 findings
+  320/329 crates, 256 findings
+
+266 findings across 93 files
+
+classification counters (all crates):
+  depth_cuts                        0
+  exec_arg_calls.literal          312
+  exec_arg_calls.param             96
+  exec_arg_calls.tainted            1
+  exec_arg_calls.total            456
+  exec_arg_calls.trusted            2
+  exec_arg_calls.unknown           45
+  exec_program_calls.literal       62
+  exec_program_calls.param          9
+  exec_program_calls.tainted        7
+  exec_program_calls.total         86
+  exec_program_calls.trusted        0
+  exec_program_calls.unknown        8
+  fs_calls.literal                151
+  fs_calls.param                  369
+  fs_calls.tainted                 21
+  fs_calls.total                  839
+  fs_calls.trusted                  8
+  fs_calls.unknown                290
+  local_calls                     402
+  recursion_cuts                    4
+
+rule                       old   new  common  old-only  new-only
+build_outside_out_dir        4     2       2         2         0
+env_read_dangerous           5     5       5         0         0
+exec_basename               85    50      49        36         1
+exec_tainted_cmd            14    16      14         0         2
+fs_tainted_path            141   193     130        11        63

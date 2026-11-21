@@ -78,6 +78,39 @@ fn strip_lang_prefix(path: &str) -> &str {
     path
 }
 
+/// Standard build tools: a literal basename invocation in a `build.rs` is the
+/// documented pattern, not a finding. `rustc`/`cargo` are deliberately absent
+/// (a build script resolving them through PATH is the paper's Figure 6 shape),
+/// and the tainted-argument rules are unaffected.
+pub fn is_build_tool(name: &str) -> bool {
+    matches!(
+        name.to_ascii_lowercase().as_str(),
+        "cmake"
+            | "make"
+            | "gmake"
+            | "ninja"
+            | "meson"
+            | "msbuild"
+            | "msbuild.exe"
+            | "git"
+            | "cc"
+            | "gcc"
+            | "g++"
+            | "clang"
+            | "clang++"
+            | "pkg-config"
+            | "ar"
+            | "ld"
+            | "strip"
+            | "install"
+            | "cp"
+            | "mv"
+            | "rm"
+            | "ln"
+            | "mkdir"
+    )
+}
+
 /// A shell program name, with or without a path or an `.exe` suffix. The
 /// argument of `Command::new("/bin/sh")` is as dangerous as `"sh"`, so the
 /// basename decides.
