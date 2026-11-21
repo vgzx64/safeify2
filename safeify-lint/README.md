@@ -50,7 +50,7 @@ same way the LSP evidence path does, so `std::ptr::read` resolves without a
 | `exec_written_path` | command | executes an absolute path this same function wrote earlier (dropper) | `warn` |
 | `env_set_dangerous` | environment | `set_var`/`remove_var` on `PATH`, `LD_PRELOAD`, `RUSTC`, `RUSTFLAGS`, `TMPDIR`, `HOME`, … | `warn` |
 | `env_read_dangerous` | environment | `var`/`var_os` of the same names (a taint source) | `info` |
-| `build_outside_out_dir` | build-time | `build.rs` write whose path contains neither `OUT_DIR` nor `target` | `warn` |
+| `build_outside_out_dir` | build-time | `build.rs` write whose path does not name `OUT_DIR` or `target` as a path segment | `warn` |
 
 `fs_tainted_path`, `exec_basename` and `exec_tainted_cmd` are `warn` only in a
 non-private function (any `pub*` form) or `build.rs`; elsewhere the tainted

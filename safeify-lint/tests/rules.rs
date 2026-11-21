@@ -113,6 +113,15 @@ fn filesystem_command_and_environment_rules() {
             ("fs_special_path", 163, "deny"),
             // A collection's class is the composition of its elements.
             ("fs_tainted_path", 169, "warn"),
+            // `if !canon.starts_with(base) { return }` guards the write after
+            // it (line 178 silent); the positive form does not.
+            ("fs_tainted_path", 187, "info"),
+            // `file_name()` only guards when it survives to the argument.
+            ("fs_tainted_path", 193, "info"),
+            // The source of `copy` is read, not written; the destination is.
+            ("fs_tainted_path", 207, "info"),
+            // A dangerous literal source is still in the danger table.
+            ("fs_special_path", 212, "deny"),
         ])
     );
 }
@@ -140,7 +149,10 @@ fn build_script_writes_are_scoped_to_out_dir() {
         analyze("buildscript"),
         expected(&[
             // Path::new(OUT_DIR).join(..) is trusted: silent (line 3).
+            // `target` as a path segment is inside (line 8); a substring is not.
             ("build_outside_out_dir", 4, "warn"),
+            ("build_outside_out_dir", 6, "warn"),
+            ("build_outside_out_dir", 7, "warn"),
         ])
     );
 }

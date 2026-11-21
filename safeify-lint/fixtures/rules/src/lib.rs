@@ -168,3 +168,46 @@ pub fn collection_join() {
     let names = ["trusted.txt".to_string(), std::env::var("PROBE_OUT").unwrap()];
     std::fs::write(&names[1], "x").unwrap();
 }
+
+// `if !canon.starts_with(base) { return }` guards the write after it.
+pub fn early_return_guard(p: &std::path::Path) {
+    let real = std::fs::canonicalize(p).unwrap();
+    if !real.starts_with("/srv/data") {
+        return;
+    }
+    std::fs::write(&real, "x").unwrap();
+}
+
+// The positive form does not: the write runs when the check failed.
+pub fn positive_check_no_guard(p: &std::path::Path) {
+    let real = std::fs::canonicalize(p).unwrap();
+    if real.starts_with("/srv/data") {
+        return;
+    }
+    std::fs::write(&real, "x").unwrap();
+}
+
+// Only a `file_name()` that survives to the argument is a guard:
+// `base.join(other.file_name())` keeps the caller-controlled base.
+pub fn file_name_on_descendant(base: &std::path::Path, other: &std::path::Path) {
+    std::fs::write(base.join(other.file_name().unwrap()), "x").unwrap();
+}
+
+pub fn file_name_only(p: &std::path::Path) {
+    std::fs::write(p.file_name().unwrap(), "x").unwrap();
+}
+
+// The source of `copy`/`rename` is read, not written.
+pub fn copy_destination_only(p: &std::path::Path) {
+    let out = std::env::var("OUT_DIR").unwrap();
+    std::fs::copy(p, &out).ok();
+}
+
+pub fn copy_into_caller_path(p: &std::path::Path) {
+    std::fs::copy("/etc/hostname", p).ok();
+}
+
+// ...but a dangerous literal source is still in the table.
+pub fn copy_from_proc_mem() {
+    std::fs::copy("/proc/self/mem", "/tmp/copy").unwrap();
+}

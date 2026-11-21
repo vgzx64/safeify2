@@ -19,44 +19,46 @@ pub struct Sink {
     pub kind: SinkKind,
     /// Argument indices that carry the path/name.
     pub args: &'static [usize],
+    /// Which of `args` are write destinations. A `copy`/`rename` source is a
+    /// read: it still goes through the literal danger table, but a
+    /// caller-controlled source is not a caller-controlled *write*.
+    pub write_args: &'static [usize],
 }
 
 /// Resolve a qualified path to a sink. Paths look like `fs::write`,
 /// `fs::File::create`, `process::Command::new`, `io::Write::write_all`.
 pub fn sink_spec(path: &str) -> Option<Sink> {
     let path = strip_lang_prefix(path);
+    let sink = |kind: SinkKind, args: &'static [usize]| Sink { kind, args, write_args: args };
     match path {
-        // Both arguments of a two-path operation are checked: the source can be
-        // caller-controlled too (`copy(from, OUT_DIR)`).
-        "fs::rename" | "fs::copy" | "fs::hard_link" | "fs::symlink" => {
-            Some(Sink { kind: SinkKind::FsWrite, args: &[0, 1] })
-        }
+        // Both arguments go through the literal danger table, but only the
+        // destination is written: `copy(p, OUT_DIR)` reads the caller's path,
+        // which the rule text deliberately leaves alone.
+        "fs::rename" | "fs::copy" | "fs::hard_link" | "fs::symlink" => Some(Sink {
+            kind: SinkKind::FsWrite,
+            args: &[0, 1],
+            write_args: &[1],
+        }),
         "fs::write" | "fs::create_dir" | "fs::create_dir_all" | "fs::remove_file"
         | "fs::remove_dir" | "fs::remove_dir_all" | "fs::set_permissions"
         | "fs::File::create" | "fs::File::create_new" => {
-            Some(Sink { kind: SinkKind::FsWrite, args: &[0] })
+            Some(sink(SinkKind::FsWrite, &[0]))
         }
         // OpenOptions::open is a write only when the builder asked for one;
         // rules.rs inspects the receiver chain for write/create/append flags.
-        "fs::OpenOptions::open" => Some(Sink { kind: SinkKind::FsWrite, args: &[0] }),
+        "fs::OpenOptions::open" => Some(sink(SinkKind::FsWrite, &[0])),
         "fs::read" | "fs::read_to_string" | "fs::read_dir" | "fs::metadata"
         | "fs::symlink_metadata" | "fs::canonicalize" | "fs::read_link" | "fs::File::open"
         | "path::Path::exists" | "path::Path::metadata" | "path::Path::is_file"
-        | "path::Path::is_dir" => {
-            Some(Sink { kind: SinkKind::FsRead, args: &[0] })
-        }
-        "env::set_var" | "env::remove_var" => {
-            Some(Sink { kind: SinkKind::EnvWrite, args: &[0] })
-        }
-        "env::var" | "env::var_os" => Some(Sink { kind: SinkKind::EnvRead, args: &[0] }),
-        "process::Command::new" => Some(Sink { kind: SinkKind::ExecProgram, args: &[0] }),
+        | "path::Path::is_dir" => Some(sink(SinkKind::FsRead, &[0])),
+        "env::set_var" | "env::remove_var" => Some(sink(SinkKind::EnvWrite, &[0])),
+        "env::var" | "env::var_os" => Some(sink(SinkKind::EnvRead, &[0])),
+        "process::Command::new" => Some(sink(SinkKind::ExecProgram, &[0])),
         "process::Command::arg"
         | "process::Command::args"
         | "process::Command::env"
         | "process::Command::envs"
-        | "process::Command::current_dir" => {
-            Some(Sink { kind: SinkKind::ExecArg, args: &[0] })
-        }
+        | "process::Command::current_dir" => Some(sink(SinkKind::ExecArg, &[0])),
         _ => None,
     }
 }

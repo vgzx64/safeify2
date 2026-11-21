@@ -135,7 +135,7 @@ impl<'a, 'b> Scanner<'a, 'b> {
                 .arg_list()
                 .map(|list| list.args().collect())
                 .unwrap_or_default();
-            self.sink(&path, spec.kind, spec.args, &args, Some(&call), &writes, None, out);
+            self.sink(&path, spec.kind, spec.args, spec.write_args, &args, Some(&call), &writes, None, out);
         }
 
         for mac in body.syntax().descendants().filter_map(ast::MacroCall::cast) {
@@ -160,7 +160,7 @@ impl<'a, 'b> Scanner<'a, 'b> {
             } else {
                 spec.kind
             };
-            self.sink(&path, kind, spec.args, &args, Some(&method), &writes, None, out);
+            self.sink(&path, kind, spec.args, spec.write_args, &args, Some(&method), &writes, None, out);
         }
     }
 
@@ -170,6 +170,7 @@ impl<'a, 'b> Scanner<'a, 'b> {
         _path: &str,
         kind: SinkKind,
         arg_indices: &[usize],
+        write_args: &[usize],
         args: &[ast::Expr],
         node: Option<&impl AstNode>,
         writes: &[(u32, String)],
@@ -199,7 +200,9 @@ impl<'a, 'b> Scanner<'a, 'b> {
                         self.eval.stats.fs_calls.add(prov.kind);
                     }
                     let at = origin.unwrap_or_else(|| arg.syntax().text_range().start());
-                    self.fs_sink(arg, &prov, at, write, out);
+                    // A `copy`/`rename` source is read, not written.
+                    let arg_write = write && write_args.contains(&index);
+                    self.fs_sink(arg, &prov, at, arg_write, out);
                 }
             }
             SinkKind::EnvWrite | SinkKind::EnvRead => {
@@ -318,15 +321,17 @@ impl<'a, 'b> Scanner<'a, 'b> {
 
     /// Is the sink argument protected by a guard that runs before it?
     ///
-    /// Two shapes count, both resolved rather than text-matched:
-    /// * `path.file_name()` on the value itself (only the last component is used);
-    /// * a dominating `if` whose condition checks the canonicalised value with
-    ///   `starts_with`, or inspects `components()` for `ParentDir`/`RootDir`.
+    /// Three shapes count, all resolved rather than text-matched:
+    /// * the written value reduces to `file_name()` (only the last component
+    ///   survives), see [`Self::file_name_only`];
+    /// * the sink sits inside the then-branch of an `if` whose condition
+    ///   checks the canonicalised value with `starts_with`, or inspects
+    ///   `components()` for `ParentDir`/`RootDir`;
+    /// * an earlier statement in the same block is
+    ///   `if !canon.starts_with(base) { return }` with a diverging body, so
+    ///   every later statement only runs when the check held.
     fn guarded(&self, arg: &ast::Expr) -> bool {
-        // Any resolved `file_name()` on the value, whoever owns it
-        // (`std::fs::DirEntry`, `walkdir::DirEntry`, `Path`): only the last
-        // path component is used, so the write stays inside the directory.
-        if self.expr_has_named_call(arg, "file_name") {
+        if self.file_name_only(arg) {
             return true;
         }
         let arg_range = arg.syntax().text_range();
@@ -344,7 +349,133 @@ impl<'a, 'b> Scanner<'a, 'b> {
                 return true;
             }
         }
+        for block in arg.syntax().ancestors().filter_map(ast::BlockExpr::cast) {
+            let Some(list) = block.stmt_list() else { continue };
+            for stmt in list.statements() {
+                if stmt.syntax().text_range().contains_range(arg_range) {
+                    break;
+                }
+                let Some(expr) = (match &stmt {
+                    ast::Stmt::ExprStmt(stmt) => stmt.expr(),
+                    _ => None,
+                }) else {
+                    continue;
+                };
+                let ast::Expr::IfExpr(if_expr) = expr else { continue };
+                let (Some(condition), Some(then_branch)) =
+                    (if_expr.condition(), if_expr.then_branch())
+                else {
+                    continue;
+                };
+                if self.negated_starts_with(&condition) && self.diverges(&then_branch) {
+                    return true;
+                }
+            }
+        }
         false
+    }
+
+    /// `if !canon.starts_with(base) { return }`: a check whose *negation* is
+    /// the exit condition. Structural on purpose — accepting `!` around a
+    /// boolean combination would need polarity logic (De Morgan) that the
+    /// dominance rule cannot soundly assume.
+    fn negated_starts_with(&self, condition: &ast::Expr) -> bool {
+        let ast::Expr::PrefixExpr(prefix) = condition else {
+            return false;
+        };
+        if prefix.op_kind() != Some(ast::UnaryOp::Not) {
+            return false;
+        }
+        let Some(ast::Expr::MethodCallExpr(call)) = prefix.expr() else {
+            return false;
+        };
+        let Some(function) = self.eval.sema.resolve_method_call(&call) else {
+            return false;
+        };
+        let path = crate::paths::qualified_path(self.eval.db, function);
+        if sink::normalized(&path) != "path::Path::starts_with" {
+            return false;
+        }
+        call.receiver().is_some_and(|receiver| {
+            self.value_derives_from(
+                &receiver,
+                &["fs::canonicalize", "path::Path::canonicalize"],
+                0,
+            )
+        })
+    }
+
+    /// Does this block always leave before the code after the `if`?
+    fn diverges(&self, block: &ast::BlockExpr) -> bool {
+        let exits = |expr: &ast::Expr| {
+            matches!(
+                expr,
+                ast::Expr::ReturnExpr(_) | ast::Expr::BreakExpr(_) | ast::Expr::ContinueExpr(_)
+            ) || matches!(expr, ast::Expr::MacroExpr(m) if m.macro_call().is_some_and(|c| self.is_exit_macro(&c)))
+        };
+        if let Some(tail) = block.tail_expr() {
+            return exits(&tail);
+        }
+        block
+            .stmt_list()
+            .and_then(|list| list.statements().last())
+            .is_some_and(|stmt| match stmt {
+                ast::Stmt::ExprStmt(stmt) => stmt.expr().is_some_and(|expr| exits(&expr)),
+                _ => false,
+            })
+    }
+
+    fn is_exit_macro(&self, call: &ast::MacroCall) -> bool {
+        call.path()
+            .and_then(|path| path.segment())
+            .and_then(|segment| segment.name_ref())
+            .is_some_and(|name| {
+                matches!(
+                    name.text().to_string().as_str(),
+                    "panic" | "unreachable" | "todo" | "unimplemented"
+                )
+            })
+    }
+
+    /// Does the written value reduce to a single path component? Walk down
+    /// through value-preserving adapters (`unwrap`, `to_string_lossy`, ...):
+    /// the first real operation must be `file_name`. `base.join(x.file_name())`
+    /// is *not* guarded — the caller-controlled base survives.
+    fn file_name_only(&self, expr: &ast::Expr) -> bool {
+        let mut current = expr.clone();
+        loop {
+            let next = match &current {
+                ast::Expr::ParenExpr(e) => e.expr(),
+                ast::Expr::RefExpr(e) => e.expr(),
+                ast::Expr::TryExpr(e) => e.expr(),
+                ast::Expr::CastExpr(e) => e.expr(),
+                ast::Expr::MethodCallExpr(call) => {
+                    let name = call
+                        .name_ref()
+                        .map(|n| n.text().to_string())
+                        .unwrap_or_default();
+                    let resolved = self
+                        .eval
+                        .sema
+                        .resolve_method_call(call)
+                        .map(|function| crate::paths::qualified_path(self.eval.db, function))
+                        .and_then(|path| path.rsplit("::").next().map(str::to_string));
+                    if resolved.as_deref() == Some("file_name") {
+                        return true;
+                    }
+                    if sink::is_truthy_adapter(&name) {
+                        call.receiver()
+                    } else {
+                        return false;
+                    }
+                }
+                _ => return false,
+            };
+            let Some(next) = next else {
+                return false;
+            };
+            current = next;
+        }
     }
 
     fn condition_guards(&self, condition: &ast::Expr) -> bool {
@@ -416,19 +547,6 @@ impl<'a, 'b> Scanner<'a, 'b> {
             }
         }
         false
-    }
-
-    fn expr_has_named_call(&self, expr: &ast::Expr, name: &str) -> bool {
-        expr.syntax()
-            .descendants()
-            .filter_map(ast::MethodCallExpr::cast)
-            .any(|call| {
-                self.eval
-                    .sema
-                    .resolve_method_call(&call)
-                    .map(|function| crate::paths::qualified_path(self.eval.db, function))
-                    .is_some_and(|path| path.rsplit("::").next() == Some(name))
-            })
     }
 
     fn expr_has_call(&self, expr: &ast::Expr, paths: &[&str]) -> bool {
@@ -562,7 +680,7 @@ impl<'a, 'b> Scanner<'a, 'b> {
                     .arg_list()
                     .map(|list| list.args().collect())
                     .unwrap_or_default();
-                self.sink(&path, spec.kind, spec.args, &args, Some(&inner), &writes, Some(at), out);
+                self.sink(&path, spec.kind, spec.args, spec.write_args, &args, Some(&inner), &writes, Some(at), out);
             } else if let Some(inner) = ast::MethodCallExpr::cast(node.clone()) {
                 let Some(path) = self.resolve_method(&inner) else {
                     continue;
@@ -574,7 +692,7 @@ impl<'a, 'b> Scanner<'a, 'b> {
                     .arg_list()
                     .map(|list| list.args().collect())
                     .unwrap_or_default();
-                self.sink(&path, spec.kind, spec.args, &args, Some(&inner), &writes, Some(at), out);
+                self.sink(&path, spec.kind, spec.args, spec.write_args, &args, Some(&inner), &writes, Some(at), out);
             } else if let Some(nested) = ast::MacroCall::cast(node.clone()) {
                 self.scan_macro(&nested, depth + 1, out);
             }
@@ -656,7 +774,8 @@ pub fn comment_allows(fn_ast: &ast::Fn) -> Vec<String> {
 }
 
 /// Whether a build-script write target is legitimately inside the build
-/// directory: a Cargo-provided variable, or a literal that names OUT_DIR/target.
+/// directory: a Cargo-provided variable, or a literal that names OUT_DIR/target
+/// as a path component.
 fn under_out_dir(prov: &Prov) -> bool {
     if prov.kind == Kind::Trusted
         && matches!(
@@ -666,9 +785,15 @@ fn under_out_dir(prov: &Prov) -> bool {
     {
         return true;
     }
-    prov.value
-        .as_deref()
-        .is_some_and(|v| v.contains("OUT_DIR") || v.contains("target"))
+    prov.value.as_deref().is_some_and(names_build_dir)
+}
+
+/// A `target` or `OUT_DIR` path segment, not a substring: `targets.txt` and
+/// `my_target_dir/x` are not inside the build directory.
+fn names_build_dir(value: &str) -> bool {
+    value
+        .split(['/', '\\'])
+        .any(|segment| matches!(segment, "target" | "OUT_DIR"))
 }
 
 fn first_arg_literal(call: &ast::CallExpr) -> Option<String> {
