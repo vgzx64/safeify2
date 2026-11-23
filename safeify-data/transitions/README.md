@@ -122,6 +122,7 @@ The DB is opened read-only. Parent commits come from `ext_commits`, because
 | `baseline_classification.py` + `out/baseline_classification_v0.5.{json,md}` | classifier view: binary, family and mechanism levels with per-class metrics |
 | `hazard_taxonomy.py`, `baseline_hazard.py` + `out/baseline_hazard_v0.1.{json,md}` | 12-class hazard taxonomy and classifier (the working target) |
 | `make_hazard_audit.py`, `score_hazard_agreement.py`, `make_hazard_valid_batches.py`, `hazard_human_eval.py` | rule labels, blind 60-row agreement, 87-row human valid labels, model-vs-human evaluation |
+| `make_hazard_train_batches.py`, `hazard_train_eval.py` + `out/hazard_human_train_v0.1.{json,md}` | 300 blind human hazard train labels and the human-supervised classifier run |
 | `features_unsafe.py`, `baseline_features.py` + `out/baseline_features_v0.5.{json,md}` | fingerprint features (unsafe API, FFI, pointers, memory shape) for binary classification |
 | `make_agreement_sample.py`, `score_agreement.py` + `adjudication/agreement/` | blind 60-row re-annotation: binary κ 0.96, mechanism κ 0.80 |
 | `adjudication/gate_batches.json` | gate-closing run: 161 queue rows + 170 expansion families |
@@ -290,8 +291,9 @@ stage. See [classification-v0.1.md](../../notes/research/classification-v0.1.md)
 
 The working classification target is the site's **hazard class** (12 classes,
 `hazard_taxonomy.py`). Rule labels agree with blind humans at 0.793 (κ 0.765);
-a classifier trained on rule labels reaches 0.684 accuracy / 0.519 macro F1
-against human valid labels, versus 0.237 macro F1 for the mechanism target. The
+a classifier reaches 0.696 accuracy / 0.550 macro F1 against human valid labels
+when trained on 300 blind human labels (rule-trained: 0.684 / 0.519), versus
+0.237 macro F1 for the mechanism target. The
 gap is `ffi_boundary` (rules cannot see C calls behind Rust wrappers) and
 `unsafe_call` (42 % of the corpus delegates its contract). Full write-up:
 [hazard-classifier-v0.1.md](../../notes/research/hazard-classifier-v0.1.md).

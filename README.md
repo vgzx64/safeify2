@@ -37,7 +37,7 @@ the model's job, it is out of scope: bring it back to classification.
 - **safeify-data:** transition and synthetic datasets exist; the frozen real-data split is available.
 - **Pair model:** not trained (separate line; not NIRM 4); see [`notes/research/bert-pair-model.md`](notes/research/bert-pair-model.md).
 - **NIRM 4** (ML warning classification for the hybrid system): not started.
-- **Unsafe-usage classification (this line):** frozen core v0.2 (433 rows) and expanded v0.5 (962 rows, train Y 318). Hazard classifier (12 classes) is the working target: 0.684 accuracy / 0.519 macro F1 against human labels on the frozen valid split; mechanism classifier is 0.237 macro F1 and stays a conditional second stage. Pair ranker and compiler verification are auxiliary analyses, not deliverables. See [`notes/research/hazard-classifier-v0.1.md`](notes/research/hazard-classifier-v0.1.md).
+- **Unsafe-usage classification (this line):** frozen core v0.2 (433 rows) and expanded v0.5 (962 rows, train Y 318). Hazard classifier (12 classes) is the working target: 0.696 accuracy / 0.550 macro F1 against human labels on the frozen valid split (human-supervised, 300 train labels); mechanism classifier is 0.237 macro F1 and stays a conditional second stage. Pair ranker and compiler verification are auxiliary analyses, not deliverables. See [`notes/research/hazard-classifier-v0.1.md`](notes/research/hazard-classifier-v0.1.md).
 
 ## Key documentation
 

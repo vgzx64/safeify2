@@ -1,9 +1,9 @@
 # Hazard classifier v0.1 — the classification target that works
 
-> **Status:** first hazard-classifier result · 2026-11-23 · 12-class hazard
-> taxonomy · rule labels agree with blind humans at 0.79 (κ 0.77) · classifier
-> 0.684 accuracy / 0.519 macro-F1 against human valid labels · versus 0.24
-> macro-F1 for the mechanism target.
+> **Status:** hazard-classifier result · 2026-11-23 · 12-class hazard taxonomy ·
+> rule labels agree with blind humans at 0.79 (κ 0.77) · human-supervised
+> classifier 0.696 accuracy / 0.550 macro-F1 against human valid labels (rule-trained
+> baseline 0.684 / 0.519) · versus 0.24 macro-F1 for the mechanism target.
 
 The mechanism target asks what a *fix* did; it depends on the maintainer and is
 barely predictable from the warning (classification v0.1). The hazard target
@@ -91,11 +91,32 @@ expected direction: it describes the input rather than the fix.
 - The target is now consistent with the project scope: a classifier of unsafe
   usage, no generation, no patch ranking.
 
+## Human-supervised run
+
+300 train rows were annotated blind with the same taxonomy (12-class quotas,
+`adjudication/hazard_train/`), then the same model was trained on those labels
+and scored on the 87 human-labelled valid rows:
+
+| training labels | task | train rows | valid rows | accuracy | macro F1 | grouped CV macro F1 |
+|---|---|---:|---:|---:|---:|---:|
+| rules | 10 hazards | 418 | 79 | 0.684 | 0.519 | 0.612 |
+| **human (300)** | 10 hazards | 262 | 79 | **0.696** | **0.550** | 0.637 |
+| human (300) | 12 classes | 300 | 87 | 0.690 | 0.502 | 0.520 |
+
+Bootstrap 95 % CI for the human-supervised 10-class result: accuracy
+0.595-0.797, macro F1 0.452-0.626. Human labels help, but within noise at this
+training size; the error profile is unchanged. Per class: `manual_capacity`
+F1 0.91, `unsafe_trait` 0.97, `raw_ownership` 0.82, `uninit_memory` 0.80,
+`raw_memory` 0.71, `raw_deref` 0.62, `reinterpret` 0.33, `ffi_boundary` 0.33
+(precision 0.75 but recall 0.21 — the model rarely recognises a C call behind a
+Rust wrapper). `unchecked_index` and `unsafe_contract` have no valid support.
+
 ## Next
 
-1. Annotate ~300 train rows for hazard (the valid 87 are already annotated) and
-   retrain; this removes rule-label noise and gives a genuine human-supervised
-   classification result.
+1. ~~Annotate ~300 train rows for hazard and retrain~~ — done; the gain is
+   small, so the remaining levers are the label distribution (more `ffi_boundary`
+   and small classes) and input context (enclosing function signature), not
+   more rows of the same mix.
 2. Add FFI-aware features and C-style identifier detection.
 3. Feed the hazard class into the mechanism model as an auxiliary input (does
    knowing the hazard improve conditional mechanism top-1?), which is still a

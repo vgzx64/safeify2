@@ -1,0 +1,460 @@
+{
+  "human_train_labels": 300,
+  "human_valid_labels": 87,
+  "human_train_distribution": {
+    "reinterpret": 41,
+    "raw_ownership": 38,
+    "ffi_boundary": 34,
+    "raw_deref": 31,
+    "unsafe_call": 27,
+    "unsafe_trait": 25,
+    "manual_capacity": 21,
+    "raw_memory": 19,
+    "uninit_memory": 18,
+    "unchecked_index": 18,
+    "unsafe_contract": 17,
+    "unknown": 11
+  },
+  "valid_distribution": {
+    "unsafe_trait": 15,
+    "ffi_boundary": 14,
+    "uninit_memory": 12,
+    "raw_ownership": 12,
+    "raw_deref": 9,
+    "unsafe_call": 8,
+    "raw_memory": 7,
+    "reinterpret": 5,
+    "manual_capacity": 5
+  },
+  "models": {
+    "rule_trained_10": {
+      "train_rows": 418,
+      "valid_rows": 79,
+      "valid": {
+        "n": 79,
+        "accuracy": 0.6835443037974683,
+        "macro_f1": 0.5188083538083539,
+        "per_class": {
+          "raw_ownership": {
+            "precision": 0.9,
+            "recall": 0.75,
+            "f1": 0.8181818181818182,
+            "support": 12
+          },
+          "manual_capacity": {
+            "precision": 0.8333333333333334,
+            "recall": 1.0,
+            "f1": 0.9090909090909091,
+            "support": 5
+          },
+          "raw_memory": {
+            "precision": 0.625,
+            "recall": 0.7142857142857143,
+            "f1": 0.6666666666666666,
+            "support": 7
+          },
+          "uninit_memory": {
+            "precision": 1.0,
+            "recall": 0.6666666666666666,
+            "f1": 0.8,
+            "support": 12
+          },
+          "reinterpret": {
+            "precision": 1.0,
+            "recall": 0.2,
+            "f1": 0.3333333333333333,
+            "support": 5
+          },
+          "raw_deref": {
+            "precision": 0.42857142857142855,
+            "recall": 1.0,
+            "f1": 0.6,
+            "support": 9
+          },
+          "unchecked_index": {
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "support": 0
+          },
+          "ffi_boundary": {
+            "precision": 1.0,
+            "recall": 0.14285714285714285,
+            "f1": 0.25,
+            "support": 14
+          },
+          "unsafe_trait": {
+            "precision": 0.6818181818181818,
+            "recall": 1.0,
+            "f1": 0.8108108108108109,
+            "support": 15
+          },
+          "unsafe_contract": {
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "support": 0
+          }
+        },
+        "top_confusions": [
+          {
+            "true": "ffi_boundary",
+            "pred": "raw_deref",
+            "n": 6
+          },
+          {
+            "true": "ffi_boundary",
+            "pred": "unsafe_trait",
+            "n": 6
+          },
+          {
+            "true": "uninit_memory",
+            "pred": "raw_deref",
+            "n": 3
+          },
+          {
+            "true": "reinterpret",
+            "pred": "raw_deref",
+            "n": 2
+          },
+          {
+            "true": "raw_ownership",
+            "pred": "manual_capacity",
+            "n": 1
+          },
+          {
+            "true": "raw_ownership",
+            "pred": "raw_memory",
+            "n": 1
+          },
+          {
+            "true": "raw_ownership",
+            "pred": "unsafe_contract",
+            "n": 1
+          },
+          {
+            "true": "raw_memory",
+            "pred": "raw_deref",
+            "n": 1
+          },
+          {
+            "true": "raw_memory",
+            "pred": "unsafe_trait",
+            "n": 1
+          },
+          {
+            "true": "uninit_memory",
+            "pred": "raw_memory",
+            "n": 1
+          }
+        ],
+        "ci95": {
+          "accuracy": [
+            0.5822784810126582,
+            0.7848101265822784
+          ],
+          "macro_f1": [
+            0.41836223362771574,
+            0.5970991794217515
+          ]
+        }
+      },
+      "cv": {
+        "n": 418,
+        "accuracy": 0.6578947368421053,
+        "macro_f1": 0.6123611768348611
+      }
+    },
+    "human_trained_10": {
+      "train_rows": 262,
+      "valid_rows": 79,
+      "valid": {
+        "n": 79,
+        "accuracy": 0.6962025316455697,
+        "macro_f1": 0.5496656698881394,
+        "per_class": {
+          "raw_ownership": {
+            "precision": 0.9,
+            "recall": 0.75,
+            "f1": 0.8181818181818182,
+            "support": 12
+          },
+          "manual_capacity": {
+            "precision": 0.8333333333333334,
+            "recall": 1.0,
+            "f1": 0.9090909090909091,
+            "support": 5
+          },
+          "raw_memory": {
+            "precision": 0.7142857142857143,
+            "recall": 0.7142857142857143,
+            "f1": 0.7142857142857143,
+            "support": 7
+          },
+          "uninit_memory": {
+            "precision": 1.0,
+            "recall": 0.6666666666666666,
+            "f1": 0.8,
+            "support": 12
+          },
+          "reinterpret": {
+            "precision": 1.0,
+            "recall": 0.2,
+            "f1": 0.3333333333333333,
+            "support": 5
+          },
+          "raw_deref": {
+            "precision": 0.45,
+            "recall": 1.0,
+            "f1": 0.6206896551724138,
+            "support": 9
+          },
+          "unchecked_index": {
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "support": 0
+          },
+          "ffi_boundary": {
+            "precision": 0.75,
+            "recall": 0.21428571428571427,
+            "f1": 0.3333333333333333,
+            "support": 14
+          },
+          "unsafe_trait": {
+            "precision": 0.9375,
+            "recall": 1.0,
+            "f1": 0.967741935483871,
+            "support": 15
+          },
+          "unsafe_contract": {
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "support": 0
+          }
+        },
+        "top_confusions": [
+          {
+            "true": "ffi_boundary",
+            "pred": "raw_deref",
+            "n": 5
+          },
+          {
+            "true": "ffi_boundary",
+            "pred": "unsafe_contract",
+            "n": 5
+          },
+          {
+            "true": "uninit_memory",
+            "pred": "raw_deref",
+            "n": 3
+          },
+          {
+            "true": "reinterpret",
+            "pred": "raw_deref",
+            "n": 2
+          },
+          {
+            "true": "raw_ownership",
+            "pred": "manual_capacity",
+            "n": 1
+          },
+          {
+            "true": "raw_ownership",
+            "pred": "raw_memory",
+            "n": 1
+          },
+          {
+            "true": "raw_ownership",
+            "pred": "unsafe_contract",
+            "n": 1
+          },
+          {
+            "true": "raw_memory",
+            "pred": "raw_deref",
+            "n": 1
+          },
+          {
+            "true": "raw_memory",
+            "pred": "unsafe_contract",
+            "n": 1
+          },
+          {
+            "true": "uninit_memory",
+            "pred": "raw_memory",
+            "n": 1
+          }
+        ],
+        "ci95": {
+          "accuracy": [
+            0.5949367088607594,
+            0.7974683544303798
+          ],
+          "macro_f1": [
+            0.45209859149608667,
+            0.6257341451387389
+          ]
+        }
+      },
+      "cv": {
+        "n": 262,
+        "accuracy": 0.6297709923664122,
+        "macro_f1": 0.6373422370483066
+      }
+    },
+    "human_trained_12": {
+      "train_rows": 300,
+      "valid_rows": 87,
+      "valid": {
+        "n": 87,
+        "accuracy": 0.6896551724137931,
+        "macro_f1": 0.5015761328454827,
+        "per_class": {
+          "raw_ownership": {
+            "precision": 0.9,
+            "recall": 0.75,
+            "f1": 0.8181818181818182,
+            "support": 12
+          },
+          "manual_capacity": {
+            "precision": 0.8333333333333334,
+            "recall": 1.0,
+            "f1": 0.9090909090909091,
+            "support": 5
+          },
+          "raw_memory": {
+            "precision": 0.625,
+            "recall": 0.7142857142857143,
+            "f1": 0.6666666666666666,
+            "support": 7
+          },
+          "uninit_memory": {
+            "precision": 1.0,
+            "recall": 0.6666666666666666,
+            "f1": 0.8,
+            "support": 12
+          },
+          "reinterpret": {
+            "precision": 1.0,
+            "recall": 0.2,
+            "f1": 0.3333333333333333,
+            "support": 5
+          },
+          "raw_deref": {
+            "precision": 0.42857142857142855,
+            "recall": 1.0,
+            "f1": 0.6,
+            "support": 9
+          },
+          "unchecked_index": {
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "support": 0
+          },
+          "ffi_boundary": {
+            "precision": 0.8,
+            "recall": 0.2857142857142857,
+            "f1": 0.42105263157894735,
+            "support": 14
+          },
+          "unsafe_trait": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 15
+          },
+          "unsafe_contract": {
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "support": 0
+          },
+          "unsafe_call": {
+            "precision": 0.4444444444444444,
+            "recall": 0.5,
+            "f1": 0.47058823529411764,
+            "support": 8
+          },
+          "unknown": {
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "support": 0
+          }
+        },
+        "top_confusions": [
+          {
+            "true": "ffi_boundary",
+            "pred": "raw_deref",
+            "n": 4
+          },
+          {
+            "true": "ffi_boundary",
+            "pred": "unsafe_call",
+            "n": 4
+          },
+          {
+            "true": "uninit_memory",
+            "pred": "raw_deref",
+            "n": 3
+          },
+          {
+            "true": "reinterpret",
+            "pred": "raw_deref",
+            "n": 2
+          },
+          {
+            "true": "ffi_boundary",
+            "pred": "unknown",
+            "n": 2
+          },
+          {
+            "true": "unsafe_call",
+            "pred": "raw_deref",
+            "n": 2
+          },
+          {
+            "true": "raw_ownership",
+            "pred": "manual_capacity",
+            "n": 1
+          },
+          {
+            "true": "raw_ownership",
+            "pred": "raw_memory",
+            "n": 1
+          },
+          {
+            "true": "raw_ownership",
+            "pred": "unsafe_contract",
+            "n": 1
+          },
+          {
+            "true": "raw_memory",
+            "pred": "raw_deref",
+            "n": 1
+          }
+        ],
+        "ci95": {
+          "accuracy": [
+            0.5977011494252874,
+            0.7816091954022989
+          ],
+          "macro_f1": [
+            0.41475229615708087,
+            0.5676775737720435
+          ]
+        }
+      },
+      "cv": {
+        "n": 300,
+        "accuracy": 0.5533333333333333,
+        "macro_f1": 0.5204963262198855
+      }
+    }
+  },
+  "rule_vs_human_valid": {
+    "agreement": 0.7931034482758621
+  }
+}
