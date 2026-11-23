@@ -1,0 +1,977 @@
+{
+  "dataset": "mechanism_dataset_v05.jsonl",
+  "classes": [
+    "checked_api",
+    "slice_view",
+    "init_memory",
+    "capacity_ops",
+    "safe_wrapper",
+    "interior_mutability",
+    "pin_api",
+    "restructure",
+    "unnecessary",
+    "other",
+    "retain"
+  ],
+  "sizes": {
+    "train": 745,
+    "valid": 87,
+    "test_sealed": 130,
+    "train_class_counts": {
+      "retain": 427,
+      "safe_wrapper": 77,
+      "restructure": 61,
+      "checked_api": 49,
+      "unnecessary": 41,
+      "init_memory": 29,
+      "slice_view": 25,
+      "interior_mutability": 17,
+      "capacity_ops": 15,
+      "pin_api": 4
+    },
+    "valid_class_counts": {
+      "retain": 65,
+      "safe_wrapper": 10,
+      "capacity_ops": 3,
+      "init_memory": 3,
+      "unnecessary": 2,
+      "interior_mutability": 2,
+      "restructure": 1,
+      "slice_view": 1
+    }
+  },
+  "models": {
+    "majority": {
+      "multi": {
+        "n": 87,
+        "accuracy": 0.7471264367816092,
+        "macro_f1": 0.07775119617224881,
+        "weighted_f1": 0.6389897156684816,
+        "per_class": {
+          "slice_view": {
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "support": 1
+          },
+          "init_memory": {
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "support": 3
+          },
+          "capacity_ops": {
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "support": 3
+          },
+          "safe_wrapper": {
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "support": 10
+          },
+          "interior_mutability": {
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "support": 2
+          },
+          "restructure": {
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "support": 1
+          },
+          "unnecessary": {
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "support": 2
+          },
+          "retain": {
+            "precision": 0.7471264367816092,
+            "recall": 1.0,
+            "f1": 0.8552631578947368,
+            "support": 65
+          }
+        },
+        "top_confusions": [
+          {
+            "true": "safe_wrapper",
+            "pred": "retain",
+            "n": 10
+          },
+          {
+            "true": "init_memory",
+            "pred": "retain",
+            "n": 3
+          },
+          {
+            "true": "capacity_ops",
+            "pred": "retain",
+            "n": 3
+          },
+          {
+            "true": "interior_mutability",
+            "pred": "retain",
+            "n": 2
+          },
+          {
+            "true": "unnecessary",
+            "pred": "retain",
+            "n": 2
+          },
+          {
+            "true": "slice_view",
+            "pred": "retain",
+            "n": 1
+          },
+          {
+            "true": "restructure",
+            "pred": "retain",
+            "n": 1
+          }
+        ],
+        "ci95": {
+          "accuracy": [
+            0.6551724137931034,
+            0.8278735632183892
+          ],
+          "macro_f1": [
+            0.07196969696969696,
+            0.08234830617495704
+          ]
+        }
+      },
+      "family": {
+        "accuracy": 0.7471264367816092,
+        "macro_f1": 0.24436090225563908,
+        "weighted_f1": 0.7314750692520776,
+        "accuracy_ci95": [
+          0.6551724137931034,
+          0.8275862068965517
+        ],
+        "per_class": {
+          "retain": {
+            "precision": 0.7471264367816092,
+            "recall": 1.0,
+            "f1": 0.8552631578947368,
+            "support": 65
+          },
+          "checked": {
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "support": 1
+          },
+          "memory": {
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "support": 6
+          },
+          "safe_api": {
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "support": 10
+          },
+          "ownership": {
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "support": 3
+          },
+          "remove": {
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "support": 2
+          }
+        }
+      },
+      "binary": {
+        "accuracy": 0.7471264367816092,
+        "accuracy_ci95": [
+          0.6551724137931034,
+          0.8390804597701149
+        ],
+        "macro_f1": 0.4276315789473684,
+        "per_class": {
+          "retain": {
+            "precision": 0.7471264367816092,
+            "recall": 1.0,
+            "f1": 0.8552631578947368,
+            "support": 65
+          },
+          "mechanism": {
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "support": 22
+          }
+        }
+      }
+    },
+    "api_lookup": {
+      "multi": {
+        "n": 87,
+        "accuracy": 0.6091954022988506,
+        "macro_f1": 0.10148181409968568,
+        "weighted_f1": 0.582495909656308,
+        "per_class": {
+          "slice_view": {
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "support": 1
+          },
+          "init_memory": {
+            "precision": 0.21428571428571427,
+            "recall": 1.0,
+            "f1": 0.35294117647058826,
+            "support": 3
+          },
+          "capacity_ops": {
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "support": 3
+          },
+          "safe_wrapper": {
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "support": 10
+          },
+          "interior_mutability": {
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "support": 2
+          },
+          "restructure": {
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "support": 1
+          },
+          "unnecessary": {
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "support": 2
+          },
+          "retain": {
+            "precision": 0.7575757575757576,
+            "recall": 0.7692307692307693,
+            "f1": 0.7633587786259542,
+            "support": 65
+          }
+        },
+        "top_confusions": [
+          {
+            "true": "safe_wrapper",
+            "pred": "retain",
+            "n": 10
+          },
+          {
+            "true": "retain",
+            "pred": "init_memory",
+            "n": 8
+          },
+          {
+            "true": "retain",
+            "pred": "safe_wrapper",
+            "n": 4
+          },
+          {
+            "true": "capacity_ops",
+            "pred": "init_memory",
+            "n": 3
+          },
+          {
+            "true": "interior_mutability",
+            "pred": "retain",
+            "n": 2
+          },
+          {
+            "true": "unnecessary",
+            "pred": "retain",
+            "n": 2
+          },
+          {
+            "true": "retain",
+            "pred": "checked_api",
+            "n": 2
+          },
+          {
+            "true": "slice_view",
+            "pred": "retain",
+            "n": 1
+          },
+          {
+            "true": "restructure",
+            "pred": "retain",
+            "n": 1
+          },
+          {
+            "true": "retain",
+            "pred": "pin_api",
+            "n": 1
+          }
+        ],
+        "ci95": {
+          "accuracy": [
+            0.5169540229885058,
+            0.7126436781609196
+          ],
+          "macro_f1": [
+            0.06971975393028024,
+            0.12962229796338506
+          ]
+        }
+      },
+      "family": {
+        "accuracy": 0.6436781609195402,
+        "macro_f1": 0.30381679389312977,
+        "weighted_f1": 0.6765568501406188,
+        "accuracy_ci95": [
+          0.5402298850574713,
+          0.7471264367816092
+        ],
+        "per_class": {
+          "retain": {
+            "precision": 0.7575757575757576,
+            "recall": 0.7692307692307693,
+            "f1": 0.7633587786259542,
+            "support": 65
+          },
+          "checked": {
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "support": 1
+          },
+          "memory": {
+            "precision": 0.42857142857142855,
+            "recall": 1.0,
+            "f1": 0.6,
+            "support": 6
+          },
+          "safe_api": {
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "support": 10
+          },
+          "ownership": {
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "support": 3
+          },
+          "remove": {
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "support": 2
+          }
+        }
+      },
+      "binary": {
+        "accuracy": 0.6436781609195402,
+        "accuracy_ci95": [
+          0.5402298850574713,
+          0.735632183908046
+        ],
+        "macro_f1": 0.5212142730339073,
+        "per_class": {
+          "retain": {
+            "precision": 0.7575757575757576,
+            "recall": 0.7692307692307693,
+            "f1": 0.7633587786259542,
+            "support": 65
+          },
+          "mechanism": {
+            "precision": 0.2857142857142857,
+            "recall": 0.2727272727272727,
+            "f1": 0.27906976744186046,
+            "support": 22
+          }
+        }
+      }
+    },
+    "char_lr": {
+      "multi": {
+        "n": 87,
+        "accuracy": 0.39080459770114945,
+        "macro_f1": 0.13836686189627365,
+        "weighted_f1": 0.4492310334095324,
+        "per_class": {
+          "slice_view": {
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "support": 1
+          },
+          "init_memory": {
+            "precision": 0.2727272727272727,
+            "recall": 1.0,
+            "f1": 0.42857142857142855,
+            "support": 3
+          },
+          "capacity_ops": {
+            "precision": 0.3333333333333333,
+            "recall": 0.3333333333333333,
+            "f1": 0.3333333333333333,
+            "support": 3
+          },
+          "safe_wrapper": {
+            "precision": 0.1,
+            "recall": 0.1,
+            "f1": 0.1,
+            "support": 10
+          },
+          "interior_mutability": {
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "support": 2
+          },
+          "restructure": {
+            "precision": 0.058823529411764705,
+            "recall": 1.0,
+            "f1": 0.1111111111111111,
+            "support": 1
+          },
+          "unnecessary": {
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "support": 2
+          },
+          "retain": {
+            "precision": 0.7567567567567568,
+            "recall": 0.4307692307692308,
+            "f1": 0.5490196078431373,
+            "support": 65
+          }
+        },
+        "top_confusions": [
+          {
+            "true": "retain",
+            "pred": "restructure",
+            "n": 16
+          },
+          {
+            "true": "retain",
+            "pred": "safe_wrapper",
+            "n": 8
+          },
+          {
+            "true": "safe_wrapper",
+            "pred": "retain",
+            "n": 7
+          },
+          {
+            "true": "retain",
+            "pred": "init_memory",
+            "n": 6
+          },
+          {
+            "true": "retain",
+            "pred": "interior_mutability",
+            "n": 3
+          },
+          {
+            "true": "capacity_ops",
+            "pred": "init_memory",
+            "n": 2
+          },
+          {
+            "true": "unnecessary",
+            "pred": "retain",
+            "n": 2
+          },
+          {
+            "true": "retain",
+            "pred": "checked_api",
+            "n": 2
+          },
+          {
+            "true": "retain",
+            "pred": "capacity_ops",
+            "n": 2
+          },
+          {
+            "true": "slice_view",
+            "pred": "safe_wrapper",
+            "n": 1
+          }
+        ],
+        "ci95": {
+          "accuracy": [
+            0.28735632183908044,
+            0.4942528735632184
+          ],
+          "macro_f1": [
+            0.07205996833355324,
+            0.19959442735058994
+          ]
+        }
+      },
+      "family": {
+        "accuracy": 0.41379310344827586,
+        "macro_f1": 0.2692851053464864,
+        "weighted_f1": 0.5015356485843766,
+        "accuracy_ci95": [
+          0.3103448275862069,
+          0.5172413793103449
+        ],
+        "per_class": {
+          "retain": {
+            "precision": 0.7567567567567568,
+            "recall": 0.4307692307692308,
+            "f1": 0.5490196078431373,
+            "support": 65
+          },
+          "checked": {
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "support": 1
+          },
+          "memory": {
+            "precision": 0.42857142857142855,
+            "recall": 1.0,
+            "f1": 0.6,
+            "support": 6
+          },
+          "safe_api": {
+            "precision": 0.1,
+            "recall": 0.1,
+            "f1": 0.1,
+            "support": 10
+          },
+          "ownership": {
+            "precision": 0.05,
+            "recall": 0.3333333333333333,
+            "f1": 0.08695652173913043,
+            "support": 3
+          },
+          "remove": {
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "support": 2
+          }
+        }
+      },
+      "binary": {
+        "accuracy": 0.47126436781609193,
+        "accuracy_ci95": [
+          0.367816091954023,
+          0.5747126436781609
+        ],
+        "macro_f1": 0.45506535947712423,
+        "per_class": {
+          "retain": {
+            "precision": 0.7567567567567568,
+            "recall": 0.4307692307692308,
+            "f1": 0.5490196078431373,
+            "support": 65
+          },
+          "mechanism": {
+            "precision": 0.26,
+            "recall": 0.5909090909090909,
+            "f1": 0.3611111111111111,
+            "support": 22
+          }
+        }
+      }
+    },
+    "char_api_lr": {
+      "multi": {
+        "n": 87,
+        "accuracy": 0.367816091954023,
+        "macro_f1": 0.23706454456982995,
+        "weighted_f1": 0.3996400210915047,
+        "per_class": {
+          "slice_view": {
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "support": 1
+          },
+          "init_memory": {
+            "precision": 0.375,
+            "recall": 1.0,
+            "f1": 0.5454545454545454,
+            "support": 3
+          },
+          "capacity_ops": {
+            "precision": 0.42857142857142855,
+            "recall": 1.0,
+            "f1": 0.6,
+            "support": 3
+          },
+          "safe_wrapper": {
+            "precision": 0.2222222222222222,
+            "recall": 0.4,
+            "f1": 0.2857142857142857,
+            "support": 10
+          },
+          "interior_mutability": {
+            "precision": 0.2,
+            "recall": 0.5,
+            "f1": 0.2857142857142857,
+            "support": 2
+          },
+          "restructure": {
+            "precision": 0.14285714285714285,
+            "recall": 1.0,
+            "f1": 0.25,
+            "support": 1
+          },
+          "unnecessary": {
+            "precision": 0.125,
+            "recall": 1.0,
+            "f1": 0.2222222222222222,
+            "support": 2
+          },
+          "retain": {
+            "precision": 0.8571428571428571,
+            "recall": 0.27692307692307694,
+            "f1": 0.4186046511627907,
+            "support": 65
+          }
+        },
+        "top_confusions": [
+          {
+            "true": "retain",
+            "pred": "safe_wrapper",
+            "n": 13
+          },
+          {
+            "true": "retain",
+            "pred": "unnecessary",
+            "n": 12
+          },
+          {
+            "true": "retain",
+            "pred": "restructure",
+            "n": 6
+          },
+          {
+            "true": "retain",
+            "pred": "init_memory",
+            "n": 5
+          },
+          {
+            "true": "retain",
+            "pred": "capacity_ops",
+            "n": 4
+          },
+          {
+            "true": "retain",
+            "pred": "interior_mutability",
+            "n": 3
+          },
+          {
+            "true": "safe_wrapper",
+            "pred": "unnecessary",
+            "n": 2
+          },
+          {
+            "true": "safe_wrapper",
+            "pred": "retain",
+            "n": 2
+          },
+          {
+            "true": "retain",
+            "pred": "checked_api",
+            "n": 2
+          },
+          {
+            "true": "slice_view",
+            "pred": "safe_wrapper",
+            "n": 1
+          }
+        ],
+        "ci95": {
+          "accuracy": [
+            0.26436781609195403,
+            0.47126436781609193
+          ],
+          "macro_f1": [
+            0.14073725279857602,
+            0.3123700430889591
+          ]
+        }
+      },
+      "family": {
+        "accuracy": 0.367816091954023,
+        "macro_f1": 0.30951062595580864,
+        "weighted_f1": 0.40722870645606263,
+        "accuracy_ci95": [
+          0.26436781609195403,
+          0.47126436781609193
+        ],
+        "per_class": {
+          "retain": {
+            "precision": 0.8571428571428571,
+            "recall": 0.27692307692307694,
+            "f1": 0.4186046511627907,
+            "support": 65
+          },
+          "checked": {
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "support": 1
+          },
+          "memory": {
+            "precision": 0.4,
+            "recall": 1.0,
+            "f1": 0.5714285714285714,
+            "support": 6
+          },
+          "safe_api": {
+            "precision": 0.2222222222222222,
+            "recall": 0.4,
+            "f1": 0.2857142857142857,
+            "support": 10
+          },
+          "ownership": {
+            "precision": 0.15384615384615385,
+            "recall": 0.6666666666666666,
+            "f1": 0.25,
+            "support": 3
+          },
+          "remove": {
+            "precision": 0.125,
+            "recall": 1.0,
+            "f1": 0.2222222222222222,
+            "support": 2
+          }
+        }
+      },
+      "binary": {
+        "accuracy": 0.42528735632183906,
+        "accuracy_ci95": [
+          0.3333333333333333,
+          0.5287356321839081
+        ],
+        "macro_f1": 0.42521141649048627,
+        "per_class": {
+          "retain": {
+            "precision": 0.8571428571428571,
+            "recall": 0.27692307692307694,
+            "f1": 0.4186046511627907,
+            "support": 65
+          },
+          "mechanism": {
+            "precision": 0.2878787878787879,
+            "recall": 0.8636363636363636,
+            "f1": 0.4318181818181818,
+            "support": 22
+          }
+        }
+      }
+    },
+    "hierarchical": {
+      "multi": {
+        "n": 87,
+        "accuracy": 0.42528735632183906,
+        "macro_f1": 0.23720298839916065,
+        "weighted_f1": 0.47625348033696485,
+        "per_class": {
+          "slice_view": {
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "support": 1
+          },
+          "init_memory": {
+            "precision": 0.3,
+            "recall": 1.0,
+            "f1": 0.46153846153846156,
+            "support": 3
+          },
+          "capacity_ops": {
+            "precision": 0.6,
+            "recall": 1.0,
+            "f1": 0.75,
+            "support": 3
+          },
+          "safe_wrapper": {
+            "precision": 0.21428571428571427,
+            "recall": 0.3,
+            "f1": 0.25,
+            "support": 10
+          },
+          "interior_mutability": {
+            "precision": 0.2,
+            "recall": 0.5,
+            "f1": 0.2857142857142857,
+            "support": 2
+          },
+          "restructure": {
+            "precision": 0.08333333333333333,
+            "recall": 1.0,
+            "f1": 0.15384615384615385,
+            "support": 1
+          },
+          "unnecessary": {
+            "precision": 0.1111111111111111,
+            "recall": 0.5,
+            "f1": 0.18181818181818182,
+            "support": 2
+          },
+          "retain": {
+            "precision": 0.8333333333333334,
+            "recall": 0.38461538461538464,
+            "f1": 0.5263157894736842,
+            "support": 65
+          }
+        },
+        "top_confusions": [
+          {
+            "true": "retain",
+            "pred": "restructure",
+            "n": 11
+          },
+          {
+            "true": "retain",
+            "pred": "safe_wrapper",
+            "n": 10
+          },
+          {
+            "true": "retain",
+            "pred": "init_memory",
+            "n": 7
+          },
+          {
+            "true": "retain",
+            "pred": "unnecessary",
+            "n": 6
+          },
+          {
+            "true": "safe_wrapper",
+            "pred": "retain",
+            "n": 3
+          },
+          {
+            "true": "retain",
+            "pred": "interior_mutability",
+            "n": 3
+          },
+          {
+            "true": "safe_wrapper",
+            "pred": "unnecessary",
+            "n": 2
+          },
+          {
+            "true": "retain",
+            "pred": "capacity_ops",
+            "n": 2
+          },
+          {
+            "true": "slice_view",
+            "pred": "safe_wrapper",
+            "n": 1
+          },
+          {
+            "true": "safe_wrapper",
+            "pred": "checked_api",
+            "n": 1
+          }
+        ],
+        "ci95": {
+          "accuracy": [
+            0.3333333333333333,
+            0.5287356321839081
+          ],
+          "macro_f1": [
+            0.14096240889164532,
+            0.3075590974681884
+          ]
+        }
+      },
+      "family": {
+        "accuracy": 0.42528735632183906,
+        "macro_f1": 0.3222683331705888,
+        "weighted_f1": 0.4954819764722812,
+        "accuracy_ci95": [
+          0.3218390804597701,
+          0.5287356321839081
+        ],
+        "per_class": {
+          "retain": {
+            "precision": 0.8333333333333334,
+            "recall": 0.38461538461538464,
+            "f1": 0.5263157894736842,
+            "support": 65
+          },
+          "checked": {
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "support": 1
+          },
+          "memory": {
+            "precision": 0.4,
+            "recall": 1.0,
+            "f1": 0.5714285714285714,
+            "support": 6
+          },
+          "safe_api": {
+            "precision": 0.21428571428571427,
+            "recall": 0.3,
+            "f1": 0.25,
+            "support": 10
+          },
+          "ownership": {
+            "precision": 0.11764705882352941,
+            "recall": 0.6666666666666666,
+            "f1": 0.2,
+            "support": 3
+          },
+          "remove": {
+            "precision": 0.1111111111111111,
+            "recall": 0.5,
+            "f1": 0.18181818181818182,
+            "support": 2
+          }
+        }
+      },
+      "binary": {
+        "accuracy": 0.4827586206896552,
+        "accuracy_ci95": [
+          0.3793103448275862,
+          0.5862068965517241
+        ],
+        "macro_f1": 0.4783477681545636,
+        "per_class": {
+          "retain": {
+            "precision": 0.8333333333333334,
+            "recall": 0.38461538461538464,
+            "f1": 0.5263157894736842,
+            "support": 65
+          },
+          "mechanism": {
+            "precision": 0.2982456140350877,
+            "recall": 0.7727272727272727,
+            "f1": 0.43037974683544306,
+            "support": 22
+          }
+        }
+      },
+      "family_accuracy": 0.42528735632183906,
+      "family_macro_f1": 0.2882604237867396
+    }
+  }
+}

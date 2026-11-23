@@ -113,6 +113,9 @@ The DB is opened read-only. Parent commits come from `ext_commits`, because
 | `out/baseline_mechanism_v0.5.json` + `.md` | third scale point (conditional top-1 0.591, family 0.682) |
 | `baseline_abstention.py` + `out/abstention_v0.1.{json,md}` | abstention policies (argmax, margin, two-stage gate) with risk-coverage on valid |
 | `baseline_pair.py` + `out/baseline_pair_v0.1.{json,md}` | pair-level ranker `(old, candidate_new)` with natural and hard negatives, feature ablation |
+| `baseline_classification.py` + `out/baseline_classification_v0.5.{json,md}` | classifier view: binary, family and mechanism levels with per-class metrics |
+| `features_unsafe.py`, `baseline_features.py` + `out/baseline_features_v0.5.{json,md}` | fingerprint features (unsafe API, FFI, pointers, memory shape) for binary classification |
+| `make_agreement_sample.py`, `score_agreement.py` + `adjudication/agreement/` | blind 60-row re-annotation: binary κ 0.96, mechanism κ 0.80 |
 | `adjudication/gate_batches.json` | gate-closing run: 161 queue rows + 170 expansion families |
 | `adjudication/labels_gate_*.jsonl` | 11 adjudication batch outputs (331 rows) |
 | `out/spotcheck_gate.json` | documented spot-check correction (1 Y -> M) |
@@ -262,6 +265,18 @@ comparisons, and it prefers a guard-dropped candidate 75 % of the time. The
 compiler/tests must therefore be the verification authority; the model is a
 compatibility ranker.
 Full write-up: [pair-ranker-v0.1.md](../../notes/research/pair-ranker-v0.1.md).
+
+## Classification view (2026-11-23)
+
+The deliverable is a classifier. On the frozen valid split: binary AUC 0.655
+(CI 0.529-0.779) with fingerprint features + gradient boosting; family macro-F1
+0.322; mechanism macro-F1 0.237. A blind 60-row re-annotation reproduces the
+labels (binary κ 0.96, mechanism κ 0.80), so the weakness is not label noise —
+the labels describe the fix while the model sees only the warning. The proposed
+well-posed target is the **hazard category** of the unsafe site (ffi_boundary,
+unchecked_index, uninit_memory, manual_capacity, raw_ownership, reinterpret,
+unsafe_trait, unsafe_contract), with the mechanism kept as a conditional second
+stage. See [classification-v0.1.md](../../notes/research/classification-v0.1.md).
 
 ## Important caveats
 

@@ -1,0 +1,64 @@
+{
+  "rows": 60,
+  "verdicts": {
+    "ann_a": {
+      "Y": 40,
+      "N": 14,
+      "U": 5,
+      "M": 1
+    },
+    "ann_b": {
+      "Y": 39,
+      "N": 12,
+      "U": 8,
+      "M": 1
+    },
+    "stored": {
+      "Y": 40,
+      "retain": 20
+    }
+  },
+  "binary_agreement": {
+    "a_b": 0.962962962962963,
+    "a_stored": 1.0,
+    "b_stored": 0.962962962962963,
+    "a_b_agreement": 0.9833333333333333
+  },
+  "mechanism_agreement": {
+    "n_both_y": 39,
+    "a_b_kappa": 0.7947368421052632,
+    "a_b_exact": 0.8205128205128205,
+    "a_stored_kappa": 0.8220532319391636,
+    "b_stored_kappa": 0.8517110266159695
+  },
+  "a_b_disagreements": [
+    {
+      "id": "git:kxxt_tracexec:9b89661fd777:crates/tracexec-backend-ebpf/tests/exec_events.rs:674",
+      "a": "N",
+      "b": "U",
+      "a_mech": "retain",
+      "b_mech": "retain"
+    },
+    {
+      "id": "hunk:417:f0547f7b73:rust/flatbuffers/src/array.rs:61:1",
+      "a": "N",
+      "b": "U",
+      "a_mech": "retain",
+      "b_mech": "retain"
+    },
+    {
+      "id": "ver:lock_api:0.4.14->0.5.0:src/rwlock.rs:1246:39",
+      "a": "Y",
+      "b": "N",
+      "a_mech": "restructure",
+      "b_mech": "retain"
+    },
+    {
+      "id": "hunk:835:1bc7f71d40:src/lib.rs:183:4",
+      "a": "N",
+      "b": "U",
+      "a_mech": "retain",
+      "b_mech": "retain"
+    }
+  ]
+}
