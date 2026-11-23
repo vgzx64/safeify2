@@ -112,6 +112,7 @@ The DB is opened read-only. Parent commits come from `ext_commits`, because
 | `out/mechanism_dataset_v05.jsonl` + stats | base + version + git rows: 962 rows, train Y 318, valid/test frozen |
 | `out/baseline_mechanism_v0.5.json` + `.md` | third scale point (conditional top-1 0.591, family 0.682) |
 | `baseline_abstention.py` + `out/abstention_v0.1.{json,md}` | abstention policies (argmax, margin, two-stage gate) with risk-coverage on valid |
+| `baseline_pair.py` + `out/baseline_pair_v0.1.{json,md}` | pair-level ranker `(old, candidate_new)` with natural and hard negatives, feature ablation |
 | `adjudication/gate_batches.json` | gate-closing run: 161 queue rows + 170 expansion families |
 | `adjudication/labels_gate_*.jsonl` | 11 adjudication batch outputs (331 rows) |
 | `out/spotcheck_gate.json` | documented spot-check correction (1 Y -> M) |
@@ -246,6 +247,18 @@ it flags 11 rows at 0.545; no margin gets above 0.545. Calibration cannot create
 the missing signal. The next lever is a pair-level ranker that receives the
 candidate fix as an input. Full write-up:
 [abstention-v0.1.md](../../notes/research/abstention-v0.1.md).
+
+## Pair-level ranker (2026-11-23)
+
+Given `(old_snippet, candidate_new)`, is the candidate a valid safe
+replacement? Valid AUC 0.97-0.99 on hard negatives, but the ablation is the
+point: char TF-IDF alone scores 0.31, while six numeric pair features
+(identifier Jaccard/containment, length ratio, unsafe presence, safe markers)
+score 0.986. The ranker is a shallow compatibility filter, not a semantic
+verifier; natural negatives are trivially separable (single unsafe-presence
+feature: AUC 0.962). Next experiment: near-miss negatives (same crate/API,
+plausible but wrong), and mechanical verification as the final authority.
+Full write-up: [pair-ranker-v0.1.md](../../notes/research/pair-ranker-v0.1.md).
 
 ## Important caveats
 
