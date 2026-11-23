@@ -111,6 +111,7 @@ The DB is opened read-only. Parent commits come from `ext_commits`, because
 | `adjudication/git_audit/`, `adjudication/git_audit_small/` | 200 audited git-commit pairs (155 Y / 20 N / 25 U) |
 | `out/mechanism_dataset_v05.jsonl` + stats | base + version + git rows: 962 rows, train Y 318, valid/test frozen |
 | `out/baseline_mechanism_v0.5.json` + `.md` | third scale point (conditional top-1 0.591, family 0.682) |
+| `baseline_abstention.py` + `out/abstention_v0.1.{json,md}` | abstention policies (argmax, margin, two-stage gate) with risk-coverage on valid |
 | `adjudication/gate_batches.json` | gate-closing run: 161 queue rows + 170 expansion families |
 | `adjudication/labels_gate_*.jsonl` | 11 adjudication batch outputs (331 rows) |
 | `out/spotcheck_gate.json` | documented spot-check correction (1 Y -> M) |
@@ -226,6 +227,25 @@ calibration stage, then a pair-level ranker. The vulnerability study's
 `compiler_result_v3` spans and `repos_worktree` trees are structural material
 for later features; `CVEfixes.db` block tables carry spans but no text.
 Full write-up: [mechanism-model-v0.3.md](../../notes/research/mechanism-model-v0.3.md).
+
+## Abstention (2026-11-23)
+
+Precision-first requirement: a suggested mechanism should be right ≥ 80 % of the
+time; silence is cheap. Policies tuned on grouped out-of-fold train predictions
+and scored once on valid:
+
+| policy | flagged/87 | suggestion precision | recall | mechanism top-1 |
+|---|---:|---:|---:|---:|
+| argmax (balanced) | 66 | 0.288 | 0.864 | 0.212 |
+| margin +0.55 (balanced) | 11 | 0.545 | 0.273 | 0.545 |
+| argmax (unbalanced) | 12 | 0.500 | 0.273 | 0.333 |
+| two-stage gate | 0 | n/a | 0.000 | n/a |
+
+The CV-selected margin reaches 0.806 precision at 4.8 % coverage, but on valid
+it flags 11 rows at 0.545; no margin gets above 0.545. Calibration cannot create
+the missing signal. The next lever is a pair-level ranker that receives the
+candidate fix as an input. Full write-up:
+[abstention-v0.1.md](../../notes/research/abstention-v0.1.md).
 
 ## Important caveats
 
