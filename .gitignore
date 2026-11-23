@@ -4,3 +4,5 @@ __pycache__
 .tools/
 .cache/
 safeify-data/transitions/out/*.npz
+# 31 MB regenerable from the rust_ecosystem mirrors
+safeify-data/transitions/out/git_history_pairs.jsonl

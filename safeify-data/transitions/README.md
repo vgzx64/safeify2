@@ -107,6 +107,10 @@ The DB is opened read-only. Parent commits come from `ext_commits`, because
 | `adjudication/version_audit/` | 240 audited version pairs (153 Y / 6 M / 47 N / 34 U) with mechanisms |
 | `out/mechanism_dataset_plus.jsonl` + stats | v0.3 mechanism data + 137 audited version rows; train Y 84 → 185, valid/test frozen |
 | `out/baseline_mechanism_v0.4-plus.json` + `.md` | re-evaluation on the plus dataset |
+| `mine_git_history.py` | mines unsafe→safe pairs from the rust_ecosystem bare mirrors (17,276 pairs, 569 repos; raw pool git-ignored) |
+| `adjudication/git_audit/`, `adjudication/git_audit_small/` | 200 audited git-commit pairs (155 Y / 20 N / 25 U) |
+| `out/mechanism_dataset_v05.jsonl` + stats | base + version + git rows: 962 rows, train Y 318, valid/test frozen |
+| `out/baseline_mechanism_v0.5.json` + `.md` | third scale point (conditional top-1 0.591, family 0.682) |
 | `adjudication/gate_batches.json` | gate-closing run: 161 queue rows + 170 expansion families |
 | `adjudication/labels_gate_*.jsonl` | 11 adjudication batch outputs (331 rows) |
 | `out/spotcheck_gate.json` | documented spot-check correction (1 Y -> M) |
@@ -202,6 +206,26 @@ on 65 M/N valid rows), so that still needs a calibrated stage. The rule labeller
 is too weak (0.65 fine precision at 47 % coverage) to supervise training; it is
 used only for sampling strata. Full write-up:
 [mechanism-model-v0.2.md](../../notes/research/mechanism-model-v0.2.md).
+
+## Mechanism scaling from rust_ecosystem (2026-11-23, v0.3)
+
+The `repos_mirror` bare clones (811 repos) are the scale source: full commit
+history, no network, every unsafe→safe hunk an objective pair. 17,276 mined
+pairs were deduplicated to 13,298 new; 220 audited (166 Y) were added.
+
+| train Y | conditional top-1 | macro-F1 | family top-1 | family top-3 |
+|---:|---:|---:|---:|---:|
+| 84 | 0.455 | 0.338 | 0.409 | - |
+| 185 | 0.636 | 0.438 | 0.636 | 0.909 |
+| 318 | 0.591 | 0.480 | 0.682 | 0.955 |
+
+Fine top-1 saturates after ~185 Y while the family view keeps improving; the
+representation, not the label count, is now the limit. The joint model's
+abstention got worse (47/65 M/N rows get a mechanism), so the next problem is a
+calibration stage, then a pair-level ranker. The vulnerability study's
+`compiler_result_v3` spans and `repos_worktree` trees are structural material
+for later features; `CVEfixes.db` block tables carry spans but no text.
+Full write-up: [mechanism-model-v0.3.md](../../notes/research/mechanism-model-v0.3.md).
 
 ## Important caveats
 

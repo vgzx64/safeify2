@@ -1,0 +1,52 @@
+{
+  "mined_rows": 17276,
+  "unique_new": 13298,
+  "capped": 1641,
+  "sampled": 160,
+  "strata": {
+    "no_rule": 29,
+    "init_memory": 18,
+    "interior_mutability": 17,
+    "checked_api": 17,
+    "slice_view": 17,
+    "unnecessary": 17,
+    "restructure": 17,
+    "pin_api": 16,
+    "capacity_ops": 12
+  },
+  "repos": 132,
+  "batches": [
+    {
+      "file": "batch_01.jsonl",
+      "rows": 20
+    },
+    {
+      "file": "batch_02.jsonl",
+      "rows": 20
+    },
+    {
+      "file": "batch_03.jsonl",
+      "rows": 20
+    },
+    {
+      "file": "batch_04.jsonl",
+      "rows": 20
+    },
+    {
+      "file": "batch_05.jsonl",
+      "rows": 20
+    },
+    {
+      "file": "batch_06.jsonl",
+      "rows": 20
+    },
+    {
+      "file": "batch_07.jsonl",
+      "rows": 20
+    },
+    {
+      "file": "batch_08.jsonl",
+      "rows": 20
+    }
+  ]
+}

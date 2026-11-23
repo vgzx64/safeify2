@@ -419,6 +419,7 @@ accuracy is below a constant-`Y` baseline, so accuracy alone is misleading.
 | 2026-11-22 | v0.3 draft: 469 untouched rows audited (+243 usable, 30 Y); held-out AUC flat (0.624); no operating point reaches precision 0.7 → no fine-tune. See [transition-expansion-v0.3.md](transition-expansion-v0.3.md) |
 | 2026-11-23 | Target reframed to safe-remediation mechanism: 139 Y rows labelled; conditional top-1 0.455 / top-3 0.864 (22 valid Y). See [mechanism-model-v0.1.md](mechanism-model-v0.1.md) |
 | 2026-11-23 | Mechanism labels scaled with version-history mining (+240 audited pairs, train Y 84→185); conditional top-1 0.636, family 0.636. See [mechanism-model-v0.2.md](mechanism-model-v0.2.md) |
+| 2026-11-23 | rust_ecosystem git mirrors mined (17,276 pairs, 569 repos); +200 audited (155 Y), train Y 314; fine top-1 saturates at ~0.6, family 0.682. See [mechanism-model-v0.3.md](mechanism-model-v0.3.md) |
 | Pair model (not NIRM 4) | Train the SafeNet-style pair classifier on `safeify-data/synth/out/train_mixed.csv` (8,580 clean pairs after the 2026-11-18 rebuild; `splits/check_train_leakage.py` must pass); evaluate on the frozen core as external validation. First path: frozen-BERT cache + pair head, see [bert-pair-model.md](bert-pair-model.md) |
 
 The dataset build must not delay the NIRM 3 report. The pilot is enough to

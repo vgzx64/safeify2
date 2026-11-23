@@ -27,9 +27,17 @@ def norm(text: str) -> str:
 
 
 def main() -> int:
+    import argparse
+    ap = argparse.ArgumentParser(description=__doc__)
+    ap.add_argument("--audit", default="adjudication/version_audit/labeled.jsonl",
+                    help="comma-separated labeled.jsonl files to add")
+    ap.add_argument("--out", default="out/mechanism_dataset_plus.jsonl")
+    ap.add_argument("--stats", default="out/mechanism_dataset_plus_stats.json")
+    args = ap.parse_args()
     base = [json.loads(x) for x in (OUT / "mechanism_dataset.jsonl").open() if x.strip()]
-    audit_path = HERE / "adjudication/version_audit/labeled.jsonl"
-    audit = [json.loads(x) for x in audit_path.open() if x.strip()]
+    audit = []
+    for path in args.audit.split(","):
+        audit.extend(json.loads(x) for x in (HERE / path).open() if x.strip())
 
     valid_repos = {r["repo_key"] for r in base if r["split"] == "valid"}
     test_repos = {r["repo_key"] for r in base if r["split"] == "test"}
@@ -45,7 +53,7 @@ def main() -> int:
         if verdict == "U":
             dropped["unusable"] += 1
             continue
-        repo = r.get("repo_url") or f"pkg:{r['package']}"
+        repo = r.get("repo_url") or f"name:{r.get('repo_name', r.get('package', ''))}".lower()
         if repo in test_repos or repo in valid_repos:
             dropped["frozen_repo"] += 1  # keep valid/test exactly frozen
             continue
@@ -54,12 +62,12 @@ def main() -> int:
         added.append({
             "id": r["id"],
             "split": split,
-            "source": "versions",
+            "source": r.get("source", "versions"),
             "repo_key": repo,
             "label": verdict,
             "mechanism": mech,
             "family": family(mech),
-            "mechanism_source": "version_audit",
+            "mechanism_source": f"{r.get('source', 'versions')}_audit",
             "api_guess": r.get("api_old") or "unknown",
             "old_snippet": r["old_snippet"],
             "safe_snippet": r["safe_snippet"],
@@ -80,10 +88,10 @@ def main() -> int:
         "valid_y": dict(Counter(r["mechanism"] for r in rows
                                 if r["split"] == "valid" and r["mechanism"] != "retain").most_common()),
     }
-    with (OUT / "mechanism_dataset_plus.jsonl").open("w") as f:
+    with (HERE / args.out).open("w") as f:
         for r in rows:
             f.write(json.dumps(r, ensure_ascii=False) + "\n")
-    (OUT / "mechanism_dataset_plus_stats.json").write_text(json.dumps(stats, indent=2) + "\n")
+    (HERE / args.stats).write_text(json.dumps(stats, indent=2) + "\n")
     print(json.dumps(stats, indent=2))
     return 0
 
