@@ -193,6 +193,61 @@ def cv_scores(pairs, numeric=True):
     return out
 
 
+def perturb(new: str, kind: str) -> str | None:
+    """Break a real replacement while keeping identifier vocabulary similar."""
+    lines = new.splitlines()
+    if kind == "drop_guard":
+        for i, line in enumerate(lines):
+            if re.search(r"\b(if|assert|assert_eq|checked_|\?)\b", line) and line.strip():
+                return "\n".join(lines[:i] + lines[i + 1:])
+        return None
+    if kind == "swap_ident":
+        ids = [m for m in re.findall(r"[A-Za-z_][A-Za-z0-9_]*", new)
+               if m not in ("let", "mut", "unsafe", "fn", "pub", "use", "self", "Self",
+                            "impl", "match", "if", "else", "return", "Ok", "Err", "Some",
+                            "None", "true", "false")]
+        if len(ids) < 2:
+            return None
+        a, b = ids[0], ids[1]
+        if a == b:
+            return None
+        tmp = "__SWAP__"
+        out = re.sub(rf"\b{re.escape(a)}\b", tmp, new)
+        out = re.sub(rf"\b{re.escape(b)}\b", a, out)
+        return re.sub(rf"\b{re.escape(tmp)}\b", b, out)
+    if kind == "change_index":
+        m = re.search(r"\b(\d+)\b", new)
+        if not m:
+            return None
+        v = int(m.group(1))
+        return new[:m.start()] + str(v + 1) + new[m.end():]
+    return None
+
+
+def near_miss_eval(model, valid_y):
+    """Same old snippet, real candidate vs a perturbed one; did the model keep them apart?"""
+    rows_real, rows_pert, kinds = [], [], []
+    for r in valid_y:
+        for kind in ("drop_guard", "swap_ident", "change_index"):
+            cand = perturb(r["safe_snippet"], kind)
+            if not cand or not cand.strip() or UNSAFE.search(cand):
+                continue
+            rows_real.append({"text": pair_text(r["old_snippet"], r["safe_snippet"]),
+                              "old": r["old_snippet"], "new": r["safe_snippet"]})
+            rows_pert.append({"text": pair_text(r["old_snippet"], cand),
+                              "old": r["old_snippet"], "new": cand})
+            kinds.append(kind)
+    if not rows_real:
+        return None
+    p_real = model.predict_proba(rows_real)[:, 1]
+    p_pert = model.predict_proba(rows_pert)[:, 1]
+    wins = float(np.mean(p_real > p_pert))
+    return {"comparisons": len(rows_real), "real_above_perturbed_rate": wins,
+            "mean_margin": float(np.mean(p_real - p_pert)),
+            "by_kind": {k: float(np.mean([(p_real[i] > p_pert[i]) for i, kk in enumerate(kinds) if kk == k]))
+                        for k in set(kinds)}}
+
+
 def trivial_baseline(train, valid):
     """One-feature baseline: does the new snippet still contain unsafe code?"""
     def feats(rows):
@@ -239,7 +294,12 @@ def main():
                                       ("clf", LogisticRegression(class_weight="balanced",
                                                                  max_iter=1000, C=1.0))])),
     }
+    # near-miss test: the ranker must prefer the real candidate over a perturbed
+    # one for the SAME old snippet (model trained on the mechanism config)
+    mech_model = pair_model(True)
+    mech_model.fit(as_rows(mech_cfg["train"]), [p["y"] for p in mech_cfg["train"]])
     results = {
+        "near_miss_mechanism_with_natural": near_miss_eval(mech_model, valid_y),
         "ablation_mechanism_with_natural": abl,
         "pair_counts": {m: {split: dict(Counter(p["kind"] for p in cfg[split]))
                             for split in ("train", "valid")}
@@ -283,6 +343,14 @@ def main():
         md.append(f"| {tag} | {r['cv'].get('roc_auc', float('nan')):.3f} | "
                   f"{r['valid_hard'].get('roc_auc', float('nan')):.3f} | "
                   f"{r['valid_natural'].get('roc_auc', float('nan')):.3f} |")
+    nm = results.get("near_miss_mechanism_with_natural")
+    if nm:
+        md += ["", "Near-miss test (same old snippet; real candidate vs perturbed candidate):", "",
+               f"real candidate ranked above its perturbed twin in {nm['real_above_perturbed_rate']:.3f} "
+               f"of {nm['comparisons']} comparisons (chance 0.5), mean margin {nm['mean_margin']:+.3f}", "",
+               "| perturbation | win rate |", "|---|---:|"]
+        for k, v in sorted(nm["by_kind"].items()):
+            md.append(f"| {k} | {v:.3f} |")
     md += ["", "Ablation (mechanism hard negatives, with natural negatives):", "",
            "| features | valid hard AUC | valid natural AUC |", "|---|---:|---:|"]
     for name, a in results["ablation_mechanism_with_natural"].items():

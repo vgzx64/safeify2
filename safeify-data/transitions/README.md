@@ -256,8 +256,11 @@ point: char TF-IDF alone scores 0.31, while six numeric pair features
 (identifier Jaccard/containment, length ratio, unsafe presence, safe markers)
 score 0.986. The ranker is a shallow compatibility filter, not a semantic
 verifier; natural negatives are trivially separable (single unsafe-presence
-feature: AUC 0.962). Next experiment: near-miss negatives (same crate/API,
-plausible but wrong), and mechanical verification as the final authority.
+feature: AUC 0.962). On near-miss negatives (same old snippet, perturbed
+candidate) the ranker is at chance: real above perturbed in 0.611 of 36
+comparisons, and it prefers a guard-dropped candidate 75 % of the time. The
+compiler/tests must therefore be the verification authority; the model is a
+compatibility ranker.
 Full write-up: [pair-ranker-v0.1.md](../../notes/research/pair-ranker-v0.1.md).
 
 ## Important caveats

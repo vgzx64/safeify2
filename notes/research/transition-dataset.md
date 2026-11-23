@@ -421,7 +421,7 @@ accuracy is below a constant-`Y` baseline, so accuracy alone is misleading.
 | 2026-11-23 | Mechanism labels scaled with version-history mining (+240 audited pairs, train Y 84→185); conditional top-1 0.636, family 0.636. See [mechanism-model-v0.2.md](mechanism-model-v0.2.md) |
 | 2026-11-23 | rust_ecosystem git mirrors mined (17,276 pairs, 569 repos); +200 audited (155 Y), train Y 314; fine top-1 saturates at ~0.6, family 0.682. See [mechanism-model-v0.3.md](mechanism-model-v0.3.md) |
 | 2026-11-23 | Abstention stage: best suggestion precision 0.545 on valid, target 0.8; calibration cannot fix the snippet-only model. See [abstention-v0.1.md](abstention-v0.1.md) |
-| 2026-11-23 | Pair-level ranker baseline: hard-negative AUC 0.97-0.99 but the signal is six numeric features; TF-IDF alone 0.31. See [pair-ranker-v0.1.md](pair-ranker-v0.1.md) |
+| 2026-11-23 | Pair-level ranker baseline: hard-negative AUC 0.97-0.99 but the signal is six numeric features; near-miss ranking at chance (0.611). See [pair-ranker-v0.1.md](pair-ranker-v0.1.md) |
 | Pair model (not NIRM 4) | Train the SafeNet-style pair classifier on `safeify-data/synth/out/train_mixed.csv` (8,580 clean pairs after the 2026-11-18 rebuild; `splits/check_train_leakage.py` must pass); evaluate on the frozen core as external validation. First path: frozen-BERT cache + pair head, see [bert-pair-model.md](bert-pair-model.md) |
 
 The dataset build must not delay the NIRM 3 report. The pilot is enough to

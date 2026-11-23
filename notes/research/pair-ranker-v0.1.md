@@ -3,8 +3,8 @@
 > **Status:** baseline · 2026-11-23 · valid AUC 0.97-0.99 on random and
 > same-mechanism hard negatives · but the signal is 6 hand-written numeric
 > features; char n-grams alone are worse than chance · natural negatives are
-> trivially separable · near-miss negatives are required before claiming
-> semantic verification.
+> trivially separable · on near-miss negatives the ranker is at chance (0.611),
+> so mechanical verification, not the model, must decide validity.
 
 The suggestion pipeline proposes a candidate fix and then must decide whether it
 is valid. That is a pair-classification problem — `(old, candidate_new)` —
@@ -74,11 +74,23 @@ Three things, in order of importance:
    natural negatives keeps both. Natural negatives are trivial on their own and
    must never be the only negative family.
 
-The honest claim for this baseline: *a candidate from another project can be
-rejected reliably; whether a candidate is semantically correct for this site is
-untested.* That needs near-miss negatives — same crate/API, plausible-looking
-but wrong replacement (dropped guard, changed index, swapped identifier) — and
-that is the next experiment.
+### Near-miss test
+
+Same old snippet, the real candidate versus a perturbed twin (36 comparisons,
+12 per perturbation; chance 0.5):
+
+| perturbation | real candidate ranked above perturbed |
+|---|---:|
+| changed numeric index | 1.000 |
+| swapped identifier | 0.500 |
+| dropped guard/check line | 0.250 |
+| **overall** | **0.611** |
+
+Mean score margin is −0.0007: the model is at chance on the only question that
+matters for a verifier. Dropping a bounds/guard line — exactly the unsafe-adjacent
+mistake a verifier must catch — is *preferred* by the model 75 % of the time.
+The `change_index` win is a naturalness artifact of the character model, not
+semantic understanding.
 
 ## Consequence for the architecture
 

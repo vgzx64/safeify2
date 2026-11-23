@@ -14,6 +14,16 @@ API vocabulary overlaps).
 | mechanism/with_natural | 0.930 | 0.973 | 0.971 |
 | mechanism/hard_only | 0.984 | 0.996 | 0.208 |
 
+Near-miss test (same old snippet; real candidate vs perturbed candidate):
+
+real candidate ranked above its perturbed twin in 0.611 of 36 comparisons (chance 0.5), mean margin -0.001
+
+| perturbation | win rate |
+|---|---:|
+| change_index | 1.000 |
+| drop_guard | 0.250 |
+| swap_ident | 0.500 |
+
 Ablation (mechanism hard negatives, with natural negatives):
 
 | features | valid hard AUC | valid natural AUC |

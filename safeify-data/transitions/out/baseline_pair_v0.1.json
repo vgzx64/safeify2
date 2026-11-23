@@ -1,4 +1,14 @@
 {
+  "near_miss_mechanism_with_natural": {
+    "comparisons": 36,
+    "real_above_perturbed_rate": 0.6111111111111112,
+    "mean_margin": -0.0006582139608173424,
+    "by_kind": {
+      "swap_ident": 0.5,
+      "drop_guard": 0.25,
+      "change_index": 1.0
+    }
+  },
   "ablation_mechanism_with_natural": {
     "full": {
       "valid_hard_auc": 0.9731404958677686,
