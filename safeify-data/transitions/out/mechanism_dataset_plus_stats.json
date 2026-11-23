@@ -1,0 +1,44 @@
+{
+  "base_rows": 676,
+  "audited_rows": 240,
+  "added": 137,
+  "dropped": {
+    "frozen_repo": 69,
+    "unusable": 34
+  },
+  "rows": 813,
+  "by_split": {
+    "train": 596,
+    "test": 130,
+    "valid": 87
+  },
+  "by_mechanism_added": {
+    "retain": 36,
+    "safe_wrapper": 35,
+    "restructure": 32,
+    "checked_api": 14,
+    "slice_view": 6,
+    "unnecessary": 6,
+    "interior_mutability": 5,
+    "init_memory": 3
+  },
+  "train_y": {
+    "safe_wrapper": 52,
+    "restructure": 45,
+    "checked_api": 34,
+    "init_memory": 19,
+    "unnecessary": 13,
+    "interior_mutability": 8,
+    "capacity_ops": 7,
+    "slice_view": 7
+  },
+  "valid_y": {
+    "safe_wrapper": 10,
+    "capacity_ops": 3,
+    "init_memory": 3,
+    "unnecessary": 2,
+    "interior_mutability": 2,
+    "restructure": 1,
+    "slice_view": 1
+  }
+}

@@ -102,6 +102,11 @@ The DB is opened read-only. Parent commits come from `ext_commits`, because
 | `adjudication/mechanisms/` | 71-row mechanism audit for Y rows without a `labels_safe.csv` mechanism |
 | `out/mechanism_dataset.jsonl` + `out/mechanism_dataset_stats.json` | every v0.3 row with `mechanism`/`family`; M/N are `retain` |
 | `out/baseline_mechanism_v0.3.json` + `.md` | mechanism classifier baselines: joint (mechanism or retain) and conditional on Y |
+| `mechanism_rules.py` + `out/mechanism_rules_score.json` | rule labeller for old→new pairs; 47% coverage, 0.65 fine / 0.71 family precision vs the audit |
+| `mine_version_history.py` + `out/version_pairs.jsonl` | 383 unsafe→safe pairs mined from consecutive crate releases (62 crates, objective transitions) |
+| `adjudication/version_audit/` | 240 audited version pairs (153 Y / 6 M / 47 N / 34 U) with mechanisms |
+| `out/mechanism_dataset_plus.jsonl` + stats | v0.3 mechanism data + 137 audited version rows; train Y 84 → 185, valid/test frozen |
+| `out/baseline_mechanism_v0.4-plus.json` + `.md` | re-evaluation on the plus dataset |
 | `adjudication/gate_batches.json` | gate-closing run: 161 queue rows + 170 expansion families |
 | `adjudication/labels_gate_*.jsonl` | 11 adjudication batch outputs (331 rows) |
 | `out/spotcheck_gate.json` | documented spot-check correction (1 Y -> M) |
@@ -177,6 +182,26 @@ limit. Train/valid mechanism mixes differ sharply (`checked_api` 20 train vs 0
 valid), so the estimate is fragile. Next: scale mechanism labels from crate
 version history. Full write-up:
 [mechanism-model-v0.1.md](../../notes/research/mechanism-model-v0.1.md).
+
+## Mechanism scaling (2026-11-23, v0.2)
+
+Consecutive published crate versions mined as objective old→new pairs
+(`mine_version_history.py`: 383 pairs, 62 crates). 240 sampled pairs were
+audited (153 Y) and added to the mechanism data; train Y goes 84 → 185 while
+valid/test stay frozen. Conditional on the 22 frozen valid Y rows:
+
+| model | top-1 | top-3 | family top-1 |
+|---|---:|---:|---:|
+| v0.1 (84 train Y) | 0.455 | 0.864 | 0.409 |
+| v0.2 (185 train Y) | **0.636** | 0.864 | **0.636** |
+| constant baseline | 0.455 | 0.500 | 0.136 |
+
+First positive scaling signal in this track: the 84-row ceiling was data, not
+architecture. Abstention in the joint task regressed (26 mechanism suggestions
+on 65 M/N valid rows), so that still needs a calibrated stage. The rule labeller
+is too weak (0.65 fine precision at 47 % coverage) to supervise training; it is
+used only for sampling strata. Full write-up:
+[mechanism-model-v0.2.md](../../notes/research/mechanism-model-v0.2.md).
 
 ## Important caveats
 

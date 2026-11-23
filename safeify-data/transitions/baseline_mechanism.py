@@ -38,13 +38,16 @@ N_BOOT = 2000
 MECH = list(MECHANISMS) + ["retain"]
 
 
-def load_rows():
-    rows = [json.loads(x) for x in (OUT / "mechanism_dataset.jsonl").open() if x.strip()]
+def load_rows(dataset: Path | None = None):
+    path = dataset or (OUT / "mechanism_dataset.jsonl")
+    rows = [json.loads(x) for x in path.open() if x.strip()]
     assert all(r["mechanism"] in MECH for r in rows), "bad mechanism"
     train = [r for r in rows if r["split"] == "train"]
     valid = [r for r in rows if r["split"] == "valid"]
     test = [r for r in rows if r["split"] == "test"]
-    assert (len(train), len(valid), len(test)) == (459, 87, 130)
+    assert (len(valid), len(test)) == (87, 130), "valid/test must stay frozen"
+    if dataset is None:
+        assert len(train) == 459
     assert not ({r["repo_key"] for r in train} & {r["repo_key"] for r in valid})
     assert all(r["mechanism"] == "retain" for r in test) or True
     return train, valid, test
@@ -275,10 +278,14 @@ def cv_scores(train, model_name):
 def main():
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--version", default="v0.3")
+    ap.add_argument("--dataset", default="", help="path to a mechanism dataset JSONL")
+    ap.add_argument("--tag", default="", help="output tag (defaults to the version)")
     args = ap.parse_args()
-    train, valid, test = load_rows()
+    dataset = Path(args.dataset) if args.dataset else None
+    tag = args.tag or args.version
+    train, valid, test = load_rows(dataset)
     results = {
-        "version": args.version,
+        "version": tag,
         "protocol": "fit train (459); score frozen valid (87); test sealed (130); input old_snippet + api_guess",
         "classes": MECH,
         "sizes": {"train": len(train), "valid": len(valid), "test_sealed": len(test),
@@ -328,10 +335,10 @@ def main():
           f"| majority mech top1={c['majority_baseline']['mechanism']['top1']:.3f} "
           f"top3={c['majority_baseline']['mechanism']['top3']:.3f}")
 
-    json.dump(results, open(OUT / f"baseline_mechanism_{args.version}.json", "w"),
+    json.dump(results, open(OUT / f"baseline_mechanism_{tag}.json", "w"),
               indent=2, ensure_ascii=False)
 
-    md = [f"# Mechanism classification baseline ({args.version})", "",
+    md = [f"# Mechanism classification baseline ({tag})", "",
           "Fit on train (459) and score the frozen valid split (87); test sealed.",
           "Input: `old_snippet` + `api_guess`; positive-task mechanics: predict the",
           "safe-remediation mechanism, or `retain` when unsafe stays (M/N).", "",
@@ -365,8 +372,8 @@ def main():
     md += ["", "Valid Y mechanism support:", ""]
     for mech, n in results["models"]["char_api_lr"]["y_valid"]["support"].items():
         md.append(f"- {mech}: {n}")
-    (OUT / f"baseline_mechanism_{args.version}.md").write_text("\n".join(md) + "\n")
-    print(f"\nwrote {OUT}/baseline_mechanism_{args.version}.json and .md")
+    (OUT / f"baseline_mechanism_{tag}.md").write_text("\n".join(md) + "\n")
+    print(f"\nwrote {OUT}/baseline_mechanism_{tag}.json and .md")
 
 
 if __name__ == "__main__":

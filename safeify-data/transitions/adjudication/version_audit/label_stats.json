@@ -1,0 +1,25 @@
+{
+  "ok": true,
+  "rows": 240,
+  "verdicts": {
+    "Y": 153,
+    "N": 47,
+    "U": 34,
+    "M": 6
+  },
+  "mechanisms": {
+    "safe_wrapper": 51,
+    "restructure": 37,
+    "unnecessary": 23,
+    "checked_api": 20,
+    "slice_view": 10,
+    "interior_mutability": 7,
+    "init_memory": 4,
+    "pin_api": 1
+  },
+  "confidence": {
+    "high": 155,
+    "medium": 85
+  },
+  "packages": 64
+}

@@ -1,0 +1,42 @@
+{
+  "mined_rows": 383,
+  "unique_new": 330,
+  "capped": 252,
+  "sampled": 240,
+  "strata": {
+    "no_rule": 177,
+    "unnecessary": 26,
+    "checked_api": 12,
+    "init_memory": 9,
+    "interior_mutability": 9,
+    "slice_view": 6,
+    "capacity_ops": 1
+  },
+  "packages": 64,
+  "batches": [
+    {
+      "file": "batch_01.jsonl",
+      "rows": 40
+    },
+    {
+      "file": "batch_02.jsonl",
+      "rows": 40
+    },
+    {
+      "file": "batch_03.jsonl",
+      "rows": 40
+    },
+    {
+      "file": "batch_04.jsonl",
+      "rows": 40
+    },
+    {
+      "file": "batch_05.jsonl",
+      "rows": 40
+    },
+    {
+      "file": "batch_06.jsonl",
+      "rows": 40
+    }
+  ]
+}

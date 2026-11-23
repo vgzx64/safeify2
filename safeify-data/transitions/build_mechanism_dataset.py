@@ -56,6 +56,7 @@ def main() -> int:
             "mechanism_source": src,
             "api_guess": r.get("api_guess") or r.get("api_old") or "unknown",
             "old_snippet": r["old_snippet"],
+            "safe_snippet": r["safe_snippet"],
         })
 
     assert not missing, f"Y rows without a mechanism: {missing[:5]}"

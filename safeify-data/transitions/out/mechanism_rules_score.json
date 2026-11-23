@@ -1,0 +1,180 @@
+{
+  "rows": 139,
+  "coverage": 0.4676258992805755,
+  "precision_when_fired": 0.6461538461538462,
+  "accuracy_all_rows": 0.302158273381295,
+  "per_class": {
+    "capacity_ops": {
+      "n": 11,
+      "fired": 11,
+      "correct": 11
+    },
+    "checked_api": {
+      "n": 23,
+      "fired": 10,
+      "correct": 5
+    },
+    "init_memory": {
+      "n": 23,
+      "fired": 21,
+      "correct": 17
+    },
+    "interior_mutability": {
+      "n": 11,
+      "fired": 3,
+      "correct": 3
+    },
+    "other": {
+      "n": 2,
+      "fired": 0,
+      "correct": 0
+    },
+    "pin_api": {
+      "n": 4,
+      "fired": 1,
+      "correct": 0
+    },
+    "restructure": {
+      "n": 15,
+      "fired": 4,
+      "correct": 0
+    },
+    "safe_wrapper": {
+      "n": 31,
+      "fired": 9,
+      "correct": 0
+    },
+    "slice_view": {
+      "n": 4,
+      "fired": 2,
+      "correct": 2
+    },
+    "unnecessary": {
+      "n": 15,
+      "fired": 4,
+      "correct": 4
+    }
+  },
+  "confusion": [
+    {
+      "true": "safe_wrapper",
+      "pred": "no_prediction",
+      "n": 22
+    },
+    {
+      "true": "init_memory",
+      "pred": "init_memory",
+      "n": 17
+    },
+    {
+      "true": "checked_api",
+      "pred": "no_prediction",
+      "n": 13
+    },
+    {
+      "true": "capacity_ops",
+      "pred": "capacity_ops",
+      "n": 11
+    },
+    {
+      "true": "unnecessary",
+      "pred": "no_prediction",
+      "n": 11
+    },
+    {
+      "true": "restructure",
+      "pred": "no_prediction",
+      "n": 11
+    },
+    {
+      "true": "interior_mutability",
+      "pred": "no_prediction",
+      "n": 8
+    },
+    {
+      "true": "safe_wrapper",
+      "pred": "init_memory",
+      "n": 8
+    },
+    {
+      "true": "checked_api",
+      "pred": "checked_api",
+      "n": 5
+    },
+    {
+      "true": "checked_api",
+      "pred": "init_memory",
+      "n": 4
+    },
+    {
+      "true": "unnecessary",
+      "pred": "unnecessary",
+      "n": 4
+    },
+    {
+      "true": "pin_api",
+      "pred": "no_prediction",
+      "n": 3
+    },
+    {
+      "true": "interior_mutability",
+      "pred": "interior_mutability",
+      "n": 3
+    },
+    {
+      "true": "restructure",
+      "pred": "checked_api",
+      "n": 3
+    },
+    {
+      "true": "init_memory",
+      "pred": "capacity_ops",
+      "n": 3
+    },
+    {
+      "true": "slice_view",
+      "pred": "no_prediction",
+      "n": 2
+    },
+    {
+      "true": "other",
+      "pred": "no_prediction",
+      "n": 2
+    },
+    {
+      "true": "slice_view",
+      "pred": "slice_view",
+      "n": 2
+    },
+    {
+      "true": "init_memory",
+      "pred": "no_prediction",
+      "n": 2
+    },
+    {
+      "true": "pin_api",
+      "pred": "capacity_ops",
+      "n": 1
+    },
+    {
+      "true": "checked_api",
+      "pred": "slice_view",
+      "n": 1
+    },
+    {
+      "true": "safe_wrapper",
+      "pred": "checked_api",
+      "n": 1
+    },
+    {
+      "true": "init_memory",
+      "pred": "slice_view",
+      "n": 1
+    },
+    {
+      "true": "restructure",
+      "pred": "slice_view",
+      "n": 1
+    }
+  ]
+}

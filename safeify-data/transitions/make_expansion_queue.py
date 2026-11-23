@@ -18,14 +18,7 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 OUT = HERE / "out"
 DEST = HERE / "adjudication/expansion"
-UNSAFE = re.compile(
-    r"\bunsafe\s*(?:\{|fn\b|impl\b|trait\b)"
-    r"|\b(?:pointer|ptr)::(?:read|write|copy|copy_nonoverlapping)\b"
-    r"|\b(?:Box|Vec|CString|CStr|Rc|Arc)::from_raw(?:_parts)?\b"
-    r"|\bset_len\s*\(|\bassume_init\b|\btransmute|\bget_unchecked\b"
-    r"|\boffset_from\b|\bPin::new_unchecked\b|\bzeroed\s*\("
-    r"|\buninitialized\s*\(",
-)
+from mechanism_rules import UNSAFE
 
 
 def clip(text: str, head: int = 1400, tail: int = 600) -> str:
