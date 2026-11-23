@@ -98,6 +98,10 @@ The DB is opened read-only. Parent commits come from `ext_commits`, because
 | `adjudication/expansion/` | v0.3 audit: queue, ten batches, labels, merged `labeled.jsonl`, label stats |
 | `out/transitions_core_v0.3_draft.jsonl` + `out/transitions_core_v0.3_stats.json` | v0.3 draft: 676 rows = frozen v0.2 + 243 audited expansion rows, 0 split leakage |
 | `out/baseline_suite_v0.3.json` + `.md` | v0.2 protocol re-run on the v0.3 draft (same frozen valid 87, test sealed) |
+| `mechanism_taxonomy.py` | canonical safe-remediation mechanisms and families, plus the mapping from the old free-text labels |
+| `adjudication/mechanisms/` | 71-row mechanism audit for Y rows without a `labels_safe.csv` mechanism |
+| `out/mechanism_dataset.jsonl` + `out/mechanism_dataset_stats.json` | every v0.3 row with `mechanism`/`family`; M/N are `retain` |
+| `out/baseline_mechanism_v0.3.json` + `.md` | mechanism classifier baselines: joint (mechanism or retain) and conditional on Y |
 | `adjudication/gate_batches.json` | gate-closing run: 161 queue rows + 170 expansion families |
 | `adjudication/labels_gate_*.jsonl` | 11 adjudication batch outputs (331 rows) |
 | `out/spotcheck_gate.json` | documented spot-check correction (1 Y -> M) |
@@ -152,6 +156,27 @@ on valid reaches precision 0.7** (max 0.625), so there is nothing to calibrate
 a high-precision abstaining tool on. No GPU fine-tune; the next lever is more
 audited positives (crates.io advisory pairs) and a pair-classification setup.
 Full write-up: [transition-expansion-v0.3.md](../../notes/research/transition-expansion-v0.3.md).
+
+## Mechanism model (2026-11-23)
+
+The binary target was replaced by **which safe mechanism the fix uses** (or
+`retain` when unsafe stays). 139 Y rows carry a mechanism: 68 from
+`labels_safe.csv`, 71 newly adjudicated. Protocol is the same: fit train, score
+the frozen 87-row valid, test sealed, input `old_snippet` + `api_guess`.
+
+| task | model | result |
+|---|---|---|
+| joint (10 mechanisms + retain) | char TF-IDF + api + LR | acc 0.667, macro-F1 0.242; 12 mechanisms suggested on M/N |
+| joint | char TF-IDF + LR | acc 0.747, macro-F1 0.200; 4 mechanisms on M/N, 15 retain on Y |
+| conditional on 22 valid Y | conditional_char_lr (84 train Y) | top-1 0.455 (CI 0.227-0.636), top-3 0.864, macro-F1 0.338 |
+| conditional baseline | constant top-3 from train | top-1 0.000, top-3 0.591 |
+
+Top-3 is clearly above the constant baseline, so the ranking carries signal;
+top-1 is at the dominant-class rate and the label budget (84 train Y) is the
+limit. Train/valid mechanism mixes differ sharply (`checked_api` 20 train vs 0
+valid), so the estimate is fragile. Next: scale mechanism labels from crate
+version history. Full write-up:
+[mechanism-model-v0.1.md](../../notes/research/mechanism-model-v0.1.md).
 
 ## Important caveats
 

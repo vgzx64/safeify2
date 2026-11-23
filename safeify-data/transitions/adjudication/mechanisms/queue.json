@@ -1,0 +1,31 @@
+{
+  "rows": 71,
+  "batches": [
+    {
+      "file": "batch_01.jsonl",
+      "rows": 36,
+      "by_split": {
+        "test": 16,
+        "train": 20
+      }
+    },
+    {
+      "file": "batch_02.jsonl",
+      "rows": 35,
+      "by_split": {
+        "train": 28,
+        "valid": 7
+      }
+    }
+  ],
+  "by_source": {
+    "cratesio": 50,
+    "cvefixes": 13,
+    "rustsec": 8
+  },
+  "by_split": {
+    "train": 48,
+    "test": 16,
+    "valid": 7
+  }
+}

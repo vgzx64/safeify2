@@ -1,0 +1,26 @@
+{
+  "ok": true,
+  "rows": 71,
+  "mechanisms": {
+    "safe_wrapper": 18,
+    "init_memory": 14,
+    "unnecessary": 11,
+    "restructure": 8,
+    "interior_mutability": 6,
+    "checked_api": 6,
+    "capacity_ops": 4,
+    "other": 2,
+    "slice_view": 2
+  },
+  "families": {
+    "memory": 18,
+    "safe_api": 18,
+    "ownership": 14,
+    "remove": 13,
+    "checked": 8
+  },
+  "confidence": {
+    "high": 53,
+    "medium": 18
+  }
+}

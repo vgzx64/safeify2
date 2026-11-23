@@ -1,0 +1,61 @@
+{
+  "rows": 676,
+  "by_split": {
+    "train": 459,
+    "test": 130,
+    "valid": 87
+  },
+  "by_mechanism": {
+    "retain": 537,
+    "safe_wrapper": 31,
+    "init_memory": 23,
+    "checked_api": 23,
+    "restructure": 15,
+    "unnecessary": 15,
+    "interior_mutability": 11,
+    "capacity_ops": 11,
+    "pin_api": 4,
+    "slice_view": 4,
+    "other": 2
+  },
+  "by_family": {
+    "retain": 537,
+    "memory": 34,
+    "safe_api": 31,
+    "ownership": 30,
+    "checked": 27,
+    "remove": 17
+  },
+  "train_mechanisms": {
+    "retain": 375,
+    "checked_api": 20,
+    "safe_wrapper": 17,
+    "init_memory": 16,
+    "restructure": 13,
+    "capacity_ops": 7,
+    "unnecessary": 7,
+    "interior_mutability": 3,
+    "slice_view": 1
+  },
+  "valid_y_mechanisms": {
+    "safe_wrapper": 10,
+    "capacity_ops": 3,
+    "init_memory": 3,
+    "unnecessary": 2,
+    "interior_mutability": 2,
+    "restructure": 1,
+    "slice_view": 1
+  },
+  "test_y_mechanisms_sealed": {
+    "interior_mutability": 6,
+    "unnecessary": 6,
+    "pin_api": 4,
+    "init_memory": 4,
+    "safe_wrapper": 4,
+    "checked_api": 3,
+    "slice_view": 2,
+    "other": 2,
+    "capacity_ops": 1,
+    "restructure": 1
+  }
+}

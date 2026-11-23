@@ -1,0 +1,483 @@
+{
+  "version": "v0.3",
+  "protocol": "fit train (459); score frozen valid (87); test sealed (130); input old_snippet + api_guess",
+  "classes": [
+    "checked_api",
+    "slice_view",
+    "init_memory",
+    "capacity_ops",
+    "safe_wrapper",
+    "interior_mutability",
+    "pin_api",
+    "restructure",
+    "unnecessary",
+    "other",
+    "retain"
+  ],
+  "sizes": {
+    "train": 459,
+    "valid": 87,
+    "test_sealed": 130,
+    "train_mechanisms": {
+      "retain": 375,
+      "checked_api": 20,
+      "safe_wrapper": 17,
+      "init_memory": 16,
+      "restructure": 13,
+      "capacity_ops": 7,
+      "unnecessary": 7,
+      "interior_mutability": 3,
+      "slice_view": 1
+    }
+  },
+  "models": {
+    "majority": {
+      "joint_valid": {
+        "n": 87,
+        "accuracy": 0.7471264367816092,
+        "macro_f1": 0.1069078947368421,
+        "predicted_mechanism_on_retain": 0,
+        "predicted_retain_on_y": 22
+      },
+      "y_valid": {
+        "n": 22,
+        "top1": 0.0,
+        "top3": 0.13636363636363635,
+        "macro_f1": 0.0,
+        "support": {
+          "safe_wrapper": 10,
+          "capacity_ops": 3,
+          "init_memory": 3,
+          "unnecessary": 2,
+          "interior_mutability": 2,
+          "restructure": 1,
+          "slice_view": 1
+        },
+        "confusion_pairs": [
+          {
+            "true": "safe_wrapper",
+            "pred": "retain",
+            "n": 10
+          },
+          {
+            "true": "capacity_ops",
+            "pred": "retain",
+            "n": 3
+          },
+          {
+            "true": "init_memory",
+            "pred": "retain",
+            "n": 3
+          },
+          {
+            "true": "unnecessary",
+            "pred": "retain",
+            "n": 2
+          },
+          {
+            "true": "interior_mutability",
+            "pred": "retain",
+            "n": 2
+          },
+          {
+            "true": "restructure",
+            "pred": "retain",
+            "n": 1
+          },
+          {
+            "true": "slice_view",
+            "pred": "retain",
+            "n": 1
+          }
+        ]
+      },
+      "y_valid_top1_ci95": [
+        0.0,
+        0.0
+      ],
+      "cv": null,
+      "y_cv": null
+    },
+    "api_lookup": {
+      "joint_valid": {
+        "n": 87,
+        "accuracy": 0.6551724137931034,
+        "macro_f1": 0.13650793650793652,
+        "predicted_mechanism_on_retain": 11,
+        "predicted_retain_on_y": 16
+      },
+      "y_valid": {
+        "n": 22,
+        "top1": 0.13636363636363635,
+        "top3": 0.13636363636363635,
+        "macro_f1": 0.09523809523809523,
+        "support": {
+          "safe_wrapper": 10,
+          "capacity_ops": 3,
+          "init_memory": 3,
+          "unnecessary": 2,
+          "interior_mutability": 2,
+          "restructure": 1,
+          "slice_view": 1
+        },
+        "confusion_pairs": [
+          {
+            "true": "safe_wrapper",
+            "pred": "retain",
+            "n": 10
+          },
+          {
+            "true": "capacity_ops",
+            "pred": "init_memory",
+            "n": 3
+          },
+          {
+            "true": "unnecessary",
+            "pred": "retain",
+            "n": 2
+          },
+          {
+            "true": "interior_mutability",
+            "pred": "retain",
+            "n": 2
+          },
+          {
+            "true": "restructure",
+            "pred": "retain",
+            "n": 1
+          },
+          {
+            "true": "slice_view",
+            "pred": "retain",
+            "n": 1
+          }
+        ]
+      },
+      "y_valid_top1_ci95": [
+        0.0,
+        0.27386363636363015
+      ],
+      "cv": null,
+      "y_cv": null
+    },
+    "char_lr": {
+      "joint_valid": {
+        "n": 87,
+        "accuracy": 0.7471264367816092,
+        "macro_f1": 0.19984239558707642,
+        "predicted_mechanism_on_retain": 4,
+        "predicted_retain_on_y": 15
+      },
+      "y_valid": {
+        "n": 22,
+        "top1": 0.18181818181818182,
+        "top3": 0.8181818181818182,
+        "macro_f1": 0.17857142857142858,
+        "support": {
+          "safe_wrapper": 10,
+          "capacity_ops": 3,
+          "init_memory": 3,
+          "unnecessary": 2,
+          "interior_mutability": 2,
+          "restructure": 1,
+          "slice_view": 1
+        },
+        "confusion_pairs": [
+          {
+            "true": "safe_wrapper",
+            "pred": "retain",
+            "n": 9
+          },
+          {
+            "true": "capacity_ops",
+            "pred": "init_memory",
+            "n": 2
+          },
+          {
+            "true": "unnecessary",
+            "pred": "retain",
+            "n": 2
+          },
+          {
+            "true": "interior_mutability",
+            "pred": "retain",
+            "n": 2
+          },
+          {
+            "true": "safe_wrapper",
+            "pred": "checked_api",
+            "n": 1
+          },
+          {
+            "true": "restructure",
+            "pred": "retain",
+            "n": 1
+          },
+          {
+            "true": "slice_view",
+            "pred": "retain",
+            "n": 1
+          }
+        ]
+      },
+      "y_valid_top1_ci95": [
+        0.045454545454545456,
+        0.36363636363636365
+      ],
+      "cv": {
+        "n": 459,
+        "accuracy": 0.8017429193899782,
+        "macro_f1": 0.1956352611114516,
+        "predicted_mechanism_on_retain": 20,
+        "predicted_retain_on_y": 54
+      },
+      "y_cv": {
+        "n": 84,
+        "top1": 0.15476190476190477,
+        "top3": 0.5595238095238095,
+        "macro_f1": 0.12852887852887854,
+        "support": {
+          "checked_api": 20,
+          "safe_wrapper": 17,
+          "init_memory": 16,
+          "restructure": 13,
+          "capacity_ops": 7,
+          "unnecessary": 7,
+          "interior_mutability": 3,
+          "slice_view": 1
+        },
+        "confusion_pairs": [
+          {
+            "true": "safe_wrapper",
+            "pred": "retain",
+            "n": 16
+          },
+          {
+            "true": "checked_api",
+            "pred": "retain",
+            "n": 12
+          },
+          {
+            "true": "init_memory",
+            "pred": "retain",
+            "n": 8
+          },
+          {
+            "true": "unnecessary",
+            "pred": "retain",
+            "n": 7
+          },
+          {
+            "true": "restructure",
+            "pred": "retain",
+            "n": 5
+          },
+          {
+            "true": "init_memory",
+            "pred": "capacity_ops",
+            "n": 4
+          },
+          {
+            "true": "restructure",
+            "pred": "init_memory",
+            "n": 4
+          }
+        ]
+      }
+    },
+    "char_api_lr": {
+      "joint_valid": {
+        "n": 87,
+        "accuracy": 0.6666666666666666,
+        "macro_f1": 0.2424242424242424,
+        "predicted_mechanism_on_retain": 12,
+        "predicted_retain_on_y": 14
+      },
+      "y_valid": {
+        "n": 22,
+        "top1": 0.22727272727272727,
+        "top3": 0.6363636363636364,
+        "macro_f1": 0.2738095238095238,
+        "support": {
+          "safe_wrapper": 10,
+          "capacity_ops": 3,
+          "init_memory": 3,
+          "unnecessary": 2,
+          "interior_mutability": 2,
+          "restructure": 1,
+          "slice_view": 1
+        },
+        "confusion_pairs": [
+          {
+            "true": "safe_wrapper",
+            "pred": "retain",
+            "n": 9
+          },
+          {
+            "true": "capacity_ops",
+            "pred": "init_memory",
+            "n": 2
+          },
+          {
+            "true": "unnecessary",
+            "pred": "retain",
+            "n": 2
+          },
+          {
+            "true": "safe_wrapper",
+            "pred": "checked_api",
+            "n": 1
+          },
+          {
+            "true": "interior_mutability",
+            "pred": "retain",
+            "n": 1
+          },
+          {
+            "true": "restructure",
+            "pred": "retain",
+            "n": 1
+          }
+        ]
+      },
+      "y_valid_top1_ci95": [
+        0.045454545454545456,
+        0.4090909090909091
+      ],
+      "cv": {
+        "n": 459,
+        "accuracy": 0.7668845315904139,
+        "macro_f1": 0.20100777924772958,
+        "predicted_mechanism_on_retain": 38,
+        "predicted_retain_on_y": 46
+      },
+      "y_cv": {
+        "n": 84,
+        "top1": 0.17857142857142858,
+        "top3": 0.6071428571428571,
+        "macro_f1": 0.1532738095238095,
+        "support": {
+          "checked_api": 20,
+          "safe_wrapper": 17,
+          "init_memory": 16,
+          "restructure": 13,
+          "capacity_ops": 7,
+          "unnecessary": 7,
+          "interior_mutability": 3,
+          "slice_view": 1
+        },
+        "confusion_pairs": [
+          {
+            "true": "safe_wrapper",
+            "pred": "retain",
+            "n": 10
+          },
+          {
+            "true": "checked_api",
+            "pred": "retain",
+            "n": 9
+          },
+          {
+            "true": "restructure",
+            "pred": "retain",
+            "n": 9
+          },
+          {
+            "true": "unnecessary",
+            "pred": "retain",
+            "n": 7
+          },
+          {
+            "true": "init_memory",
+            "pred": "retain",
+            "n": 7
+          },
+          {
+            "true": "init_memory",
+            "pred": "capacity_ops",
+            "n": 4
+          },
+          {
+            "true": "restructure",
+            "pred": "init_memory",
+            "n": 4
+          }
+        ]
+      }
+    }
+  },
+  "conditional": {
+    "name": "conditional_char_lr",
+    "conditional_rows": {
+      "train": 84,
+      "valid": 22
+    },
+    "top1": 0.45454545454545453,
+    "top3": 0.8636363636363636,
+    "macro_f1": 0.3384353741496598,
+    "family_top1": 0.4090909090909091,
+    "family_top3": 0.8181818181818182,
+    "family_macro_f1": 0.23500000000000001,
+    "predicted_distribution": {
+      "init_memory": 5,
+      "safe_wrapper": 5,
+      "interior_mutability": 5,
+      "unnecessary": 3,
+      "capacity_ops": 2,
+      "slice_view": 1,
+      "checked_api": 1
+    },
+    "confusion_pairs": [
+      {
+        "true": "capacity_ops",
+        "pred": "init_memory",
+        "n": 2
+      },
+      {
+        "true": "safe_wrapper",
+        "pred": "unnecessary",
+        "n": 2
+      },
+      {
+        "true": "safe_wrapper",
+        "pred": "interior_mutability",
+        "n": 2
+      },
+      {
+        "true": "safe_wrapper",
+        "pred": "slice_view",
+        "n": 1
+      },
+      {
+        "true": "safe_wrapper",
+        "pred": "checked_api",
+        "n": 1
+      },
+      {
+        "true": "interior_mutability",
+        "pred": "capacity_ops",
+        "n": 1
+      }
+    ],
+    "majority_baseline": {
+      "mechanism": {
+        "top1": 0.0,
+        "top3": 0.5909090909090909,
+        "classes": [
+          "checked_api",
+          "safe_wrapper",
+          "init_memory"
+        ]
+      },
+      "family": {
+        "top1": 0.2727272727272727,
+        "top3": 0.7727272727272727,
+        "classes": [
+          "memory",
+          "checked",
+          "safe_api"
+        ]
+      }
+    }
+  }
+}
