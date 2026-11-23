@@ -423,6 +423,7 @@ accuracy is below a constant-`Y` baseline, so accuracy alone is misleading.
 | 2026-11-23 | Abstention stage: best suggestion precision 0.545 on valid, target 0.8; calibration cannot fix the snippet-only model. See [abstention-v0.1.md](abstention-v0.1.md) |
 | 2026-11-23 | Pair-level ranker baseline: hard-negative AUC 0.97-0.99 but the signal is six numeric features; near-miss ranking at chance (0.611). See [pair-ranker-v0.1.md](pair-ranker-v0.1.md) |
 | 2026-11-23 | Classifier view: binary AUC 0.655, family macro-F1 0.322; labels reproducible (blind κ 0.96 / 0.80) so the fix-vs-warning gap is the issue. See [classification-v0.1.md](classification-v0.1.md) |
+| 2026-11-23 | Hazard taxonomy (12 classes) + classifier: 0.684 acc / 0.519 macro F1 vs human valid labels; rules vs human κ 0.765. See [hazard-classifier-v0.1.md](hazard-classifier-v0.1.md) |
 | Pair model (not NIRM 4) | Train the SafeNet-style pair classifier on `safeify-data/synth/out/train_mixed.csv` (8,580 clean pairs after the 2026-11-18 rebuild; `splits/check_train_leakage.py` must pass); evaluate on the frozen core as external validation. First path: frozen-BERT cache + pair head, see [bert-pair-model.md](bert-pair-model.md) |
 
 The dataset build must not delay the NIRM 3 report. The pilot is enough to

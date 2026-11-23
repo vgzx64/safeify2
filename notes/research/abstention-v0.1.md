@@ -1,5 +1,9 @@
 # Abstention stage v0.1 — can the mechanism model be made safe to deploy?
 
+> **Scope note (2026-11-23):** abstention is part of the classifier (`retain` is
+> a class). The pair-ranker proposal at the end is auxiliary analysis, not the
+> deliverable; the model classifies unsafe usage, it does not generate fixes.
+
 > **Status:** negative result · 2026-11-23 · policies tuned on grouped
 > out-of-fold train predictions, scored once on the frozen 87-row valid split ·
 > best reachable suggestion precision 0.545 (n=11), target 0.80 · calibration

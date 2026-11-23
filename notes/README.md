@@ -28,11 +28,29 @@ Working notes for the dissertation and the SafeNet experiments.
 | [research/gnn-coder-evaluation.md](research/gnn-coder-evaluation.md) | Historical | 2026-09-22 evaluation of GNN-Coder as a research candidate |
 | [research/transition-dataset.md](research/transition-dataset.md) | Active | Classification/retrieval dataset plan; `transitions-core` v0.2 frozen |
 | [research/transition-dataset-pilot.md](research/transition-dataset-pilot.md) | Frozen | v0.2 frozen: 433 rows; 8 gates pass; leakage 0; binary target verified (kappa 0.82); M/N not reproducible; one-sided model does not transfer |
+| [research/transition-expansion-v0.3.md](research/transition-expansion-v0.3.md) | Historical | v0.3 draft: 469 audited expansion rows; held-out AUC flat; no high-precision operating point |
+| [research/mechanism-model-v0.1.md](research/mechanism-model-v0.1.md) | Historical | Mechanism taxonomy + first mechanism classifier (139 Y; conditional top-1 0.455) |
+| [research/mechanism-model-v0.2.md](research/mechanism-model-v0.2.md) | Historical | Version-history scale-up (train Y 84 -> 185; conditional top-1 0.636) |
+| [research/mechanism-model-v0.3.md](research/mechanism-model-v0.3.md) | Historical | rust_ecosystem git-mirror scale-up (train Y 318; fine top-1 saturates, family improves) |
+| [research/abstention-v0.1.md](research/abstention-v0.1.md) | Historical | Precision-first abstention: best valid suggestion precision 0.545 vs target 0.80 |
+| [research/pair-ranker-v0.1.md](research/pair-ranker-v0.1.md) | Historical | Auxiliary pair-ranker analysis: hard-negative AUC 0.97 but signal is shallow; near-miss at chance. Not the deliverable |
+| [research/classification-v0.1.md](research/classification-v0.1.md) | Historical | Classifier view (binary/family/mechanism), blind label reliability, hazard-category target proposal |
+| [research/hazard-classifier-v0.1.md](research/hazard-classifier-v0.1.md) | Active | Hazard taxonomy (12 classes), rule labels, blind human agreement, hazard classifier (0.684 acc / 0.519 macro F1 on valid) |
 
 ## Historical material
 
 Historical snapshots have been removed from the working tree because git history
 preserves them. Only canonical active, frozen, or draft documents remain here.
+
+## Scope of the learned model
+
+The learned deliverable is a **classifier of unsafe usage** (classify a site's
+hazard category and/or remediation class; `retain` when none applies). It is
+not a code generator, not a patch ranker, and not a compiler-verification
+pipeline. Notes that framed the model as a repair assistant are historical:
+[abstention-v0.1.md](research/abstention-v0.1.md) and
+[pair-ranker-v0.1.md](research/pair-ranker-v0.1.md) are auxiliary analyses of
+labels and candidates, not the product.
 
 ## Conventions
 

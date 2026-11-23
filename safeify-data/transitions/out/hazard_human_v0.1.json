@@ -1,0 +1,253 @@
+{
+  "human_valid_labels": 87,
+  "valid_rows": 87,
+  "rule_vs_human": {
+    "rows": 87,
+    "agreement": 0.7931034482758621,
+    "kappa": 0.7651469706058789,
+    "human_distribution": {
+      "unsafe_trait": 15,
+      "ffi_boundary": 14,
+      "raw_ownership": 12,
+      "uninit_memory": 12,
+      "raw_deref": 9,
+      "unsafe_call": 8,
+      "raw_memory": 7,
+      "reinterpret": 5,
+      "manual_capacity": 5
+    }
+  },
+  "model_vs_human": {
+    "n": 79,
+    "accuracy": 0.6835443037974683,
+    "macro_f1": 0.5188083538083539,
+    "per_class": {
+      "raw_ownership": {
+        "precision": 0.9,
+        "recall": 0.75,
+        "f1": 0.8181818181818182,
+        "support": 12
+      },
+      "manual_capacity": {
+        "precision": 0.8333333333333334,
+        "recall": 1.0,
+        "f1": 0.9090909090909091,
+        "support": 5
+      },
+      "raw_memory": {
+        "precision": 0.625,
+        "recall": 0.7142857142857143,
+        "f1": 0.6666666666666666,
+        "support": 7
+      },
+      "uninit_memory": {
+        "precision": 1.0,
+        "recall": 0.6666666666666666,
+        "f1": 0.8,
+        "support": 12
+      },
+      "reinterpret": {
+        "precision": 1.0,
+        "recall": 0.2,
+        "f1": 0.3333333333333333,
+        "support": 5
+      },
+      "raw_deref": {
+        "precision": 0.42857142857142855,
+        "recall": 1.0,
+        "f1": 0.6,
+        "support": 9
+      },
+      "unchecked_index": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "support": 0
+      },
+      "ffi_boundary": {
+        "precision": 1.0,
+        "recall": 0.14285714285714285,
+        "f1": 0.25,
+        "support": 14
+      },
+      "unsafe_trait": {
+        "precision": 0.6818181818181818,
+        "recall": 1.0,
+        "f1": 0.8108108108108109,
+        "support": 15
+      },
+      "unsafe_contract": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "support": 0
+      }
+    },
+    "top_confusions": [
+      {
+        "true": "ffi_boundary",
+        "pred": "raw_deref",
+        "n": 6
+      },
+      {
+        "true": "ffi_boundary",
+        "pred": "unsafe_trait",
+        "n": 6
+      },
+      {
+        "true": "uninit_memory",
+        "pred": "raw_deref",
+        "n": 3
+      },
+      {
+        "true": "reinterpret",
+        "pred": "raw_deref",
+        "n": 2
+      },
+      {
+        "true": "raw_ownership",
+        "pred": "manual_capacity",
+        "n": 1
+      },
+      {
+        "true": "raw_ownership",
+        "pred": "raw_memory",
+        "n": 1
+      },
+      {
+        "true": "raw_ownership",
+        "pred": "unsafe_contract",
+        "n": 1
+      },
+      {
+        "true": "raw_memory",
+        "pred": "raw_deref",
+        "n": 1
+      },
+      {
+        "true": "raw_memory",
+        "pred": "unsafe_trait",
+        "n": 1
+      },
+      {
+        "true": "uninit_memory",
+        "pred": "raw_memory",
+        "n": 1
+      }
+    ]
+  },
+  "model_vs_rules_same_rows": {
+    "n": 79,
+    "accuracy": 0.6708860759493671,
+    "macro_f1": 0.5645299552559081,
+    "per_class": {
+      "raw_ownership": {
+        "precision": 1.0,
+        "recall": 0.6666666666666666,
+        "f1": 0.8,
+        "support": 15
+      },
+      "manual_capacity": {
+        "precision": 0.6666666666666666,
+        "recall": 1.0,
+        "f1": 0.8,
+        "support": 4
+      },
+      "raw_memory": {
+        "precision": 0.625,
+        "recall": 1.0,
+        "f1": 0.7692307692307693,
+        "support": 5
+      },
+      "uninit_memory": {
+        "precision": 1.0,
+        "recall": 0.7272727272727273,
+        "f1": 0.8421052631578947,
+        "support": 11
+      },
+      "reinterpret": {
+        "precision": 1.0,
+        "recall": 0.3333333333333333,
+        "f1": 0.5,
+        "support": 3
+      },
+      "raw_deref": {
+        "precision": 0.38095238095238093,
+        "recall": 1.0,
+        "f1": 0.5517241379310345,
+        "support": 8
+      },
+      "unchecked_index": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "support": 1
+      },
+      "ffi_boundary": {
+        "precision": 1.0,
+        "recall": 0.4,
+        "f1": 0.5714285714285714,
+        "support": 5
+      },
+      "unsafe_trait": {
+        "precision": 0.6818181818181818,
+        "recall": 1.0,
+        "f1": 0.8108108108108109,
+        "support": 15
+      },
+      "unsafe_contract": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "support": 1
+      }
+    },
+    "top_confusions": [
+      {
+        "true": "uninit_memory",
+        "pred": "raw_deref",
+        "n": 3
+      },
+      {
+        "true": "ffi_boundary",
+        "pred": "raw_deref",
+        "n": 3
+      },
+      {
+        "true": "raw_ownership",
+        "pred": "manual_capacity",
+        "n": 2
+      },
+      {
+        "true": "raw_ownership",
+        "pred": "raw_memory",
+        "n": 2
+      },
+      {
+        "true": "raw_ownership",
+        "pred": "unsafe_contract",
+        "n": 1
+      },
+      {
+        "true": "reinterpret",
+        "pred": "raw_memory",
+        "n": 1
+      },
+      {
+        "true": "reinterpret",
+        "pred": "raw_deref",
+        "n": 1
+      },
+      {
+        "true": "unchecked_index",
+        "pred": "unsafe_trait",
+        "n": 1
+      },
+      {
+        "true": "unsafe_contract",
+        "pred": "raw_deref",
+        "n": 1
+      }
+    ]
+  }
+}

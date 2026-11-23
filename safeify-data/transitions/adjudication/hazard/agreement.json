@@ -1,0 +1,93 @@
+{
+  "rows": 60,
+  "annotators": [
+    "a",
+    "b"
+  ],
+  "distribution_a": {
+    "ffi_boundary": 10,
+    "unchecked_index": 6,
+    "unsafe_contract": 5,
+    "unsafe_call": 5,
+    "unknown": 5,
+    "raw_memory": 5,
+    "uninit_memory": 4,
+    "raw_deref": 4,
+    "manual_capacity": 4,
+    "raw_ownership": 4,
+    "reinterpret": 4,
+    "unsafe_trait": 4
+  },
+  "distribution_b": {
+    "unsafe_call": 8,
+    "unsafe_contract": 5,
+    "unchecked_index": 5,
+    "uninit_memory": 5,
+    "raw_deref": 5,
+    "raw_ownership": 5,
+    "reinterpret": 5,
+    "ffi_boundary": 5,
+    "raw_memory": 5,
+    "manual_capacity": 4,
+    "unknown": 4,
+    "unsafe_trait": 4
+  },
+  "pairs": {
+    "a_rules_kappa": 0.7818181818181819,
+    "a_rules_agreement": 0.8,
+    "b_rules_kappa": 0.8727272727272728,
+    "b_rules_agreement": 0.8833333333333333,
+    "a_b_kappa": 0.8544572468162523,
+    "a_b_agreement": 0.8666666666666667,
+    "a_b_disagreements": [
+      {
+        "id": "cratesio:RUSTSEC-2020-0074:pyo3:0.11.1->0.12.4:src/gil.rs:148:3",
+        "a": "ffi_boundary",
+        "b": "raw_ownership",
+        "rule": "raw_ownership"
+      },
+      {
+        "id": "ver:heapless:0.9.3->0.9.4:src/pool/arc.rs:277:5",
+        "a": "raw_deref",
+        "b": "reinterpret",
+        "rule": "reinterpret"
+      },
+      {
+        "id": "hunk:1430:7b06ad38ed:examples/opengl_window.rs:94:3",
+        "a": "ffi_boundary",
+        "b": "unsafe_call",
+        "rule": "uninit_memory"
+      },
+      {
+        "id": "hunk:892:0ccce16928:src/collector.rs:192:4",
+        "a": "unknown",
+        "b": "unsafe_call",
+        "rule": "unsafe_call"
+      },
+      {
+        "id": "git:lluvz_AutoVec:e9c4894a4edb:src/lib.rs:166",
+        "a": "unchecked_index",
+        "b": "raw_deref",
+        "rule": "manual_capacity"
+      },
+      {
+        "id": "cratesio:RUSTSEC-2020-0071:time:0.2.22->0.2.23:src/utc_offset.rs:319:5",
+        "a": "ffi_boundary",
+        "b": "uninit_memory",
+        "rule": "uninit_memory"
+      },
+      {
+        "id": "ver:openssl:0.10.75->0.10.76:src/dsa.rs:493:2",
+        "a": "ffi_boundary",
+        "b": "raw_deref",
+        "rule": "raw_deref"
+      },
+      {
+        "id": "cratesio:RUSTSEC-2016-0001:openssl:0.8.3->0.9.0:src/ssl/mod.rs:1009:30",
+        "a": "ffi_boundary",
+        "b": "unsafe_call",
+        "rule": "unsafe_trait"
+      }
+    ]
+  }
+}

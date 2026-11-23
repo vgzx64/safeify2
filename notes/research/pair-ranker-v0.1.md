@@ -1,5 +1,11 @@
 # Pair-level ranker v0.1 — can a model verify a candidate replacement?
 
+> **Scope note (2026-11-23):** this analysis is auxiliary and closed. The
+> project deliverable is a **classifier of unsafe usage**, not a repair
+> pipeline. The three-layer generator/ranker/compiler architecture discussed
+> below is an analysis of what the labels mean, not a build plan; do not turn it
+> into the product.
+
 > **Status:** baseline · 2026-11-23 · valid AUC 0.97-0.99 on random and
 > same-mechanism hard negatives · but the signal is 6 hand-written numeric
 > features; char n-grams alone are worse than chance · natural negatives are

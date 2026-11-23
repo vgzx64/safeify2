@@ -1,5 +1,11 @@
 # safeify-data/transitions — CVE transition mining
 
+> **Scope:** the learned deliverable is a **classifier of unsafe usage** (hazard
+> category and/or remediation class, `retain` when none applies), not a code
+> generator or repair pipeline. The pair-ranker and compiler-verification
+> material below is auxiliary analysis of labels and candidates; do not build it
+> out as the model's product.
+
 > **Status: v0.2 FROZEN · 2026-11-08 · 433 rows · 8 gates pass · split leakage 0 · binary label target verified by two blind spot-checks**
 >
 > Design: [transition dataset plan](../../notes/research/transition-dataset.md)
@@ -114,6 +120,8 @@ The DB is opened read-only. Parent commits come from `ext_commits`, because
 | `baseline_abstention.py` + `out/abstention_v0.1.{json,md}` | abstention policies (argmax, margin, two-stage gate) with risk-coverage on valid |
 | `baseline_pair.py` + `out/baseline_pair_v0.1.{json,md}` | pair-level ranker `(old, candidate_new)` with natural and hard negatives, feature ablation |
 | `baseline_classification.py` + `out/baseline_classification_v0.5.{json,md}` | classifier view: binary, family and mechanism levels with per-class metrics |
+| `hazard_taxonomy.py`, `baseline_hazard.py` + `out/baseline_hazard_v0.1.{json,md}` | 12-class hazard taxonomy and classifier (the working target) |
+| `make_hazard_audit.py`, `score_hazard_agreement.py`, `make_hazard_valid_batches.py`, `hazard_human_eval.py` | rule labels, blind 60-row agreement, 87-row human valid labels, model-vs-human evaluation |
 | `features_unsafe.py`, `baseline_features.py` + `out/baseline_features_v0.5.{json,md}` | fingerprint features (unsafe API, FFI, pointers, memory shape) for binary classification |
 | `make_agreement_sample.py`, `score_agreement.py` + `adjudication/agreement/` | blind 60-row re-annotation: binary κ 0.96, mechanism κ 0.80 |
 | `adjudication/gate_batches.json` | gate-closing run: 161 queue rows + 170 expansion families |
@@ -277,6 +285,16 @@ well-posed target is the **hazard category** of the unsafe site (ffi_boundary,
 unchecked_index, uninit_memory, manual_capacity, raw_ownership, reinterpret,
 unsafe_trait, unsafe_contract), with the mechanism kept as a conditional second
 stage. See [classification-v0.1.md](../../notes/research/classification-v0.1.md).
+
+## Hazard classifier (2026-11-23)
+
+The working classification target is the site's **hazard class** (12 classes,
+`hazard_taxonomy.py`). Rule labels agree with blind humans at 0.793 (κ 0.765);
+a classifier trained on rule labels reaches 0.684 accuracy / 0.519 macro F1
+against human valid labels, versus 0.237 macro F1 for the mechanism target. The
+gap is `ffi_boundary` (rules cannot see C calls behind Rust wrappers) and
+`unsafe_call` (42 % of the corpus delegates its contract). Full write-up:
+[hazard-classifier-v0.1.md](../../notes/research/hazard-classifier-v0.1.md).
 
 ## Important caveats
 

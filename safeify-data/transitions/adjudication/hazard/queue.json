@@ -1,0 +1,61 @@
+{
+  "rows": 962,
+  "unknown_share": 0.017,
+  "by_split": {
+    "train": {
+      "unsafe_call": 311,
+      "reinterpret": 80,
+      "raw_deref": 65,
+      "raw_ownership": 61,
+      "manual_capacity": 45,
+      "unsafe_trait": 42,
+      "uninit_memory": 37,
+      "unsafe_contract": 29,
+      "raw_memory": 26,
+      "unchecked_index": 25,
+      "unknown": 16,
+      "ffi_boundary": 8
+    },
+    "valid": {
+      "unsafe_call": 19,
+      "raw_ownership": 15,
+      "unsafe_trait": 15,
+      "uninit_memory": 11,
+      "raw_deref": 8,
+      "ffi_boundary": 5,
+      "raw_memory": 5,
+      "manual_capacity": 4,
+      "reinterpret": 3,
+      "unchecked_index": 1,
+      "unsafe_contract": 1
+    },
+    "test": {
+      "unsafe_call": 43,
+      "unchecked_index": 15,
+      "unsafe_trait": 14,
+      "raw_ownership": 13,
+      "uninit_memory": 10,
+      "manual_capacity": 9,
+      "raw_memory": 9,
+      "raw_deref": 6,
+      "reinterpret": 5,
+      "ffi_boundary": 3,
+      "unsafe_contract": 3
+    }
+  },
+  "sample": 60,
+  "sample_by_hazard": {
+    "unsafe_contract": 5,
+    "unchecked_index": 5,
+    "uninit_memory": 5,
+    "raw_deref": 5,
+    "manual_capacity": 5,
+    "unknown": 5,
+    "raw_ownership": 5,
+    "reinterpret": 5,
+    "ffi_boundary": 5,
+    "raw_memory": 5,
+    "unsafe_call": 5,
+    "unsafe_trait": 5
+  }
+}
