@@ -1,7 +1,7 @@
 # GNN-Coder Evaluation for SafeNet Enhancement
 
 > **Status: historical · 2026-09-22 · Decision input, not implementation status.**
-> See the [GNN experiment README](../../experiments/gnn/README.md) for the implementation state. Current status is prototype-only, not
+> See the [GNN experiment README](../../../experiments/gnn/README.md) for the implementation state. Current status is prototype-only, not
 > integrated, with no measured improvement.
 
 **Candidate:** Ye et al. (2025) - "GNN-Coder: Boosting Semantic Code Retrieval with Combined GNNs and Transformer" (arXiv:2502.15202)
@@ -194,7 +194,7 @@ The GNN output (graph-level embedding from pooling) is combined with Transformer
 
 ## 5. Hardware and Accessibility Assessment
 
-The [research vectors](research-vectors.md) constraint is: *"Maintain inference & training accessible to average consumer hardware"*
+The [research vectors](../research-vectors.md) constraint is: *"Maintain inference & training accessible to average consumer hardware"*
 
 **GNN-Coder overhead:**
 - GNN layers add some parameters but are generally lightweight compared to transformers
@@ -278,7 +278,7 @@ Before committing to GNN-Coder specifically, consider:
 
 8. **Integrate with dataflow filter** — use GNN embeddings as additional signal
 9. **Optimize for inference speed** — graph construction caching, model quantization if needed
-10. **Evaluate on full test set** with all the metrics from [research vectors](research-vectors.md)
+10. **Evaluate on full test set** with all the metrics from [research vectors](../research-vectors.md)
 
 ---
 

@@ -416,13 +416,13 @@ accuracy is below a constant-`Y` baseline, so accuracy alone is misleading.
 | 2026-11-08 | Second + focused M/N spot-checks; 3 corrections; M/N shown non-reproducible; **v0.2 frozen** (433 rows, binary target) |
 | 2026-10-29–11-08 | NIRM 3 report is the priority; do not start the full build |
 | 2026-11-08 | Freeze `transitions-core` v0.2 |
-| 2026-11-22 | v0.3 draft: 469 untouched rows audited (+243 usable, 30 Y); held-out AUC flat (0.624); no operating point reaches precision 0.7 → no fine-tune. See [transition-expansion-v0.3.md](transition-expansion-v0.3.md) |
-| 2026-11-23 | Target reframed to safe-remediation mechanism: 139 Y rows labelled; conditional top-1 0.455 / top-3 0.864 (22 valid Y). See [mechanism-model-v0.1.md](mechanism-model-v0.1.md) |
-| 2026-11-23 | Mechanism labels scaled with version-history mining (+240 audited pairs, train Y 84→185); conditional top-1 0.636, family 0.636. See [mechanism-model-v0.2.md](mechanism-model-v0.2.md) |
-| 2026-11-23 | rust_ecosystem git mirrors mined (17,276 pairs, 569 repos); +200 audited (155 Y), train Y 314; fine top-1 saturates at ~0.6, family 0.682. See [mechanism-model-v0.3.md](mechanism-model-v0.3.md) |
-| 2026-11-23 | Abstention stage: best suggestion precision 0.545 on valid, target 0.8; calibration cannot fix the snippet-only model. See [abstention-v0.1.md](abstention-v0.1.md) |
-| 2026-11-23 | Pair-level ranker baseline: hard-negative AUC 0.97-0.99 but the signal is six numeric features; near-miss ranking at chance (0.611). See [pair-ranker-v0.1.md](pair-ranker-v0.1.md) |
-| 2026-11-23 | Classifier view: binary AUC 0.655, family macro-F1 0.322; labels reproducible (blind κ 0.96 / 0.80) so the fix-vs-warning gap is the issue. See [classification-v0.1.md](classification-v0.1.md) |
+| 2026-11-22 | v0.3 draft: 469 untouched rows audited (+243 usable, 30 Y); held-out AUC flat (0.624); no operating point reaches precision 0.7 → no fine-tune. See [transition-expansion-v0.3.md](historical/transition-expansion-v0.3.md) |
+| 2026-11-23 | Target reframed to safe-remediation mechanism: 139 Y rows labelled; conditional top-1 0.455 / top-3 0.864 (22 valid Y). See [mechanism-model-v0.1.md](historical/mechanism-model-v0.1.md) |
+| 2026-11-23 | Mechanism labels scaled with version-history mining (+240 audited pairs, train Y 84→185); conditional top-1 0.636, family 0.636. See [mechanism-model-v0.2.md](historical/mechanism-model-v0.2.md) |
+| 2026-11-23 | rust_ecosystem git mirrors mined (17,276 pairs, 569 repos); +200 audited (155 Y), train Y 314; fine top-1 saturates at ~0.6, family 0.682. See [mechanism-model-v0.3.md](historical/mechanism-model-v0.3.md) |
+| 2026-11-23 | Abstention stage: best suggestion precision 0.545 on valid, target 0.8; calibration cannot fix the snippet-only model. See [abstention-v0.1.md](historical/abstention-v0.1.md) |
+| 2026-11-23 | Pair-level ranker baseline: hard-negative AUC 0.97-0.99 but the signal is six numeric features; near-miss ranking at chance (0.611). See [pair-ranker-v0.1.md](historical/pair-ranker-v0.1.md) |
+| 2026-11-23 | Classifier view: binary AUC 0.655, family macro-F1 0.322; labels reproducible (blind κ 0.96 / 0.80) so the fix-vs-warning gap is the issue. See [classification-v0.1.md](historical/classification-v0.1.md) |
 | 2026-11-23 | Hazard taxonomy (12 classes) + classifier: 0.684 acc / 0.519 macro F1 vs human valid labels; rules vs human κ 0.765. See [hazard-classifier-v0.1.md](hazard-classifier-v0.1.md) |
 | 2026-11-23 | Human-supervised hazard classifier: 300 blind train labels, 0.696 acc / 0.550 macro F1 on human valid. See [hazard-classifier-v0.1.md](hazard-classifier-v0.1.md#human-supervised-run) |
 | Pair model (not NIRM 4) | Train the SafeNet-style pair classifier on `safeify-data/synth/out/train_mixed.csv` (8,580 clean pairs after the 2026-11-18 rebuild; `splits/check_train_leakage.py` must pass); evaluate on the frozen core as external validation. First path: frozen-BERT cache + pair head, see [bert-pair-model.md](bert-pair-model.md) |

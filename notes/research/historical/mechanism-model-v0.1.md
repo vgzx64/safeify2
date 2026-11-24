@@ -4,7 +4,7 @@
 > 84 train / 22 valid Y rows · top-1 0.455 (95 % CI 0.227-0.636) · top-3 0.864 ·
 > not deployable; the label budget is the limit, not the idea.
 
-Follows the negative binary result ([transition-expansion-v0.3.md](transition-expansion-v0.3.md)).
+Follows the negative binary result ([transition-expansion-v0.3.md](historical/transition-expansion-v0.3.md)).
 The binary target asked "did the maintainer replace it?" and capped at AUC 0.62
 with no precision above 0.625. This line changes the target: **what safe
 mechanism does the fix use, or does unsafe stay?** A mechanism is visible in the

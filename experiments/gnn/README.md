@@ -153,6 +153,6 @@ This is the BERT-only control; it does not use graph inputs.
 
 ## Related documents
 
-- [Research rationale](../../notes/research/gnn-coder-evaluation.md)
+- [Research rationale](../../notes/research/historical/gnn-coder-evaluation.md)
 - [Research vectors](../../notes/research/research-vectors.md)
 - [Repository index](../../README.md)

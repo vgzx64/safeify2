@@ -48,7 +48,7 @@ the model's job, it is out of scope: bring it back to classification.
 - [`notes/research/engine.md`](notes/research/engine.md) — semantic engine documentation
 - [`notes/research/bert-pair-model.md`](notes/research/bert-pair-model.md) — planned pair-model work
 - [`notes/research/pair-dataset.md`](notes/research/pair-dataset.md) — pair-classification dataset: sources, construction gates, final sizes
-- [`notes/research/classification-v0.1.md`](notes/research/classification-v0.1.md) — classifier view: binary/family/mechanism targets, label reliability, hazard-category proposal
+- [`notes/research/classification-v0.1.md`](notes/research/historical/classification-v0.1.md) — classifier view: binary/family/mechanism targets, label reliability, hazard-category proposal
 - [`notes/research/hazard-classifier-v0.1.md`](notes/research/hazard-classifier-v0.1.md) — hazard taxonomy, label agreement, hazard classifier results
 - [`papers/my_dissertation_plan.md`](papers/my_dissertation_plan.md) — formal milestones
 

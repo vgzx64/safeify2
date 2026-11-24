@@ -4,7 +4,7 @@
 > audited (153 Y) · train Y 84 → 185 (2.2×) · conditional top-1 0.455 → 0.636,
 > family top-1 0.409 → 0.636 on the frozen 22 valid Y rows · abstention still weak.
 
-Follows [mechanism-model-v0.1.md](mechanism-model-v0.1.md), which replaced the
+Follows [mechanism-model-v0.1.md](historical/mechanism-model-v0.1.md), which replaced the
 binary replaceability target with the safe-remediation mechanism and hit the
 84-train-Y label ceiling (conditional top-1 0.455, top-3 0.864). This round
 scales the labels using crate version history, where a diff between two

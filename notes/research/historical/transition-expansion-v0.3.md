@@ -4,7 +4,7 @@
 > 469 new rows adjudicated · frozen valid/test unchanged · verdict: expansion
 > in this range does **not** move held-out quality; no GPU fine-tune.
 
-Follows the v0.2 baseline suite ([`safeify-data/transitions/README.md`](../../safeify-data/transitions/README.md#baseline-suite-2026-11-21)).
+Follows the v0.2 baseline suite ([`safeify-data/transitions/README.md`](../../../safeify-data/transitions/README.md#baseline-suite-2026-11-21)).
 The question was whether more labelled rows lift the transfer ceiling (valid
 AUC 0.64) before spending GPU time on a fine-tune.
 
@@ -41,7 +41,7 @@ break the frozen comparison or stay sealed.
 `make_expansion_queue.py` dropped undecidable rows (empty old or new snippet)
 and wrote ten batches of up to 48 rows (469 total) with clipped snippets.
 Each batch was adjudicated independently under
-[`adjudication/RUBRIC.md`](../../safeify-data/transitions/adjudication/RUBRIC.md)
+[`adjudication/RUBRIC.md`](../../../safeify-data/transitions/adjudication/RUBRIC.md)
 and merged by `merge_expansion_labels.py`, which rejects missing/extra ids,
 illegal enums, a Y whose new snippet still contains an unsafe operation, an M
 without quoted evidence, and a U without a veto reason.

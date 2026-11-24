@@ -20,7 +20,7 @@ not a change to make before the baseline exists.
   flattening to improve accuracy.
 - Ye et al., 2025 — GNN-Coder is a good candidate. Evaluate this candidate.
 
-See the [GNN-Coder evaluation](gnn-coder-evaluation.md) and the
+See the [GNN-Coder evaluation](historical/gnn-coder-evaluation.md) and the
 [GNN experiment README](../../experiments/gnn/README.md).
 
 **Proposed architecture enhancement:**

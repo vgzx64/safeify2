@@ -5,7 +5,7 @@
 > conditional top-1 0.591, top-3 0.864, family top-1 0.682 · fine-grained top-1
 > saturated after ~185 Y; abstention is now the blocker.
 
-Follows [mechanism-model-v0.2.md](mechanism-model-v0.2.md). The label budget was
+Follows [mechanism-model-v0.2.md](historical/mechanism-model-v0.2.md). The label budget was
 the ceiling; this round asks whether the existing rust_ecosystem corpus can lift
 it, and what it is actually good for.
 

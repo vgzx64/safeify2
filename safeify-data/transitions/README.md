@@ -178,7 +178,7 @@ recall 0.318 -> 0.364 at 0.5). The hard ceiling is that **no operating point
 on valid reaches precision 0.7** (max 0.625), so there is nothing to calibrate
 a high-precision abstaining tool on. No GPU fine-tune; the next lever is more
 audited positives (crates.io advisory pairs) and a pair-classification setup.
-Full write-up: [transition-expansion-v0.3.md](../../notes/research/transition-expansion-v0.3.md).
+Full write-up: [transition-expansion-v0.3.md](../../notes/research/historical/transition-expansion-v0.3.md).
 
 ## Mechanism model (2026-11-23)
 
@@ -199,7 +199,7 @@ top-1 is at the dominant-class rate and the label budget (84 train Y) is the
 limit. Train/valid mechanism mixes differ sharply (`checked_api` 20 train vs 0
 valid), so the estimate is fragile. Next: scale mechanism labels from crate
 version history. Full write-up:
-[mechanism-model-v0.1.md](../../notes/research/mechanism-model-v0.1.md).
+[mechanism-model-v0.1.md](../../notes/research/historical/mechanism-model-v0.1.md).
 
 ## Mechanism scaling (2026-11-23, v0.2)
 
@@ -219,7 +219,7 @@ architecture. Abstention in the joint task regressed (26 mechanism suggestions
 on 65 M/N valid rows), so that still needs a calibrated stage. The rule labeller
 is too weak (0.65 fine precision at 47 % coverage) to supervise training; it is
 used only for sampling strata. Full write-up:
-[mechanism-model-v0.2.md](../../notes/research/mechanism-model-v0.2.md).
+[mechanism-model-v0.2.md](../../notes/research/historical/mechanism-model-v0.2.md).
 
 ## Mechanism scaling from rust_ecosystem (2026-11-23, v0.3)
 
@@ -239,7 +239,7 @@ abstention got worse (47/65 M/N rows get a mechanism), so the next problem is a
 calibration stage, then a pair-level ranker. The vulnerability study's
 `compiler_result_v3` spans and `repos_worktree` trees are structural material
 for later features; `CVEfixes.db` block tables carry spans but no text.
-Full write-up: [mechanism-model-v0.3.md](../../notes/research/mechanism-model-v0.3.md).
+Full write-up: [mechanism-model-v0.3.md](../../notes/research/historical/mechanism-model-v0.3.md).
 
 ## Abstention (2026-11-23)
 
@@ -258,7 +258,7 @@ The CV-selected margin reaches 0.806 precision at 4.8 % coverage, but on valid
 it flags 11 rows at 0.545; no margin gets above 0.545. Calibration cannot create
 the missing signal. The next lever is a pair-level ranker that receives the
 candidate fix as an input. Full write-up:
-[abstention-v0.1.md](../../notes/research/abstention-v0.1.md).
+[abstention-v0.1.md](../../notes/research/historical/abstention-v0.1.md).
 
 ## Pair-level ranker (2026-11-23)
 
@@ -273,7 +273,7 @@ candidate) the ranker is at chance: real above perturbed in 0.611 of 36
 comparisons, and it prefers a guard-dropped candidate 75 % of the time. The
 compiler/tests must therefore be the verification authority; the model is a
 compatibility ranker.
-Full write-up: [pair-ranker-v0.1.md](../../notes/research/pair-ranker-v0.1.md).
+Full write-up: [pair-ranker-v0.1.md](../../notes/research/historical/pair-ranker-v0.1.md).
 
 ## Classification view (2026-11-23)
 
@@ -285,7 +285,7 @@ the labels describe the fix while the model sees only the warning. The proposed
 well-posed target is the **hazard category** of the unsafe site (ffi_boundary,
 unchecked_index, uninit_memory, manual_capacity, raw_ownership, reinterpret,
 unsafe_trait, unsafe_contract), with the mechanism kept as a conditional second
-stage. See [classification-v0.1.md](../../notes/research/classification-v0.1.md).
+stage. See [classification-v0.1.md](../../notes/research/historical/classification-v0.1.md).
 
 ## Hazard classifier (2026-11-23)
 
